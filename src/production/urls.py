@@ -164,6 +164,8 @@ urlpatterns = [
 
     #
     path('annuler_quittance/', AnnulerQuittanceView.as_view(), name='annuler_quittance'),
+
+    # path('generate-pdf/', views.generate_user_list_pdf, name='generate_user_list_pdf'),
 ]
 
 

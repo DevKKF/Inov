@@ -134,7 +134,7 @@ class Police(models.Model):
     date_fin_effet = models.DateField()
     date_fin_police = models.DateField(null=True)
     preavis_de_resiliation = models.CharField(max_length=50, null=True)  # False
-    mode_renouvellement = models.CharField(choices=ModeRenouvellement.choices, max_length=50, null=True)  # False
+    # mode_renouvellement = models.CharField(choices=ModeRenouvellement.choices, max_length=50, null=True)  # False
 
     fractionnement = models.ForeignKey(Fractionnement, on_delete=models.RESTRICT, null=True)  # False
     mode_reglement = models.ForeignKey(ModeReglement, on_delete=models.RESTRICT, null=True)  # False

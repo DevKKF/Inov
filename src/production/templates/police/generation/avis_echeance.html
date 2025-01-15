@@ -2,80 +2,82 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-
     <style>
-*{
-    margin: 0;
-    padding: 0;
-    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-     font-size: 20px;
-}
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
 
-img{
-    width: 20%;
-    margin-top: 2%;
-    margin-left: 20px;
-}
+        body {
+             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 1.5rem;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        .site_logo img {
+            width: 100px;
+            margin: 20px;
+        }
+
+        .container {
+         margin: 0 auto;
+         padding: 5px;
+        }
+
+        .adress {
+            margin-left: 30rem;
+             line-height: 1.5rem;
+        }
 
 
-.container{
-    position: absolute;
-    margin-left: 50px;
-}
-
-.adress{
-    float: right;
-    line-height: 3rem;
-
-}
+        .text {
+            margin-top: 30px;
+            line-height: 1.8;
+        }
 
 
-.info-police{
-    margin-top: 20%;
-    line-height: 3rem;
 
-}
+        strong {
+            font-weight: bold;
+        }
 
-.text{
-    line-height: 2.3rem;
-}
+        .underline {
+            text-decoration: underline;
+        }
+
     </style>
 </head>
 <body>
-
-       <div class="site_logo">
+    <div class="site_logo">
         <img src="{{logo}}" alt="AXIS">
     </div>
     <div class="container">
+        <div class="adress">
+            <p>Abidjan le {{date_jour}}</p>
+            <p><strong>{{nom_client}}</strong></p>
+            <p><strong>{{ adress_client }}</strong></p>
+        </div>
 
-    <div class="adress">
-        <p>Abidjan le {{date_jour}}</p>
-        <p style="font-size: smalle;"><strong>{{nom_client.nom}}</strong></p>
-<!--        <p style="font-size: smalle;"><strong>adress du client</strong></p>-->
-    </div>
+        <div style="position:relative;clear:both;margin-top: 600px;line-height: 1.8;">
+            <strong>{{ numero_police }}</strong>
+            <p><span class="underline">A L'ATTENTION DE</span> : <strong>{{nom_client}}</strong></p>
+            <p>Objet : Avis Echeance</p>
+            <p>Police : <strong>{{ numero_police }} - {{ nom_produit }}</strong></p>
+        </div>
 
+        <p style="font-weight: bold;">Madame, Monsieur,</p>
 
-    <div class="info-police">
-        <strong>{{ numero_police }}</strong>
-        <p><span style="text-decoration: underline;">A L'ATTENTION DE</span> : <Strong>{{nom_client.nom}}</Strong> </p>
-        <p>Objet : Avis Echeance</p>
-        <p>Police : <strong>{{ numero_police }} - {{ nom_produit }} </strong></p>
-    </div>
-
-
-        <p style="margin-top: 3rem;font-weight: bold;">Madame, Monsieur,</p>
         <div class="text">
-        <p>
-            Nous avons l'honneur de vous informer que votre police rappelée en objet arrive à expiration le <span style="font-weight: bold;">{{date_fin_effet}}</span>.
-        </p>
-        <p>
+            Nous avons l'honneur de vous informer que votre police rappelée en objet arrive à expiration le <strong>{{date_fin_effet}}</strong>.
             Aussi, la prime à payer pour le renouvellement de la police est de <strong>{{montant_renouvellement}} F CFA.</strong>
-        </p>
-        <p>
-            Dans l'attente de vos ordres, recevez,<strong> Madame, Monsieur,</strong> nos salutations distinguées.
-        </p>
-    </div>
-        <p style="text-align: right;margin-top: 3rem;">La responsable de production</p>
+            Dans l'attente de vos ordres, recevez, <strong>Madame, Monsieur,</strong> nos salutations distinguées.
+        </div>
+            <div>
+                <h4 style="text-align: left; margin-top: 50px;text-decoration: underline">La responsable de production</h4>
+            </div>
     </div>
 </body>
 </html>

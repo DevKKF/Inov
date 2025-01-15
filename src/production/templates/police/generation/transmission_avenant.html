@@ -4,41 +4,50 @@
     <meta charset="UTF-8">
 
      <style>
-*{
-    margin: 0;
-    padding: 0;
-    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-     font-size: 20px;
-}
+ @page {
+            size: A4;
+            margin: 2cm;
+        }
 
-img{
-    width: 20%;
-    margin-top: 2%;
-    margin-left: 20px;
-}
+        body {
+             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 1.5rem;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        .site_logo img {
+            width: 100px;
+            margin: 20px;
+        }
+
+        .container {
+         margin: 0 auto;
+         padding: 5px;
+        }
+
+        .adress {
+            margin-left: 30rem;
+             line-height: 1.5rem;
+        }
 
 
-.container{
-    position: absolute;
-    margin-left: 50px;
-}
-
-.adress{
-    float: right;
-    line-height: 3rem;
-
-}
+        .text {
+            margin-top: 30px;
+            line-height: 1.8;
+        }
 
 
-.info-police{
-    margin-top: 20%;
-    line-height: 3rem;
 
-}
+        strong {
+            font-weight: bold;
+        }
 
-.text{
-    line-height: 2.3rem;
-}
+        .underline {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -49,15 +58,15 @@ img{
     <div class="container">
 
     <div class="adress">
-        <p>Abidjan le {{date_jour}}</p>
-        <p style="font-size: smalle;"><strong>{{nom_client.nom}}</strong></p>
-<!--        <p style="font-size: smalle;"><strong>adress du client</strong></p>-->
-    </div>
+            <p>Abidjan le {{date_jour}}</p>
+            <p><strong>{{nom_client}}</strong></p>
+            <p><strong>{{ adress_client }}</strong></p>
+        </div>
 
 
     <div class="info-police">
         <strong>{{ numero_police }}</strong>
-        <p><span style="text-decoration: underline;">A L'ATTENTION DE</span> : <Strong>{{nom_client.nom}}</Strong> </p>
+        <p><span style="text-decoration: underline;">A L'ATTENTION DE</span> : <Strong>{{nom_client}}</Strong> </p>
         <p>Objet : Transmission Avenant</p>
         <p>Police : <strong>{{ numero_police }} - {{ nom_produit }} </strong></p>
         <p>Période : <strong> {{ date_debut_effet }} - {{ date_fin_effet }} </strong></p>
@@ -78,7 +87,7 @@ img{
              Recevez,<strong> Madame, Monsieur,</strong> nos meilleures salutations.
         </p>
     </div>
-        <p style="text-align: right;margin-top: 3rem;">La responsable de production</p>
+        <h4 style="text-align: left; margin-top: 50px; text-decoration: underline">La responsable de production</h4>
     </div>
 </body>
 </html>

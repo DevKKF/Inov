@@ -2,6 +2,7 @@
 import datetime
 import json
 import os
+import platform
 import re
 import uuid
 
@@ -16,6 +17,7 @@ from pprint import pprint
 from sqlite3 import Date
 import locale
 from docx import Document
+import html
 from docx.shared import Inches
 from num2words import num2words
 from django.templatetags.static import static
@@ -56,6 +58,7 @@ from django.http import JsonResponse, HttpResponse, FileResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.template.loader import get_template
 from django.template.loader import render_to_string
+import tempfile
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
@@ -8736,69 +8739,128 @@ class AnnulerQuittanceView(TemplateView):
         }
 
 
+def get_wkhtmltopdf_path():
+    """
+    Retourne le chemin approprié pour wkhtmltopdf selon le système d'exploitation.
+    """
+    system = platform.system()
+    if system == "Windows":
+        # Chemin pour Windows
+        return r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+    elif system == "Linux":
+        # Chemin pour Linux
+        return '/usr/bin/wkhtmltopdf'  # Chemin habituel sur les systèmes Linux
+    elif system == "Darwin":
+        # Chemin pour macOS
+        return '/usr/local/bin/wkhtmltopdf'  # Chemin habituel pour macOS
+    else:
+        raise EnvironmentError("Système d'exploitation non supporté pour wkhtmltopdf.")
 
 
-def generer_courrier(request, police_id, courrier_id):
-    # Vérifie que la police existe
+# def generer_courrier(request, police_id, courrier_id):
+#     # Vérifie que la police existe
+#     police = get_object_or_404(Police, id=police_id)
+#     courrier = get_object_or_404(Courrier, id=courrier_id)
+#
+#     historique_police = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+#
+#     assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id,type_compagnie_id=1).first() if historique_police else []
+#     autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id).exclude(ype_compagnie_id=1).first()
+#
+#     date_du_jour = datetime.now().strftime('%d/%m/%Y')
+#
+#     # Vérifier si le type de courrier a un template associé
+#     if not courrier.type_courrier:
+#         return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
+#
+#
+#     # recuperqtion du logo
+#     site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
+#     print("Logo : ", site_logo_url)
+#
+#     # Configuration du locale pour le formatage
+#     locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
+#
+#     # formatage de la prime
+#     prime_ttc = historique_police.prime_ttc
+#     prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)}"
+#
+#     # Conversion du montant en texte
+#     prime_ttc_en_lettres = num2words(prime_ttc, lang='fr').capitalize() + " F CFA"
+#
+#
+#     # Utilisation du système de templates Django pour charger un fichier HTML
+#     template_name = f"police/generation/{courrier.type_courrier.nom.lower().replace(' ', '_')}.html"
+#     try:
+#         template_content = render_to_string(template_name, {
+#             'nom_client': historique_police.client,
+#             'numero_police': historique_police.numero,
+#             'nom_produit': historique_police.produit,
+#             'numero_quittance': '',
+#             'date_debut_effet': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
+#             'date_fin_effet': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
+#             'montant_renouvellement': prime_formatee,
+#             'montant_renouvellement_en_lettres': prime_ttc_en_lettres,
+#             'date_jour': date_du_jour,
+#             # 'compagnie':historique_police.compagnie,
+#             'logo': site_logo_url
+#         })
+#     except FileNotFoundError:
+#         return HttpResponse(f"Erreur : Le template '{template_name}' est introuvable.", status=404)
+#
+#     wkhtmltopdf_path = get_wkhtmltopdf_path()
+#     pdfkit_config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
+#
+#     # Générer le PDF depuis le contenu HTML
+#     try:
+#         pdf = pdfkit.from_string(template_content, False, configuration=pdfkit_config)
+#
+#     except Exception as e:
+#         return HttpResponse(f"Erreur lors de la génération du PDF : {e}", status=500)
+#
+#     # Retourner le PDF comme réponse HTTP
+#     response = HttpResponse(pdf, content_type='application/pdf')
+#     response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.pdf"'
+#     return response
+
+
+
+def generer_courrier(request , police_id, courrier_id):
+    users = User.objects.all()
     police = get_object_or_404(Police, id=police_id)
     courrier = get_object_or_404(Courrier, id=courrier_id)
     historique_police = get_object_or_404(HistoriquePolice, id=police_id)
 
-    date_du_jour = datetime.now().strftime('%d/%m/%Y')
 
-    # Vérifier si le type de courrier a un template associé
-    if not courrier.type_courrier:
-        return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
-
-
-    # recuperqtion du logo
     site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
     print("Logo : ", site_logo_url)
 
     # Configuration du locale pour le formatage
     locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
-    # formatage de la prime
-    prime_ttc = historique_police.prime_ttc
-    prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)}"
-
-    # Conversion du montant en texte
-    prime_ttc_en_lettres = num2words(prime_ttc, lang='fr').capitalize() + " F CFA"
-
-
-    # Utilisation du système de templates Django pour charger un fichier HTML
+    template_content =  {
+        'nom_client': historique_police.client.nom,
+        'adress_client': historique_police.client.adresse,
+        'numero_police': historique_police.numero,
+        'nom_produit': historique_police.produit,
+        'numero_quittance': '',
+        'date_debut_effet': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
+        'date_fin_effet': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
+        'montant_renouvellement': f"{locale.format_string('%.0f', historique_police.prime_ttc, grouping=True)}",
+        'montant_renouvellement_en_lettres': num2words(historique_police.prime_ttc, lang='fr').capitalize() + " F CFA",
+        'date_jour': datetime.now().strftime('%d/%m/%Y'),
+        # 'compagnie':historique_police.compagnie,
+        'logo': site_logo_url
+    }
     template_name = f"police/generation/{courrier.type_courrier.nom.lower().replace(' ', '_')}.html"
-    try:
-        template_content = render_to_string(template_name, {
-            'nom_client': historique_police.client,
-            'numero_police': historique_police.numero,
-            'nom_produit': historique_police.produit,
-            'numero_quittance': '',
-            'date_debut_effet': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
-            'date_fin_effet': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
-            'montant_renouvellement': prime_formatee,
-            'montant_renouvellement_en_lettres': prime_ttc_en_lettres,
-            'date_jour': date_du_jour,
-            'compagnie':historique_police.compagnie,
-            'logo': site_logo_url
-        })
-    except FileNotFoundError:
-        return HttpResponse(f"Erreur : Le template '{template_name}' est introuvable.", status=404)
+
+    pdf = render_pdf( template_name, template_content)
+    # response = HttpResponse(File(pdf), content_type='application/pdf')
+    # response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.pdf"'
+    return HttpResponse(File(pdf), content_type='application/pdf')
 
 
-    pdfkit_config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
 
-    # Générer le PDF depuis le contenu HTML
-    try:
-        pdf = pdfkit.from_string(template_content, False, configuration=pdfkit_config)
-
-    except Exception as e:
-        return HttpResponse(f"Erreur lors de la génération du PDF : {e}", status=500)
-
-    # Retourner le PDF comme réponse HTTP
-    response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.pdf"'
-    return response
 
 
 
@@ -8842,9 +8904,9 @@ def generer_word(request, police_id, courrier_id):
         'DATE_DEBUT_EFFET': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
         'DATE_FIN_EFFET': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
         'MONTANT_RENOUVELLEMENT': prime_formatee,
-        'MONTANT_RENOUVELLEMENT_EN_LETTRES':  f"{num2words(historique_police.prime_ttc, lang='fr').capitalize()} F CFA",
+        'LETTRES':  f"{num2words(historique_police.prime_ttc, lang='fr').capitalize()} F CFA",
         'DATE_JOUR': date_du_jour,
-        'COMPAGNIE': historique_police.compagnie,
+        # 'COMPAGNIE': historique_police.compagnie,
     }
 
     replacements = {}
@@ -8903,4 +8965,6 @@ def generer_word(request, police_id, courrier_id):
     document.save(response)
 
     return response
+
+
 
