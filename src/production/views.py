@@ -86,15 +86,14 @@ from production.forms import ContactForm, FilialeForm, AcompteForm, DocumentForm
 from production.models import FormuleRubriquePrefinance, ModePrefinancement, Motif, Mouvement, Aliment, Client, Police, \
     Courrier, Acompte, Document, Filiale, AutreRisque, PoliceGarantie, AlimentPolice, \
     Contact, Quittance, SecteurActivite, TypeDocument, AlimentFormule, Statut, FormuleGarantie, MouvementPolice, \
-    StatutQuittance,  Quittance,\
+    StatutQuittance,  Quittance,PoliceAssureur,\
     Genre, StatutFamilial, PlacementEtGestion, ModeRenouvellement, CalculTM, ApporteurPolice, TaxePolice, \
     TaxeQuittance, Reglement, OptionYesNo, Carte, TypeMajorationContrat, Vehicule, VehiculePolice, Energie, \
     StatutPolice, Operation, TarifPrestataireClient, PeriodeCouverture, Bareme, MouvementAliment, \
     OperationReglement, HistoriquePolice, HistoriqueApporteurPolice, HistoriqueTaxePolice
 from production.templatetags.my_filters import money_field
 from shared.enum import StatutIncorporation, StatutValidite, StatutEnrolement, StatutTraitement, \
-    StatutPolice, Operation, TarifPrestataireClient, PeriodeCouverture, Bareme, AlimentTemporaire, MouvementAliment, \
-    OperationReglement, HistoriquePolice, HistoriqueApporteurPolice, HistoriqueTaxePolice, Marchandise, HistoriqueAliment
+    StatutReversementCompagnie, StatutValiditeQuittance
 from production.templatetags.my_filters import money_field, convertir_date_multiformat, supprimer_espaces
 from shared.enum import StatutIncorporation, StatutValidite, StatutSinistre, StatutEnrolement, StatutTraitement, \
     StatutReversementCompagnie, StatutValiditeQuittance
@@ -9882,28 +9881,7 @@ class AnnulerQuittanceView(TemplateView):
         }
 
 
-# Annulation de la quittance
-def add_annuler_quittance(request):
-    if request.method == "POST":
-        id_item = request.POST.get('id_item')
-        motif_delete_item = request.POST.get('motif_delete_item')
-        type_commission = "GESTION" if type == "courtage" else "COURTAGE"
-def get_wkhtmltopdf_path():
-    """
-    Retourne le chemin approprié pour wkhtmltopdf selon le système d'exploitation.
-    """
-    system = platform.system()
-    if system == "Windows":
-        # Chemin pour Windows
-        return r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
-    elif system == "Linux":
-        # Chemin pour Linux
-        return '/usr/bin/wkhtmltopdf'  # Chemin habituel sur les systèmes Linux
-    elif system == "Darwin":
-        # Chemin pour macOS
-        return '/usr/local/bin/wkhtmltopdf'  # Chemin habituel pour macOS
-    else:
-        raise EnvironmentError("Système d'exploitation non supporté pour wkhtmltopdf.")
+
 
 
 # def generer_courrier(request, police_id, courrier_id):
@@ -9975,31 +9953,42 @@ def get_wkhtmltopdf_path():
 
 
 def generer_courrier(request , police_id, courrier_id):
-    users = User.objects.all()
     police = get_object_or_404(Police, id=police_id)
     courrier = get_object_or_404(Courrier, id=courrier_id)
-    historique_police = get_object_or_404(HistoriquePolice, id=police_id)
 
+    # Récupérer le dernier historique de la police
+    historique_police = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+    # Récupérer l'assureur associé à l'historique
+    assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id,
+                                                    type_compagnie_id=1).first()
+
+    date_fin_effet_plus_un = historique_police.date_fin_effet + timedelta(days=1)
+    date_renouvellement = date_fin_effet_plus_un.strftime('%d/%m/%Y')
 
     site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
     print("Logo : ", site_logo_url)
+    print("Client : ", police.client)
+    print('date_renouvellement', date_renouvellement)
 
     # Configuration du locale pour le formatage
     locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
     template_content =  {
-        'nom_client': historique_police.client.nom,
-        'adress_client': historique_police.client.adresse,
-        'numero_police': historique_police.numero,
-        'nom_produit': historique_police.produit,
-        'numero_quittance': '',
+        'nom_client': police.client.nom,
+        'code_client': police.client.code,
+        'adress_client': police.client.adresse,
+        'numero_police': police.numero,
+        'nom_produit': police.produit.nom,
+        'nom_courrier': courrier.designation,
         'date_debut_effet': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
         'date_fin_effet': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
         'montant_renouvellement': f"{locale.format_string('%.0f', historique_police.prime_ttc, grouping=True)}",
         'montant_renouvellement_en_lettres': num2words(historique_police.prime_ttc, lang='fr').capitalize() + " F CFA",
         'date_jour': datetime.now().strftime('%d/%m/%Y'),
-        # 'compagnie':historique_police.compagnie,
-        'logo': site_logo_url
+        'compagnie':assureur_police.compagnie,
+        'date_renouvellement': date_renouvellement,
+        'site_logo_url': site_logo_url
     }
     template_name = f"police/generation/{courrier.type_courrier.nom.lower().replace(' ', '_')}.html"
 
@@ -10007,8 +9996,6 @@ def generer_courrier(request , police_id, courrier_id):
     # response = HttpResponse(File(pdf), content_type='application/pdf')
     # response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.pdf"'
     return HttpResponse(File(pdf), content_type='application/pdf')
-
-
 
 
 
@@ -10027,6 +10014,104 @@ def generer_word(request, police_id, courrier_id):
     # Vérifier si le type de courrier a un template associé
     if not courrier.type_courrier:
         return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
+
+    # Configuration du locale pour le formatage
+    locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
+
+    # Formatage de la prime
+    prime_ttc = historique_police.prime_ttc
+    prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)} F CFA"
+
+
+    # Charger le modèle Word existant
+    doc_path = os.path.join(settings.BASE_DIR, 'production', 'templates', 'police', 'courriers', "Appel de prime.docx")
+    document = docx.Document(doc_path)
+
+    # Dictionnaire des remplacements pour le texte
+    base_replacements = {
+        'NOM_CLIENT': historique_police.client.nom,
+        'NUMERO_POLICE': historique_police.numero,
+        'NOM_PRODUIT': historique_police.produit,
+        # 'numero_quittance': quittance,
+        'DATE_DEBUT_EFFET': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
+        'DATE_FIN_EFFET': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
+        'MONTANT_RENOUVELLEMENT': prime_formatee,
+        'LETTRES':  f"{num2words(historique_police.prime_ttc, lang='fr').capitalize()} F CFA",
+        'DATE_JOUR': date_du_jour,
+        # 'COMPAGNIE': historique_police.compagnie,
+    }
+
+    replacements = {}
+    for key, value in base_replacements.items():
+        formats = [
+            f'«{key}»', f'"{key}"', key
+        ]
+        for fmt in formats:
+            replacements[fmt] = str(value) if value else ""
+
+
+    # Fonction pour remplacer les placeholders dans les paragraphes
+    def replace_placeholders_in_paragraph(paragraph):
+        original_text = paragraph.text
+        new_text = original_text
+
+        for placeholder, value in replacements.items():
+            if placeholder in new_text:
+                new_text = new_text.replace(placeholder, value)
+
+        if new_text != original_text:
+            first_run = paragraph.runs[0] if paragraph.runs else paragraph.add_run()
+            first_run.text = new_text
+            for run in paragraph.runs[1:]:
+                run.clear()
+
+    # Fonction pour remplacer les placeholders dans le document entier (paragraphes et tables)
+    def replace_placeholders_in_document(document):
+        for paragraph in document.paragraphs:
+            replace_placeholders_in_paragraph(paragraph)
+
+        for table in document.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        replace_placeholders_in_paragraph(paragraph)
+
+        for section in document.sections:
+            for paragraph in section.header.paragraphs + section.footer.paragraphs:
+                replace_placeholders_in_paragraph(paragraph)
+            for table in section.header.tables + section.footer.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        for paragraph in cell.paragraphs:
+                            replace_placeholders_in_paragraph(paragraph)
+
+    # Remplacement des placeholders dans le document
+    replace_placeholders_in_document(document)
+
+
+    # Sauvegarder le document Word dans une réponse HTTP
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.docx"'
+
+    # Sauvegarde le document dans la réponse
+    document.save(response)
+
+    return response
+
+
+
+
+
+
+
+
+
+# Annulation de la quittance
+def add_annuler_quittance(request):
+    if request.method == "POST":
+        id_item = request.POST.get('id_item')
+        motif_delete_item = request.POST.get('motif_delete_item')
+        type_commission = "GESTION" if type == "courtage" else "COURTAGE"
 
         quittance = Quittance.objects.filter(id=id_item, bureau=request.user.bureau).first()
 
@@ -10067,19 +10152,6 @@ def generer_word(request, police_id, courrier_id):
                         reglement_ristourne.statut_validite = StatutValidite.SUPPRIME
                         reglement_ristourne.save()
 
-    # Dictionnaire des remplacements pour le texte
-    base_replacements = {
-        'NOM_CLIENT': historique_police.client.nom,
-        'NUMERO_POLICE': historique_police.numero,
-        'NOM_PRODUIT': historique_police.produit,
-        # 'numero_quittance': quittance,
-        'DATE_DEBUT_EFFET': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
-        'DATE_FIN_EFFET': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
-        'MONTANT_RENOUVELLEMENT': prime_formatee,
-        'LETTRES':  f"{num2words(historique_police.prime_ttc, lang='fr').capitalize()} F CFA",
-        'DATE_JOUR': date_du_jour,
-        # 'COMPAGNIE': historique_police.compagnie,
-    }
                     if reglement.statut_reversement_compagnie == "REVERSE":
                         if reglement.statut_commission == "ENCAISSEE":
                             encaiss_com = EncaissementCommission.objects.create(reglement=reglement,
@@ -10195,5 +10267,4 @@ def generer_word(request, police_id, courrier_id):
             return redirect(reverse('annuler_quittance'))
 
     return redirect(reverse('annuler_quittance'))
-
 

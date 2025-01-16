@@ -1,93 +1,91 @@
+{% load my_filters %}
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
+    <head>
+        <meta charset="UTF-8">
+        <title>Transmission Avenant</title>
+        <style>
+            .table th {
+                padding-top: 4px;
+                padding-bottom: 2px;
+                font-size:14px;
+                font-weight:none;
+            }
+        </style>
+    </head>
+    <body>
+        <table class="table">
+            <tr>
+                <th style="vertical-align:left"><img src="{{site_logo_url}}" alt="AXIS" width="190"></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </table>
+        <br><br>
+        <table class="table">
+            <tr>
+                <th></th>
+                <th></th>
+                <th style="text-align:left">
+                    <p>Abidjan le {{date_jour}}</p>
+                    <p><strong>{{nom_client}}</strong></p>
+                    <p><strong>{{adress_client}}</strong></p>
+                </th>
+            </tr>
+        </table>
+        <br><br>
+        <table class="table">
+            <tr>
+                <th style="text-align:left">{{code_client}}</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </table>
+        <br><br>
+        <table class="table">
+            <tr>
+                <th style="text-align:left"><u>A L’ATTENTION DE</u>: {{nom_client}}, <br></th>
+                <th></th>
+                <th></th>
+            </tr>
+            <tr>
+                <th style="text-align:left">Objet : {{nom_courrier}}</th>
+                <th></th>
+                <th></th>
+            </tr>
+            <tr>
+                <th colspan="3" style="text-align:left; margin-left:47px">Police <b>{{numero_police}} - {{nom_produit}}</b><br><br></th>
+            </tr>
+            <tr>
+                <th style="text-align:left"><b>Madame, Monsieur,</b></th>
+                <th></th>
+                <th></th>
+            </tr>
+            <tr>
+                <th colspan="3" style="text-align:left">
+                     Nous vous transmettons ci-joint trois (3) exemplaires du contrat cité en objet. <br><br>
+                    Merci de nous faire retour des doubles dûment signés et cachetés par vos soins.
+                    <br><br>
+                    Vous en souhaitant bonne réception, <br><br>
+                    Recevez,<b>Madame, Monsieur</b>, nos meilleures salutations.
+                </th>
+            </tr>
+            <tr>
+                <th><br><br><br><br></th>
+                <th></th>
+                <th style="text-align:left; font-weight:bold; font-size:15px"><u>La responsable Production</u></th>
+            </tr>
+        </table>
 
-     <style>
- @page {
-            size: A4;
-            margin: 2cm;
-        }
-
-        body {
-             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 1.5rem;
-            line-height: 1.5;
-            margin: 0;
-            padding: 0;
-            position: relative;
-        }
-
-        .site_logo img {
-            width: 100px;
-            margin: 20px;
-        }
-
-        .container {
-         margin: 0 auto;
-         padding: 5px;
-        }
-
-        .adress {
-            margin-left: 30rem;
-             line-height: 1.5rem;
-        }
-
-
-        .text {
-            margin-top: 30px;
-            line-height: 1.8;
-        }
-
-
-
-        strong {
-            font-weight: bold;
-        }
-
-        .underline {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="site_logo">
-        <img src="{{logo}}" alt="AXIS">
-    </div>
-    <div class="container">
-
-    <div class="adress">
-            <p>Abidjan le {{date_jour}}</p>
-            <p><strong>{{nom_client}}</strong></p>
-            <p><strong>{{ adress_client }}</strong></p>
-        </div>
-
-
-    <div class="info-police">
-        <strong>{{ numero_police }}</strong>
-        <p><span style="text-decoration: underline;">A L'ATTENTION DE</span> : <Strong>{{nom_client}}</Strong> </p>
-        <p>Objet : Transmission Avenant</p>
-        <p>Police : <strong>{{ numero_police }} - {{ nom_produit }} </strong></p>
-        <p>Période : <strong> {{ date_debut_effet }} - {{ date_fin_effet }} </strong></p>
-    </div>
-
-
-        <p style="margin-top: 3rem;font-weight: bold;">Madame, Monsieur,</p>
-        <div class="text">
-        <p>
-           Nous vous transmettons ci-joint trois (3) exemplaires du contrat cité en objet..
-        </p>
-        <p>
-             Merci de nous faire retour des doubles dûment signés et cachetés par vos soins.
-        </p>
-
-          <p>Vous en souhaitant bonne réception, </p>
-        <p>
-             Recevez,<strong> Madame, Monsieur,</strong> nos meilleures salutations.
-        </p>
-    </div>
-        <h4 style="text-align: left; margin-top: 50px; text-decoration: underline">La responsable de production</h4>
-    </div>
-</body>
+         <table class="table">
+            <tr style="border-top: 2px solid orangered;">
+                 <br><br><br><br><br><br><br>
+                <th style="color:#000; font-size:11px;  line-height: 22.5px;">
+                  Société de Courtage en Assurance au capital social de 1 000 000 FCFA Agréé sous le N° 230/MEF/DGTCP/DA-DEMO du 04 Juillet 2017 <br>
+                  RCCM N° CI-ABJ-2016-B-25253 - C.C N° 1649296 N - Tél. : 27 22 23 68 83 - Cel. : 07 07 58 17 69 51 / 01 01 03 38 64 83
+                  infos@abidjanaise-assurances.net - www.abidjanaise-assurances.ci
+                </th>
+            </tr>
+        </table>
+    </body>
 </html>
