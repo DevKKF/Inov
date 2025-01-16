@@ -155,7 +155,7 @@
 									<select class="form-control handle_calculer_montant_total_a_encaisser" name="compte_difference" id="compte_difference">
 										<option value="" selected>{{_("Choisir")}}</option>
 										{% for cte in comptes_exercices %}
-										<option value="{{ cte.id }}">{{ cte.libelle }}</option>
+											<option value="{{ cte.id }}">{{ cte.libelle }}</option>
 										{% endfor %}
 									</select>
 								</div>

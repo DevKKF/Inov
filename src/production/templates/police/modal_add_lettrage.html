@@ -4,7 +4,7 @@
 		<div class="modal-content">
 			<form enctype="multipart/form-data" id="form_add_lettrage" action="{% url 'add_lettrage' police.id %}" method="post">
 			{% csrf_token %}
-			<input type="hidden" name="uuid_lettrage" value="{{ uuid_lettrage }}"/>
+			<input type="hidden" name="uuid_reglement" value="{{uuid_reglement}}"/>
 			<div class="modal-header">
 				<h4 class="modal-title">{{_("FORMULAIRE DE LETTRAGE")}}</b></h4>
 				<button type="button"class="close"data-dismiss="modal"aria-label="Close">
@@ -33,14 +33,20 @@
                             <tbody>
                                 {% for acompte in acomptes %}
                                     <tr>
-                                        <td><input type="checkbox" class="checkbox_acompte_a_utiliser"/><input type="hidden" name="id_acompte" value="{{acompte.id}}"/></td>
+                                        <td>
+											<input type="checkbox" class="checkbox_acompte_a_utiliser" name="checkbox_acompte_a_utiliser_{{ acompte.id }}">
+											<input type="hidden" name="montant_acompte_{{acompte.id}}" value="{{acompte.id}}"/>
+										</td>
                                         <td>{{ acompte.date_versement|date:'d/m/Y'|default_if_none:"" }}</td>
                                         <td>{{ acompte.quittance.numero|default_if_none:"" }}</td>
                                         <td>{{ acompte.periode_debut|date:'d/m/Y'|default_if_none:"" }}</td>
                                         <td>{{ acompte.periode_fin|date:'d/m/Y'|default_if_none:"" }}</td>
                                         <td class="text-right">{{ acompte.debit|default_if_none:"0"|money_field }}</td>
                                         <td class="text-right">{{ acompte.credit|default_if_none:"0"|money_field }}</td>
-                                        <td class="text-right f-bold">{{ acompte.solde|default_if_none:"0"|money_field }}<input type="hidden" class="form-control solde_acompte" value="{{acompte.solde}}"/></td>
+                                        <td class="text-right f-bold">{{ acompte.solde|default_if_none:"0"|money_field }}
+											<input type="hidden" class="form-control solde_acompte" name="solde_acompte_{{acompte.id}}" value="{{acompte.solde}}"/>
+											<input type="hidden" class="form-control solde_restant_acompte" name="solde_restant_acompte_{{acompte.id}}" value=""/>
+										</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -74,14 +80,27 @@
 						  <tbody>
 							  {% for quittance_imp in quittances_impayees %}
 								<tr>
-								  <td><input type="checkbox" class="checkbox_quittance_a_regler"/><input type="hidden" name="quittance_regle" value="{{quittance_imp.id}}"/></td>
-								  <td><input type="text" class="form-control money_field_negative montant_a_regler" name="montant_regle" value="0" readonly/></td>
-								  <td>{{ quittance_imp.numero|default_if_none:"" }}</td>
-								  <td>{{ quittance_imp.date_debut|default_if_none:"" }}</td>
-								  <td>{{ quittance_imp.type_quittance.libelle|default_if_none:"" }}</td>
-								  <td class="text-right">{{ quittance_imp.prime_ttc|money_field }}<input type="hidden" class="form-control montant_quittance" value="{{quittance_imp.prime_ttc}}"/></td>
-								  <td class="text-right">{{ quittance_imp.solde|money_field }}<input type="hidden" class="form-control solde_quittance" value="{{quittance_imp.solde}}"/></td>
-								  <td class="text-right"><input type="text" class="form-control money_field_negative solde_apres" value="{{quittance_imp.solde}}" readonly/></td>
+  									<td>
+									  <input type="checkbox" class="checkbox_quittance_a_regler" name="checkbox_quittance_a_regler_{{ quittance_imp.id }}">
+									  <input type="hidden" name="quittance_a_solde_{{quittance_imp.id}}" value="{{quittance_imp.id}}"/>
+									</td>
+									<td>
+										<input type="text" class="form-control money_field_negative montant_a_regler" name="montant_a_regler_{{quittance_imp.id}}" value="0" readonly>
+										<input type="hidden" class="form-control montant_a_regler_transmit" name="montant_a_regler_transmit_{{quittance_imp.id}}" value="0">
+									</td>
+									<td>{{ quittance_imp.numero|default_if_none:"" }}</td>
+									<td>{{ quittance_imp.date_debut|default_if_none:"" }}</td>
+									<td>{{ quittance_imp.type_quittance.libelle|default_if_none:"" }}</td>
+									<td class="text-right">{{ quittance_imp.prime_ttc|money_field }}
+										<input type="hidden" class="form-control montant_quittance" value="{{quittance_imp.prime_ttc}}">
+									</td>
+									<td class="text-right">{{ quittance_imp.solde|money_field }}
+										<input type="hidden" class="form-control solde_quittance" name="solde_quittance_{{quittance_imp.id}}" value="{{quittance_imp.solde}}">
+									</td>
+									<td class="text-right">
+										<input type="text" class="form-control money_field_negative solde_apres" id="solde_apres" name="solde_apres_{{quittance_imp.id}}" value="{{quittance_imp.solde}}" readonly>
+										<input type="hidden" class="form-control solde_apres_transmit" id="solde_apres_transmit" name="solde_apres_transmit_{{quittance_imp.id}}" value="0">
+									</td>
 								</tr>
 							  {% endfor %}
 						  </tbody>

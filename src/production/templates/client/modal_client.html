@@ -11,7 +11,7 @@
 			</div>
 			<div class="modal-body">
 				<div class="alert  alert-dismissible fade show hidden" role="alert">
-				  <span class="message">{{_('TRAITEMENT_EN_COURS')}}</span>
+				  <span class="message">{{_("TRAITEMENT EN COURS")}}</span>
 				</div>
 				<div class="col-md-12 offset-0">
 					<ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -30,7 +30,7 @@
 											<select class="form-control" name="type_personne_id" id="type_personne_id" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for type_personne in types_personnes %}
-												<option value="{{ type_personne.id }}">{{ type_personne.libelle }}</option>
+													<option value="{{ type_personne.id }}">{{ type_personne.libelle }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -135,6 +135,18 @@
 										<label class="col-sm-5 col-form-label">{{_("Tel mobile")}} </label>
 										<div class="col-sm-7">
 											<input type="text" class="form-control" name="telephone_mobile" autocomplete="off" value="" onkeypress="isInputNumber(event)">
+										</div>
+									</div>
+
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">Commercial </label>
+										<div class="col-sm-7">
+											<select name="comptable_id" id="comptable_id" class="form-control tags-multiple">
+												<option value="">{{_('Choisir')}}</option>
+												{% for comptable in comptables %}
+													<option value="{{comptable.id}}">{{comptable.first_name}} {{comptable.last_name}}</option>
+												{% endfor %}
+											</select>
 										</div>
 									</div>
 

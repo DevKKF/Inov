@@ -6,7 +6,9 @@ import os
 import re
 import uuid
 
+import PyPDF2
 import docx
+import pdfkit
 import pypandoc
 from ast import literal_eval
 from datetime import date
@@ -25,7 +27,7 @@ from docx import Document
 from docx.shared import Inches
 from num2words import num2words
 from django.templatetags.static import static
-import pdfkit
+#import pdfkit
 from PyPDF2 import PdfReader
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
@@ -67,6 +69,7 @@ from fpdf import FPDF
 from urllib3 import request
 from xhtml2pdf import pisa
 from datetime import datetime, timezone
+from django.utils.timezone import now
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -78,28 +81,24 @@ from configurations.models import Compagnie, MarqueVehicule, Pays, Civilite, Qua
     Branche, ParamProduitCompagnie, CategorieVehicule, Banque, Carburant, Usage, Carosserie, \
     NatureOperation, TypeTarif, Prestataire, Acte, Rubrique, ReseauSoin, Periodicite, PrescripteurPrestataire, \
     AuthGroup, ActionLog, SousRubrique, RegroupementActe, TypePrefinancement, CompteTresorerie, SousRegroupementActe, \
-    GroupeInter
+    GroupeInter, TypeFichier
 from grh.models import Prospect, Campagne, CampagneProspect
 from inov import settings
 from production.forms import ContactForm, FilialeForm, AcompteForm, DocumentForm, PoliceForm, PhotoUploadForm
+from production.helper_production import create_alimet_helper
 from production.models import FormuleRubriquePrefinance, ModePrefinancement, Motif, Mouvement, Aliment, Client, Police, \
-    Courrier, Acompte, Document, Filiale, AutreRisque, PoliceGarantie, AlimentPolice, \
-    Contact, Quittance, SecteurActivite, TypeDocument, AlimentFormule, Statut, FormuleGarantie, MouvementPolice, \
-    StatutQuittance,  Quittance,\
+    Acompte, Document, Filiale, AutreRisque, PoliceGarantie, AlimentPolice, PoliceAssureur, Courrier, \
+    Contact, Quittance, SecteurActivite, TypeDocument, AlimentFormule, Statut, FormuleGarantie, MouvementPolice, StatutQuittance, \
     Genre, StatutFamilial, PlacementEtGestion, ModeRenouvellement, CalculTM, ApporteurPolice, TaxePolice, \
     TaxeQuittance, Reglement, OptionYesNo, Carte, TypeMajorationContrat, Vehicule, VehiculePolice, Energie, \
-    StatutPolice, Operation, TarifPrestataireClient, PeriodeCouverture, Bareme, MouvementAliment, \
-    OperationReglement, HistoriquePolice, HistoriqueApporteurPolice, HistoriqueTaxePolice
-from production.templatetags.my_filters import money_field
-from shared.enum import StatutIncorporation, StatutValidite, StatutEnrolement, StatutTraitement, \
     StatutPolice, Operation, TarifPrestataireClient, PeriodeCouverture, Bareme, AlimentTemporaire, MouvementAliment, \
     OperationReglement, HistoriquePolice, HistoriqueApporteurPolice, HistoriqueTaxePolice, Marchandise, HistoriqueAliment
-from production.templatetags.my_filters import money_field, convertir_date_multiformat, supprimer_espaces
+from production.templatetags.my_filters import money_field, convertir_date_multiformat, supprimer_espaces, convertir_date_jj_mm_aaaa
 from shared.enum import StatutIncorporation, StatutValidite, StatutSinistre, StatutEnrolement, StatutTraitement, \
     StatutReversementCompagnie, StatutValiditeQuittance
 from shared.helpers import generer_qrcode_carte, generate_numero_famille, generate_numero_carte, render_pdf, \
-    generer_numero_ordre, generer_nombre_famille_du_mois
-from shared.veos import send_client_to_veos
+    generer_numero_ordre, generer_nombre_famille_du_mois, custom_model_to_dict
+from shared.veos import get_taux_euro_by_devise, get_taux_usd_by_devise, send_client_to_veos
 from sinistre.models import Sinistre, DossierSinistre
 from comptabilite.models import EncaissementCommission
 import traceback
@@ -682,7 +681,10 @@ def add_acompte(request, client_id):
 
             acompte = Acompte(
                 credit=request.POST.get('montant', '').replace(' ', ''),
-                date_versement=request.POST.get('date_versement', ''),
+                date_versement=convertir_date_multiformat(request.POST.get('date_versement')),
+                periode_debut=convertir_date_multiformat(request.POST.get('periode_debut')),
+                periode_fin=convertir_date_multiformat(request.POST.get('periode_fin')),
+                solde=request.POST.get('montant', '').replace(' ', ''),
             )
             acompte.client = Client.objects.get(id=client_id)
             acompte.save()
@@ -704,7 +706,7 @@ def add_acompte(request, client_id):
             response = {
                 'statut': 0,
                 'message': "Veuillez renseigner correctement le formulaire",
-                'errors': form.errors
+                'errors': errors
             }
 
             return JsonResponse(response)
@@ -1080,8 +1082,8 @@ def add_police(request, client_id):
             mp.save()
 
             # TODO MISE EN PLACE DE LA PARTIE ALIMENT DE LA POLICE
-            branche_code = Produit.objects.filter(id=request.POST.get('produit')).first()
-            if branche_code.branche.code == "100991":
+            produit_code = Produit.objects.filter(id=request.POST.get('produit')).first()
+            if produit_code.code == "10001":
 
                 vehicule_existant = Vehicule.objects.filter(numero_immatriculation=request.POST.get('immatriculation')).first()
 
@@ -1161,7 +1163,7 @@ def add_police(request, client_id):
                     )
                     aliment_police.save()
 
-            elif branche_code.branche.code == "100992":
+            elif produit_code.code == "10002":
                 # Récupérer les aliments de la session
                 aliments_en_session = request.session.get('aliments', [])
 
@@ -1252,7 +1254,7 @@ def add_police(request, client_id):
 
                 print("Aliment transmis :", aliments)
 
-            elif branche_code.branche.code in [101004, 101005]:
+            elif produit_code.code in [50001, 50002]:
                 marchandise_created = Marchandise(
                     moyens_transport_id = moyens_transport_id,
                     conditions_assurance_id = conditions_assurance_id,
@@ -1558,8 +1560,6 @@ def modifier_police(request, police_id):
 
         #TODO METTRE A JOUR LA PERIODE DE COUVERTURE SI LA DATE DEBUT OU FIN A CHANGÉ
         #OU CRÉER UNE NOUVELLE LIGNE - NON, VU QUE LES SINISTRES TIENNES COMPTE DE ÇA
-
-
 
         # enregistrer les intermédiaires si existants
         intermediaires = request.POST.getlist('intermediaires')
@@ -2562,6 +2562,7 @@ def formules_by_police(request, police_id):
 
     return HttpResponse(formules_serialize, content_type='application/json')
 
+
 @login_required
 def polices_restantes(request, police_id):
     police = Police.objects.get(id=police_id)
@@ -2571,6 +2572,7 @@ def polices_restantes(request, police_id):
     polices_restantes_serialize = serializers.serialize('json', polices_restantes)
 
     return HttpResponse(polices_restantes_serialize, content_type='application/json')
+
 
 
 @login_required
@@ -2596,6 +2598,7 @@ def ajax_infos_compagnie(request, compagnie_id, produit_id):
         }
 
     return JsonResponse(response)
+
 
 
 def motifs_by_mouvement(request, mouvement_id):
@@ -2680,6 +2683,7 @@ class DetailsPoliceView(TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
+
 
 
 @method_decorator(login_required, name='dispatch')
@@ -2767,7 +2771,7 @@ class PoliceQuittancesView(TemplateView):
         # Récupération du client
         client = Client.objects.filter(id=police.client_id).first()
 
-        quittances = Quittance.objects.filter(police_id=police_id, statut_validite=StatutValidite.VALIDE, import_stats=False)
+        quittances = Quittance.objects.filter(police_id=police_id, statut_validite=StatutValidite.VALIDE, import_stats=False).order_by('-id')
         types_quittances = TypeQuittance.objects.all()
 
         '''
@@ -2782,7 +2786,7 @@ class PoliceQuittancesView(TemplateView):
         quittances_honoraires = filter(lambda quittance: quittance.type_quittance.code == "HONORAIRE", quittances)
         quittances_emissions = filter(lambda quittance: quittance.type_quittance.code == "EMISSION", quittances)
         quittances_ristournes = filter(lambda quittance: quittance.nature_quittance.code == "Ristourne", quittances)
-        quittances_annulees = Quittance.objects.filter(police_id=police_id, statut_validite=StatutValiditeQuittance.ANNULEE, import_stats=False)
+        quittances_annulees = Quittance.objects.filter(police_id=police_id, statut_validite=StatutValiditeQuittance.ANNULEE, import_stats=False).order_by('-numero')
 
         # etat police = dernier motif
         etat_police = police.etat_police
@@ -3225,103 +3229,135 @@ def add_reglement(request, police_id):
 
 @login_required
 def add_lettrage(request, police_id):
-    police = Police.objects.get(id=police_id)
-    natures_operations = NatureOperation.objects.all()
-    devises = Devise.objects.all()
-    modes_reglements = ModeReglement.objects.all()
-    comptes_tresoreries = CompteTresorerie.objects.filter(status=True)
-    banques = Banque.objects.filter(bureau=request.user.bureau, status=True)
-    quittances_impayees = Quittance.objects.filter(police_id=police_id, statut=StatutQuittance.IMPAYE, statut_validite=StatutValidite.VALIDE, import_stats=False)
-    acomptes = Acompte.objects.filter(client_id=police.client_id, solde__gt=0)
 
-    uuid_lettrage = uuid.uuid4()
+    police = Police.objects.get(id=police_id)
+    acomptes = Acompte.objects.filter(client_id=police.client_id, solde__gt=0)
+    quittances_impayees = Quittance.objects.filter(police_id=police_id, statut=StatutQuittance.IMPAYE, statut_validite=StatutValidite.VALIDE, import_stats=False)
+    uuid_reglement = uuid.uuid4()
     today = datetime.now(tz=timezone.utc)
 
     if request.method == 'POST':
-        uuid_lettrage = request.POST.get('uuid_lettrage')
+        uuid_reglement = request.POST.get('uuid_reglement')
         date_paiement = datetime.now(tz=timezone.utc)
-        acomptes_utilises = request.POST.getlist('id_acompte')
-        quittance_a_regler = request.POST.getlist('quittance_regle')
-        montant_total_acomptes=0
-        montant_total_quittances=0
 
-        # Conversion des montants reçus
-        try:
-            for acomptes in acomptes_utilises:
-                acompte = Acompte.objects.filter(id=acomptes).first()
-                if acompte:
-                    montant_total_acomptes += Decimal(acompte.solde)
+        # Initialiser une liste pour les acomptes cochés
+        acompte_lettrage = []
+        # Parcourir les données POST pour trouver les champs d'acompte cochés
+        for key, value in request.POST.items():
+            if key.startswith('montant_acompte_'):
+                montant_acompte_id = key.split('_')[2]
+                # Vérifier si la checkbox correspondante est présente dans les données POST
+                if f"checkbox_acompte_a_utiliser_{montant_acompte_id}" in request.POST:
+                    solde_acompte = request.POST.get(f'solde_acompte_{montant_acompte_id}', '0').replace(' ', '')
 
-            for quittance in quittance_a_regler:
-                quittance = Quittance.objects.filter(id=quittance).first()
-                if quittance:
-                    montant_total_quittances=Decimal(quittance.solde)
+                    try:
+                        solde_acompte = float(solde_acompte)
+                    except ValueError:
+                        print(f"Erreur de conversion pour l'acompte {montant_acompte_id}.")
+                        continue
 
-        except Exception as e:
-            return JsonResponse(
-                {'statut': 0, 'message': 'Erreur dans le format des montants des acomptes.', 'erreur': str(e)})
+                    # Ajouter les données extraites à la liste
+                    acompte_lettrage.append({
+                        'acompte_id': montant_acompte_id,
+                        'solde_acompte': solde_acompte,
+                    })
 
-            # Vérifier si l'uuid n'existe pas déjà dans opération pour s'assurer que l'utilisateur n'as pas cliqué 2 fois
-        uuid_lettrage_existant = Operation.objects.filter(uuid=uuid_lettrage)
-        if not uuid_lettrage_existant:
+        quittances_lettrage = []
+        # Parcourir les données POST pour trouver les quittances cochées
+        for key, value in request.POST.items():
+            if key.startswith('quittance_a_solde_'):
+                quittance_a_solde_id = key.split('_')[-1]
+                # Vérifier si la checkbox correspondante est présente dans les données POST
+                if f"checkbox_quittance_a_regler_{quittance_a_solde_id}" in request.POST:
+                    # Récupérer les valeurs nécessaires avec des valeurs par défaut
+                    solde_quittance = request.POST.get(f'solde_quittance_{quittance_a_solde_id}', '0').replace(' ', '')
+                    solde_apres_transmit = request.POST.get(f'solde_apres_transmit_{quittance_a_solde_id}','0').replace(' ', '')
+                    montant_a_regler_transmit = request.POST.get(f'montant_a_regler_transmit_{quittance_a_solde_id}','0').replace(' ', '')
 
+                    # Convertir les valeurs en nombres
+                    try:
+                        solde_quittance = float(solde_quittance)
+                        solde_apres_transmit = float(solde_apres_transmit)
+                        montant_a_regler_transmit = float(montant_a_regler_transmit)
+                    except ValueError:
+                        print(f"Erreur de conversion pour la quittance {quittance_a_solde_id}.")
+                        continue
+
+                    # Ajouter les données extraites à la liste
+                    quittances_lettrage.append({
+                        'quittance_id': quittance_a_solde_id,
+                        'solde_quittance': solde_quittance,
+                        'solde_apres_transmit': solde_apres_transmit,
+                        'montant_a_regler_transmit': montant_a_regler_transmit,
+                    })
+
+        uuid_reglement_existant = Operation.objects.filter(uuid=uuid_reglement)
+        if not uuid_reglement_existant:
             # enregistrer les infos dans operation
             nombre_quittances = 0
             montant_total_regle = 0
             operation = Operation.objects.create(montant_total=montant_total_regle,
                                                  date_operation=date_paiement,
                                                  created_by=request.user,
-                                                 uuid=uuid_lettrage)
+                                                 uuid=uuid_reglement)
             operation.save()
 
-            if montant_total_acomptes == montant_total_quittances:
-                # Cas où le total des acomptes est exactement égal au total des quittances
-                for id_acompte in acomptes_utilises:
-                    acompte = Acompte.objects.get(id=id_acompte)
-                    acompte.solde = Decimal(0)
-                    acompte.save()
+            # TODO CREATION DES REGLEMENTS ET MISE A JOUR DES QUITTANCES COCHEES
+            # Si des quittances sont chargées
+            if len(quittances_lettrage) > 0:
+                culmul_montant_a_regler_quittance = 0
+                for quittance in quittances_lettrage:
+                    montant_a_regler_transmit = quittance['montant_a_regler_transmit']
+                    solde_apres_transmit = quittance['solde_apres_transmit']
 
-                for id_quittance in quittance_a_regler:
-                    quittance = Quittance.objects.get(id=id_quittance)
-                    quittance.montant_regle = quittance.montant_regle + quittance.solde
-                    quittance.solde = Decimal(0)
-                    quittance.statut = StatutQuittance.PAYE
-                    quittance.updated_at = datetime.now(tz=timezone.utc)
-                    quittance.save()
+                    quittance_existe = Quittance.objects.filter(id=quittance['quittance_id']).first()
 
-                    montant_total_regle += quittance.montant_regle
-                    nombre_quittances = nombre_quittances + 1
+                    if quittance_existe:
+                        if solde_apres_transmit == 0.0:
+                            # Alors quittance totalement reglée par l'acompte
+                            quittance_existe.montant_regle = quittance_existe.montant_regle + quittance_existe.solde
+                            quittance_existe.solde = Decimal(0)
+                            quittance_existe.statut = StatutQuittance.PAYE
+                            quittance_existe.updated_at = datetime.now(tz=timezone.utc)
+                        else:
+                            # Alors quittance reglée par l'acompte partiellement
+                            quittance_existe.montant_regle = quittance_existe.montant_regle + montant_a_regler_transmit
+                            quittance_existe.solde = solde_apres_transmit
+                            quittance_existe.updated_at = datetime.now(tz=timezone.utc)
 
-                    #Création de la ligne de règlement
-                    tx_com_courtage = (quittance.commission_courtage * 100) / quittance.prime_ttc
-                    tx_com_intermediaire = (quittance.commission_intermediaires * 100) / quittance.prime_ttc
+                        quittance_existe.save()
 
-                    montant_com_courtage = (tx_com_courtage / 100) * quittance.montant_regle
-                    montant_com_intermediaire = (tx_com_intermediaire / 100) * quittance.montant_regle
-                    montant_compagnie = quittance.montant_regle - montant_com_courtage
+                        montant_total_regle += quittance_existe.montant_regle
+                        nombre_quittances = nombre_quittances + 1
+                        culmul_montant_a_regler_quittance += montant_a_regler_transmit
 
-                    reglement = Reglement.objects.create(quittance_id=quittance.id,
-                                                         montant=quittance.montant_regle,
-                                                         montant_compagnie=montant_compagnie,
-                                                         compagnie=quittance.compagnie,
-                                                         montant_com_courtage=montant_com_courtage,
-                                                         montant_com_intermediaire=montant_com_intermediaire,
-                                                         date_paiement=date_paiement,
-                                                         created_by=request.user,
-                                                         bureau=request.user.bureau)
-                    reglement.save()
-                    # mettre à jour son numéro
-                    reglement.numero = 'R' + str(Date.today().year) + str(reglement.pk).zfill(6)
-                    reglement.save()
+                        # Calcul des parts
+                        tx_com_courtage = (quittance_existe.commission_courtage * 100) / quittance_existe.prime_ttc
+                        tx_com_intermediaire = (quittance_existe.commission_intermediaires * 100) / quittance_existe.prime_ttc
+                        montant_com_courtage = (tx_com_courtage / 100) * quittance_existe.montant_regle
+                        montant_com_intermediaire = (tx_com_intermediaire / 100) * quittance_existe.montant_regle
+                        montant_compagnie = quittance_existe.montant_regle - montant_com_courtage
 
-                    # Lier l'opération au règlement
-                    operation_reglement = OperationReglement.objects.create(operation=operation, reglement=reglement, created_by=request.user)
-                    operation_reglement.save()
+                        # Création de la ligne de règlement
+                        reglement = Reglement.objects.create(quittance_id=quittance_existe.id,
+                                                             montant=quittance_existe.montant_regle,
+                                                             montant_compagnie=montant_compagnie,
+                                                             compagnie=quittance_existe.compagnie,
+                                                             montant_com_courtage=montant_com_courtage,
+                                                             montant_com_intermediaire=montant_com_intermediaire,
+                                                             date_paiement=date_paiement,
+                                                             created_by=request.user,
+                                                             bureau=request.user.bureau)
+                        #reglement.save()
+                        # mettre à jour son numéro
+                        reglement.numero = 'R' + str(Date.today().year) + str(reglement.pk).zfill(6)
+                        reglement.save()
 
-                    print("Numéro règlement : ", reglement.numero)
-                    print("montant_com_courtage : ", montant_com_courtage)
-                    print("montant_com_intermediaire : ", montant_com_intermediaire)
-                    print("montant_compagnie : ", montant_compagnie)
+                        # Lier l'opération au règlement
+                        operation_reglement = OperationReglement.objects.create(operation=operation,
+                                                                                reglement=reglement,
+                                                                                created_by=request.user)
+                        operation_reglement.save()
 
                 # mettre à jour le total dans operation
                 operation.montant_total = montant_total_regle
@@ -3329,107 +3365,62 @@ def add_lettrage(request, police_id):
                 operation.numero = 'OP' + str(Date.today().year) + str(operation.pk).zfill(6)
                 operation.save()
 
-            elif montant_total_acomptes > montant_total_quittances:
-                # Cas où les acomptes sont supérieurs aux quittances
-                excedent = montant_total_acomptes - montant_total_quittances
+            # TODO MISE A JOUR DES ACOMPTES COCHES
+            # Si les acomptes sont chargés
+            if len(acompte_lettrage) > 0:
+                # Calcul du culmul des montants des acomptes utilisés
+                cumul_montant_total_acomptes = Decimal(0)
+                for acomptes in acompte_lettrage:
+                    acompte = Acompte.objects.filter(id=acomptes['acompte_id']).first()
+                    if acompte:
+                        cumul_montant_total_acomptes += Decimal(acompte.solde)
 
-                for id_quittance in quittance_a_regler:
-                    quittance = Quittance.objects.get(id=id_quittance)
-                    quittance.montant_regle = quittance.montant_regle + quittance.solde
-                    quittance.solde = Decimal(0)
-                    quittance.statut = StatutQuittance.PAYE
-                    quittance.updated_at = datetime.now(tz=timezone.utc)
-                    quittance.save()
+                # Conversion de culmul_montant_a_regler_quittance en Decimal si nécessaire
+                culmul_montant_a_regler_quittance = Decimal(culmul_montant_a_regler_quittance)
 
-                    montant_total_regle += quittance.montant_regle
-                    nombre_quittances = nombre_quittances + 1
+                if cumul_montant_total_acomptes > culmul_montant_a_regler_quittance:
+                    # Calcul de l'excédent
+                    excedent = Decimal(cumul_montant_total_acomptes - culmul_montant_a_regler_quittance)
 
-                    # Création de la ligne de règlement
-                    tx_com_courtage = (quittance.commission_courtage * 100) / quittance.prime_ttc
-                    tx_com_intermediaire = (quittance.commission_intermediaires * 100) / quittance.prime_ttc
-
-                    montant_com_courtage = (tx_com_courtage / 100) * quittance.montant_regle
-                    montant_com_intermediaire = (tx_com_intermediaire / 100) * quittance.montant_regle
-                    montant_compagnie = quittance.montant_regle - montant_com_courtage
-
-                    reglement = Reglement.objects.create(quittance_id=quittance.id,
-                                                         montant=quittance.montant_regle,
-                                                         montant_compagnie=montant_compagnie,
-                                                         compagnie=quittance.compagnie,
-                                                         montant_com_courtage=montant_com_courtage,
-                                                         montant_com_intermediaire=montant_com_intermediaire,
-                                                         date_paiement=date_paiement,
-                                                         created_by=request.user,
-                                                         bureau=request.user.bureau)
-                    reglement.save()
-                    # mettre à jour son numéro
-                    reglement.numero = 'R' + str(Date.today().year) + str(reglement.pk).zfill(6)
-                    reglement.save()
-
-                    # Lier l'opération au règlement
-                    operation_reglement = OperationReglement.objects.create(operation=operation, reglement=reglement,
-                                                                            created_by=request.user)
-                    operation_reglement.save()
-
-                    print("Numéro règlement : ", reglement.numero)
-                    print("montant_com_courtage : ", montant_com_courtage)
-                    print("montant_com_intermediaire : ", montant_com_intermediaire)
-                    print("montant_compagnie : ", montant_compagnie)
-                    print('excedent sur acompte', excedent)
-
-                    # mettre à jour le total dans operation
-                operation.montant_total = montant_total_regle
-                operation.nombre_quittances = nombre_quittances
-                operation.numero = 'OP' + str(Date.today().year) + str(operation.pk).zfill(6)
-                operation.save()
-
-                # Récupérer uniquement la dernière ligne d'acompte coché
-                dernier_acompte_id = acomptes_utilises[-1]  # Dernier ID dans la liste
-                dernier_acompte = Acompte.objects.get(id=dernier_acompte_id)
-
-                # Appliquer l'excédent uniquement au dernier acompte
-                if dernier_acompte.solde <= excedent:
-                    excedent -= dernier_acompte.solde
-                    dernier_acompte.solde = Decimal(0)
-                else:
-                    dernier_acompte.solde = excedent
-                    excedent = Decimal(0)
-                dernier_acompte.save()
-
-                # Remettre à jour tous les autres acomptes à zéro (hors mis le dernier acompte)
-                for id_acompte in acomptes_utilises[:-1]:
-                    acompte = Acompte.objects.get(id=id_acompte)
-                    acompte.solde = Decimal(0)
-                    acompte.save()
-
-            else:
-                # Cas où les acomptes sont inférieurs aux quittances
-                insuffisance = montant_total_quittances - montant_total_acomptes
-
-                for id_acompte in acomptes_utilises:
-                    acompte = Acompte.objects.get(id=id_acompte)
-                    acompte.solde = Decimal(0)  # L'acompte est totalement consommé
-                    acompte.save()
-
-                for id_quittance in quittance_a_regler:
-                    quittance = Quittance.objects.get(id=id_quittance)
-                    if insuffisance > 0:
-                        if quittance.solde <= insuffisance:
-                            insuffisance -= quittance.solde
-                            quittance.solde = Decimal(0)  # La quittance est totalement réglée
-                        else:
-                            quittance.solde -= insuffisance  # Régler partiellement la quittance
-                            insuffisance = Decimal(0)
-                        quittance.save()
+                    # Récupérer uniquement la dernière ligne d'acompte coché
+                    dernier_acompte = None
+                    if acompte_lettrage:
+                        dernier_acompte_data = acompte_lettrage[-1]  # Dernier élément dans la liste
+                        try:
+                            dernier_acompte_id = dernier_acompte_data['acompte_id']
+                            dernier_acompte = Acompte.objects.get(id=dernier_acompte_id)
+                        except Acompte.DoesNotExist:
+                            print(f"L'acompte avec l'ID {dernier_acompte_id} n'existe pas.")
                     else:
-                        break
+                        print("Aucun acompte coché trouvé.")
+
+                    # Appliquer l'excédent uniquement au dernier acompte
+                    if dernier_acompte.solde <= excedent:
+                        excedent -= dernier_acompte.solde
+                        dernier_acompte.solde = 0
+                    else:
+                        dernier_acompte.solde = excedent
+                        excedent = 0
+                    dernier_acompte.save()
+
+                    # Remettre à jour tous les autres acomptes à zéro (hors mis le dernier acompte)
+                    for acomptes in acompte_lettrage[:-1]:
+                        acompte = Acompte.objects.get(id=acomptes['acompte_id'])
+                        acompte.solde = 0
+                        acompte.save()
+
+                else:
+                    # Remettre à jour tous les autres acomptes
+                    for acomptes in acompte_lettrage:
+                        acompte = Acompte.objects.get(id=acomptes['acompte_id'])
+                        acompte.solde = 0
+                        acompte.save()
 
             response = {
                 'statut': 1,
                 'message': "Lettrage de compte effectué, veuillez vérifier !",
                 'data': {}
             }
-
             return JsonResponse(response)
 
         else:
@@ -3438,15 +3429,12 @@ def add_lettrage(request, police_id):
                 'message': "Lettrage de compte déjà effectué, veuillez vérifier !",
                 'data': {}
             }
-
             return JsonResponse(response)
 
     else:
 
         return render(request, 'police/modal_add_lettrage.html',
-                      {'police': police, 'today': today, 'quittances_impayees': quittances_impayees, 'devises': devises,
-                       'natures_operations': natures_operations, 'modes_reglements': modes_reglements, 'acomptes': acomptes,
-                       'banques': banques, 'comptes_tresoreries': comptes_tresoreries, 'uuid_lettrage': uuid_lettrage})
+                      {'police': police, 'today': today, 'quittances_impayees': quittances_impayees, 'acomptes': acomptes, 'uuid_reglement': uuid_reglement})
 
 
 # all police avenants
@@ -7180,6 +7168,7 @@ def upload_photo(request, beneficiaire_id):
             return JsonResponse({'error': 'Une erreur est survenue lors de la sauvegarde de la photo.'})
     return JsonResponse({'success': False})
 
+
 # def benefs_pictures(request, police_id):
 #     police = Police.objects.get(id=police_id)
 
@@ -7309,8 +7298,10 @@ class ClientsView(TemplateView):
         utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE", is_active=True).order_by('last_name')
         secteurs_activite = SecteurActivite.objects.filter(status=True).order_by('libelle')
 
+        comptables = User.objects.filter().order_by('-first_name')
+
         context_perso = {'types_clients': types_clients, 'types_personnes': types_personnes, 'secteurs_activite': secteurs_activite,
-                         'civilites': civilites, 'bureaux': bureaux, 'pays': pays, 'business_units': business_units,
+                         'civilites': civilites, 'bureaux': bureaux, 'pays': pays, 'business_units': business_units, 'comptables':comptables,
                          'utilisateurs': utilisateurs}
 
         context = {**context_original, **context_perso}
@@ -7788,6 +7779,12 @@ def produits_by_branche(request, branche_id):
     return HttpResponse(produits_serialize, content_type='application/json')
 
 
+def produit_sous_menu(request, produit_id):
+    produit = Produit.objects.filter(id=produit_id)
+    produit_serialize = serializers.serialize('json', produit)
+    return HttpResponse(produit_serialize, content_type='application/json')
+
+
 #Liste des contacts du client
 @method_decorator(login_required, name='dispatch')
 class ContactClientView(TemplateView):
@@ -7903,7 +7900,7 @@ class AcompteClientView(TemplateView):
         if clients:
             client = clients.first()
 
-            acomptes = Acompte.objects.filter(client_id=client_id)
+            acomptes = Acompte.objects.filter(client_id=client_id, solde__gt=0)
 
             pays = Pays.objects.all().order_by('nom')
 
@@ -8005,22 +8002,137 @@ class QuittancesClientView(TemplateView):
 
 
 @login_required
-def exporter_quittance(request, client_id):
-    client = Client.objects.get(id=client_id)
+def exporter_quittance(request, client_id, police_id):
+    client = Client.objects.filter(id=client_id).first()
+    police = Police.objects.filter(id=police_id).first()
     if request.method == 'POST':
+        type_fichier_id = request.POST.get('type_fichier_id')
+        date_exportation = request.POST.get('date_exportation')
+        periode_debut = request.POST.get('periode_debut')
+        periode_fin = request.POST.get('periode_fin')
 
-        response = {
-            'statut': 1,
-            'message': "Lettrage de compte effectué, veuillez vérifier !",
-            'data': {}
-        }
+        if int(type_fichier_id) in [1, 2, 3, 4]:
 
-        return JsonResponse(response)
+            typefichier = TypeFichier.objects.filter(id=type_fichier_id).first()
+            pdf_url = reverse('generer_exportation_quittance', args=[typefichier.pk])
+            pdf_url += (f""f"?de={date_exportation}"f"&pd={periode_debut}"f"&pf={periode_fin}"f"&cl={client.id}"f"&po={police.id}")
+
+            response = {
+                'statut': 1,
+                'message': "Fichier généré avec succès !",
+                'data': {
+                    'typefichier_id': typefichier.id,
+                    'date_exportation': date_exportation,
+                    'periode_debut': periode_debut,
+                    'periode_fin': periode_fin,
+                    'pdf_url': pdf_url,
+                },
+            }
+            return JsonResponse(response)
+
+        else:
+            response = {
+                'statut': 0,
+                'message': "Aucun type de fichier ne correspond au type de fichier soumis !",
+                'data': []
+            }
+            return JsonResponse(response)
 
     else:
 
+        typefichiers = TypeFichier.objects.all().order_by('-libelle').exclude(statut=0)
+        today = datetime.now(tz=timezone.utc)
+
         return render(request, 'police/modal_exporter_quittance.html',
-                      {'client': client})
+                      {'client': client, 'police':police, 'typefichiers': typefichiers, 'today':today})
+
+
+#Générer le fichier d'exportation
+def generer_exportation_quittance(request, typefichier_id):
+    typefichier = TypeFichier.objects.filter(id=typefichier_id).first()
+
+    # Récupérer les paramètres GET
+    client = Client.objects.filter(id=request.GET.get('cl')).first()
+    police = Police.objects.filter(id=request.GET.get('po')).first()
+    date_exportation = request.GET.get('de')
+    periode_debut = request.GET.get('pd')
+    periode_fin = request.GET.get('pf')
+
+    quittances = Quittance.objects.filter(police_id=police.id, police__client=client, statut_validite=StatutValidite.VALIDE).order_by('numero')
+
+    if periode_debut and periode_fin:
+        periode_debut = convertir_date_multiformat(periode_debut)
+        periode_fin = convertir_date_multiformat(periode_fin)
+
+        quittances = quittances.filter(
+            #Q(date_debut__gte=periode_debut, date_fin__lte=periode_fin) |
+            (Q(statut=StatutQuittance.IMPAYE))
+        ).order_by('numero')
+
+    site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
+
+    heure_actuelle = datetime.now().strftime('%H:%M:%S')
+
+    acomptes = Acompte.objects.filter(client_id=client.id, solde__gt=0)
+
+    solde_acomptes = sum(acompte.solde for acompte in acomptes)
+    solde_quittances = sum(quittance.solde for quittance in quittances)
+
+    if solde_quittances > solde_acomptes:
+        difference_acomptes_quittances = solde_quittances - solde_acomptes
+    else:
+        difference_acomptes_quittances = solde_acomptes - solde_quittances
+
+    print('quittances : ', quittances)
+    print("date_exportation : ", date_exportation)
+    print("periode_debut : ", periode_debut)
+    print("periode_fin : ", periode_fin)
+    print("heure_actuelle : ", heure_actuelle)
+    print("solde_acomptes : ", solde_acomptes)
+    print("solde_quittances : ", solde_quittances)
+    print("difference_acomptes_quittances : ", difference_acomptes_quittances)
+    print("heure_actuelle : ", heure_actuelle)
+    print("Logo : ", site_logo_url)
+
+    contexte = {
+        'client': client,
+        'police': police,
+        'quittances': quittances,
+        'date_exportation': date_exportation,
+        'periode_debut': periode_debut,
+        'periode_fin': periode_fin,
+        'heure_actuelle': heure_actuelle,
+        'solde_acomptes': solde_acomptes,
+        'solde_quittances': solde_quittances,
+        'difference_acomptes_quittances': difference_acomptes_quittances,
+        'site_logo_url': site_logo_url,
+    }
+
+    print('date_exportation : ', date_exportation)
+    print('periode_debut : ', periode_debut)
+    print('periode_fin : ', periode_fin)
+
+    if typefichier:
+        if typefichier.id == 1:
+            pass
+        elif typefichier.id == 2:
+
+            pdf = render_pdf('police/generation/quittances.html', contexte)
+
+            pdf_file = PyPDF2.PdfReader(pdf)
+            nombre_pages = len(pdf_file.pages)
+
+            # Ajout du nombre de page obtenu au contexte pour le rendu final
+            contexte['nombre_pages'] = nombre_pages
+            pdf = render_pdf('police/generation/quittances.html', contexte)
+
+            # AFFICHER DIRECTEMENT
+            return HttpResponse(File(pdf), content_type='application/pdf')
+
+        elif typefichier.id == 3:
+            pass
+        else:
+            pass
 
 
 #Liste des documents électronique du client
@@ -8041,7 +8153,7 @@ class GEDClientView(TemplateView):
 
             statut_contrat = "CONTRAT"
 
-            typedocuments = TypeDocument.objects.filter(is_sinistre=0)
+            typedocuments = TypeDocument.objects.filter(is_sinistre=0, is_police_quittante_clt=0)
 
             documents = Document.objects.filter(client_id=client_id)
 
@@ -8306,6 +8418,7 @@ class CourrierView(TemplateView):
         context.update(admin.site.each_context(self.request))  # Contexte admin
         context['opts'] = self.model._meta  # Options du modèle Courrier
         return context
+
 
 #
 # @login_required()
@@ -8721,6 +8834,7 @@ def modifier_formule(request, formule_id):
 
         return render(request, template, {'formule': formule, 'types_tarifs': types_tarifs,
                                                                     'territorialites': territorialites, 'reseaux_soins': reseaux_soins, 'rubriques': rubriques, 'mode_prefinancements':mode_prefinancements, 'formule_rubriques':formule_rubriques, 'today': today, 'police': police})
+
 
 # update formule
 def desactivate_formule(request):
@@ -10042,3 +10156,485 @@ def add_annuler_quittance(request):
             return redirect(reverse('annuler_quittance'))
 
     return redirect(reverse('annuler_quittance'))
+
+
+# Génération de fichier PDF ne repond pas encore convenablement à la demande
+def generer_courrier(request, police_id, courrier_id):
+    # Vérifie que la police existe
+    police = get_object_or_404(Police, id=police_id)
+    courrier = get_object_or_404(Courrier, id=courrier_id)
+    historique_police = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+    assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id, type_compagnie_id=1).first() if historique_police else []
+    autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id).exclude(type_compagnie_id=1).first()
+
+    date_du_jour = datetime.now().strftime('%d/%m/%Y')
+
+    # Vérifier si le type de courrier a un template associé
+    if not courrier.type_courrier:
+        return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
+
+    # recuperqtion du logo
+    site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
+    print("Logo : ", site_logo_url)
+
+    # Configuration du locale pour le formatage
+    locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
+
+    # formatage de la prime
+    prime_ttc = historique_police.prime_ttc
+    prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)}"
+
+    # Conversion du montant en texte
+    prime_ttc_en_lettres = num2words(prime_ttc, lang='fr').capitalize() + " F CFA"
+
+    # Utilisation du système de templates Django pour charger un fichier HTML
+    template_name = f"police/generation/{courrier.type_courrier.nom.lower().replace(' ', '_')}.html"
+    try:
+        template_content = render_to_string(template_name, {
+            'nom_client': historique_police.client,
+            'numero_police': historique_police.numero,
+            'nom_produit': historique_police.produit,
+            'numero_quittance': '',
+            'date_debut_effet': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
+            'date_fin_effet': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
+            'montant_renouvellement': prime_formatee,
+            'montant_renouvellement_en_lettres': prime_ttc_en_lettres,
+            'date_jour': date_du_jour,
+            'compagnie': assureur_police.compagnie,
+            'logo': site_logo_url
+        })
+    except FileNotFoundError:
+        return HttpResponse(f"Erreur : Le template '{template_name}' est introuvable.", status=404)
+
+    pdfkit_config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
+
+    # Générer le PDF depuis le contenu HTML
+    try:
+        pdf = pdfkit.from_string(template_content, False, configuration=pdfkit_config)
+
+    except Exception as e:
+        return HttpResponse(f"Erreur lors de la génération du PDF : {e}", status=500)
+
+    # Retourner le PDF comme réponse HTTP
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.pdf"'
+    return response
+
+
+# generation de fichier word
+def generer_word(request, police_id, courrier_id):
+    # Vérifie que la police existe
+    police = get_object_or_404(Police, id=police_id)
+    courrier = get_object_or_404(Courrier, id=courrier_id)
+    historique_police = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+    assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id, type_compagnie_id=1).first() if historique_police else []
+    autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id).exclude(type_compagnie_id=1).first()
+
+    # Date actuelle
+    date_du_jour = datetime.now().strftime('%d/%m/%Y')
+
+    # Vérifier si le type de courrier a un template associé
+    if not courrier.type_courrier:
+        return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
+
+    # Récupération du logo
+    site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
+    print("Logo : ", site_logo_url)
+
+    # Configuration du locale pour le formatage
+    locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
+
+    # Formatage de la prime
+    prime_ttc = historique_police.prime_ttc
+    prime_formatee = money_field(prime_ttc)
+
+    # Charger le modèle Word existant
+    doc_path = os.path.join(settings.BASE_DIR, 'production', 'templates', 'police', 'courriers', "Appel de prime.docx")
+    document = docx.Document(doc_path)
+
+    montant_en_lettre = num2words(historique_police.prime_ttc, lang='fr').capitalize()
+    print('montant_en_lettre : ', montant_en_lettre)
+    print('prime_formatee : ', prime_formatee)
+
+    # Dictionnaire des remplacements pour le texte
+    base_replacements = {
+        'NOM_CLIENT': historique_police.client.nom,
+        'NUMERO_POLICE': historique_police.numero,
+        'NOM_PRODUIT': historique_police.produit.nom,
+        # 'numero_quittance': quittance,
+        'DATE_DEBUT_EFFET': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
+        'DATE_FIN_EFFET': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
+        'MONTANT_RENOUVELLEMENT': prime_formatee,
+        'EN_LETTRES': montant_en_lettre,
+        'DATE_JOUR': date_du_jour,
+        'COMPAGNIE': assureur_police.compagnie.nom,
+    }
+
+    replacements = {}
+    for key, value in base_replacements.items():
+        formats = [
+            f'«{key}»', f'"{key}"', key
+        ]
+        for fmt in formats:
+            replacements[fmt] = str(value) if value else ""
+
+    # Fonction pour remplacer les placeholders dans les paragraphes
+    def replace_placeholders_in_paragraph(paragraph):
+        original_text = paragraph.text
+        new_text = original_text
+
+        for placeholder, value in replacements.items():
+            if placeholder in new_text:
+                new_text = new_text.replace(placeholder, value)
+
+        if new_text != original_text:
+            first_run = paragraph.runs[0] if paragraph.runs else paragraph.add_run()
+            first_run.text = new_text
+            for run in paragraph.runs[1:]:
+                run.clear()
+
+    # Fonction pour remplacer les placeholders dans le document entier (paragraphes et tables)
+    def replace_placeholders_in_document(document):
+        for paragraph in document.paragraphs:
+            replace_placeholders_in_paragraph(paragraph)
+
+        for table in document.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        replace_placeholders_in_paragraph(paragraph)
+
+        for section in document.sections:
+            for paragraph in section.header.paragraphs + section.footer.paragraphs:
+                replace_placeholders_in_paragraph(paragraph)
+            for table in section.header.tables + section.footer.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        for paragraph in cell.paragraphs:
+                            replace_placeholders_in_paragraph(paragraph)
+
+    # Remplacement des placeholders dans le document
+    replace_placeholders_in_document(document)
+
+    # Sauvegarder le document Word dans une réponse HTTP
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.docx"'
+
+    # Sauvegarde le document dans la réponse
+    document.save(response)
+
+    return response
+
+
+@method_decorator(login_required, name='dispatch')
+class PolicesEncoursView(TemplateView):
+    permission_required = "production.view_clients"
+    template_name = 'police/polices_en_cours.html'
+    model = Police
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        produits = Produit.objects.all().order_by('nom')
+        clients = Client.objects.all().order_by('nom')
+
+        context_perso = {'produits': produits, 'clients':clients}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+#Chargement des lignes de police en cours
+def polices_en_cours_datatable(request):
+    items_per_page = 10
+    page_number = request.GET.get('page')
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', items_per_page))
+    sort_column_index = int(request.GET.get('order[0][column]'))
+    sort_direction = request.GET.get('order[0][dir]')
+    search_client = request.GET.get('search_client', '').strip()
+    search_numero_police = request.GET.get('search_numero_police', '').strip()
+    search_produit = request.GET.get('search_produit', '').strip()
+    today = now()
+    in_90_days = today + timedelta(days=90)
+
+    user = request.user
+    queryset = Police.objects.filter(date_fin_effet__gt=today)
+
+    if search_client:
+        queryset = queryset.filter(
+            Q(client_id=search_client)
+        )
+
+    if search_numero_police:
+        queryset = queryset.filter(
+            Q(numero__icontains=search_numero_police)
+        )
+
+
+    if search_produit:
+        queryset = queryset.filter(
+            Q(produit_id=search_produit)
+        )
+
+
+    # Apply sorting
+    queryset = queryset.order_by('-numero')
+
+    paginator = Paginator(queryset, length)
+    page_obj = paginator.get_page(page_number)
+
+    print('Date du jour :', today)
+    print('Dans 90 jours :', in_90_days)
+
+    # Prepare the data in the expected format
+    data = []
+    for c in page_obj:
+
+        detail_url = reverse('police.details', args=[c.id])  # URL to the detail view
+        numero_html = f'<a href="{detail_url}" class="text-center bouton_action" style="color:#F16623;" target="_blank">{c.numero}</a>&nbsp;&nbsp;'
+        actions_html = f'<a href="{detail_url}" class="text-center" target="_blank"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {_("Détails")}</span></a>&nbsp;&nbsp;'
+
+        if not c.client.nom: c.client.nom = ''
+        if not c.client.prenoms: c.client.prenoms = ''
+        if not c.client.code: c.client.code = ''
+
+        data.append({
+            "id": c.id,
+            "num_police": numero_html,
+            "nom_client": c.client.nom + ' ' + c.client.prenoms+ '- (' + c.client.code + ')',
+            "nom_produit": c.produit.nom if c.produit else "",
+            "date_debut": c.avenant_encours.date_effet if c.avenant_encours else "",
+            "date_fin": c.avenant_encours.date_fin_periode_garantie if c.avenant_encours else "",
+            "actions": actions_html,
+        })
+
+    return JsonResponse({
+        "data": data,
+        "recordsTotal": queryset.count(),
+        "recordsFiltered": paginator.count,
+        "draw": int(request.GET.get('draw', 1)),
+    })
+
+
+@method_decorator(login_required, name='dispatch')
+class PolicesArrivantEcheanceView(TemplateView):
+    permission_required = "production.view_clients"
+    template_name = 'police/polices_arrivant_echeance.html'
+    model = Police
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        produits = Produit.objects.all().order_by('nom')
+        clients = Client.objects.all().order_by('nom')
+
+        context_perso = {'produits': produits, 'clients':clients}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+#Chargement des lignes de polices arrivant à échéance dans 90 jours
+def polices_arrivant_echeance_datatable(request):
+    items_per_page = 10
+    page_number = request.GET.get('page')
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', items_per_page))
+    sort_column_index = int(request.GET.get('order[0][column]'))
+    sort_direction = request.GET.get('order[0][dir]')
+    search_client = request.GET.get('search_client', '').strip()
+    search_numero_police = request.GET.get('search_numero_police', '').strip()
+    search_produit = request.GET.get('search_produit', '').strip()
+    today = now()
+    in_90_days = today + timedelta(days=90)
+
+    user = request.user
+    queryset = Police.objects.filter(date_fin_effet__lte=in_90_days, date_fin_effet__gt=today)
+
+    if search_client:
+        queryset = queryset.filter(
+            Q(client_id=search_client)
+        )
+
+    if search_numero_police:
+        queryset = queryset.filter(
+            Q(numero__icontains=search_numero_police)
+        )
+
+
+    if search_produit:
+        queryset = queryset.filter(
+            Q(produit_id=search_produit)
+        )
+
+
+    # Apply sorting
+    queryset = queryset.order_by('-numero')
+
+    paginator = Paginator(queryset, length)
+    page_obj = paginator.get_page(page_number)
+
+    print('Date du jour :', today)
+    print('Dans 90 jours :', in_90_days)
+
+    # Prepare the data in the expected format
+    data = []
+    for c in page_obj:
+
+        detail_url = reverse('police.details', args=[c.id])  # URL to the detail view
+        numero_html = f'<a href="{detail_url}" class="text-center bouton_action" style="color:#F16623;" target="_blank">{c.numero}</a>&nbsp;&nbsp;'
+        actions_html = f'<a href="{detail_url}" class="text-center" target="_blank"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {_("Détails")}</span></a>&nbsp;&nbsp;'
+
+        if not c.client.nom: c.client.nom = ''
+        if not c.client.prenoms: c.client.prenoms = ''
+        if not c.client.code: c.client.code = ''
+
+        data.append({
+            "id": c.id,
+            "num_police": numero_html,
+            "nom_client": c.client.nom + ' ' + c.client.prenoms+ '- (' + c.client.code + ')',
+            "nom_produit": c.produit.nom if c.produit else "",
+            "date_debut": c.avenant_encours.date_effet if c.avenant_encours else "",
+            "date_fin": c.avenant_encours.date_fin_periode_garantie if c.avenant_encours else "",
+            "actions": actions_html,
+        })
+
+    return JsonResponse({
+        "data": data,
+        "recordsTotal": queryset.count(),
+        "recordsFiltered": paginator.count,
+        "draw": int(request.GET.get('draw', 1)),
+    })
+
+
+@method_decorator(login_required, name='dispatch')
+class PolicesNonRenouvelleesResilieesView(TemplateView):
+    permission_required = "production.view_clients"
+    template_name = 'police/polices_non_renouvellees_resiliees.html'
+    model = Police
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        produits = Produit.objects.all().order_by('nom')
+        clients = Client.objects.all().order_by('nom')
+
+        context_perso = {'produits': produits, 'clients':clients}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+#Chargement des lignes de polices arrivant non résiliée et renouvelée
+def polices_non_renouvellees_resiliees_datatable(request):
+    items_per_page = 10
+    page_number = request.GET.get('page')
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', items_per_page))
+    sort_column_index = int(request.GET.get('order[0][column]'))
+    sort_direction = request.GET.get('order[0][dir]')
+    search_client = request.GET.get('search_client', '').strip()
+    search_numero_police = request.GET.get('search_numero_police', '').strip()
+    search_produit = request.GET.get('search_produit', '').strip()
+    today = now()
+    in_90_days = today + timedelta(days=90)
+
+    user = request.user
+    queryset = Police.objects.filter(date_fin_effet__lt=today)
+
+    if search_client:
+        queryset = queryset.filter(
+            Q(client_id=search_client)
+        )
+
+    if search_numero_police:
+        queryset = queryset.filter(
+            Q(numero__icontains=search_numero_police)
+        )
+
+
+    if search_produit:
+        queryset = queryset.filter(
+            Q(produit_id=search_produit)
+        )
+
+
+    # Apply sorting
+    queryset = queryset.order_by('-numero')
+
+    paginator = Paginator(queryset, length)
+    page_obj = paginator.get_page(page_number)
+
+    print('Date du jour :', today)
+    print('Dans 90 jours :', in_90_days)
+
+    # Prepare the data in the expected format
+    data = []
+    for c in page_obj:
+
+        detail_url = reverse('police.details', args=[c.id])  # URL to the detail view
+        numero_html = f'<a href="{detail_url}" class="text-center bouton_action" style="color:#F16623;" target="_blank">{c.numero}</a>&nbsp;&nbsp;'
+        actions_html = f'<a href="{detail_url}" class="text-center" target="_blank"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {_("Détails")}</span></a>&nbsp;&nbsp;'
+
+        if not c.client.nom: c.client.nom = ''
+        if not c.client.prenoms: c.client.prenoms = ''
+        if not c.client.code: c.client.code = ''
+
+        data.append({
+            "id": c.id,
+            "num_police": numero_html,
+            "nom_client": c.client.nom + ' ' + c.client.prenoms+ '- (' + c.client.code + ')',
+            "nom_produit": c.produit.nom if c.produit else "",
+            "date_debut": c.avenant_encours.date_effet if c.avenant_encours else "",
+            "date_fin": c.avenant_encours.date_fin_periode_garantie if c.avenant_encours else "",
+            "actions": actions_html,
+        })
+
+    return JsonResponse({
+        "data": data,
+        "recordsTotal": queryset.count(),
+        "recordsFiltered": paginator.count,
+        "draw": int(request.GET.get('draw', 1)),
+    })

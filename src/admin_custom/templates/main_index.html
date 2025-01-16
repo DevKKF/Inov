@@ -47,7 +47,7 @@
             <div class="icon">
               <i class="ion ion-bag"></i>
             </div>
-            <a href="#" class="small-box-footer text-white">Plus d'information <i class="fas fa-arrow-circle-right"></i></a>
+            <a href="{% url 'polices_en_cours' %}" class="small-box-footer text-white">Plus d'information <i class="fas fa-arrow-circle-right"></i></a>
           </div>
         </div>
         <div class="col-lg-4 col-3">
@@ -61,7 +61,7 @@
             <div class="icon">
               <i class="ion ion-person-add"></i>
             </div>
-            <a href="#" class="small-box-footer text-white">Plus d'information <i class="fas fa-arrow-circle-right"></i></a>
+            <a href="{% url 'polices_arrivant_echeance' %}" class="small-box-footer text-white">Plus d'information <i class="fas fa-arrow-circle-right"></i></a>
           </div>
         </div>
         <div class="col-lg-4 col-3">
@@ -70,12 +70,12 @@
             <div class="inner">
               <h3>{{ count_polices_non_renouvelees_resilies }}</h3>
 
-              <p>Liste des polices non renouvellés et non résiliées</p>
+              <p>Liste des polices non renouvellées et non résiliées</p>
             </div>
             <div class="icon">
               <i class="ion ion-person-add"></i>
             </div>
-            <a href="#" class="small-box-footer text-white">Plus d'information <i class="fas fa-arrow-circle-right"></i></a>
+            <a href="{% url 'polices_non_renouvellees_resiliees' %}" class="small-box-footer text-white">Plus d'information <i class="fas fa-arrow-circle-right"></i></a>
           </div>
         </div>
       </div>

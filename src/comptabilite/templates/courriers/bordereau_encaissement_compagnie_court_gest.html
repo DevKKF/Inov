@@ -69,150 +69,142 @@
 
 <body>
     <div id="header_content">
-        
-        <table>
+
+        <table style="">
             <tr>
-                <td class="left" width="15%">
+                <td class="left" width="25%">
                     <div>
-                        <img width="100" src="{{ site_logo_url }}">
+                        <img width="110" src="{{site_logo_url}}">
                     </div>
                 </td>
                 <td width="70%" class="center bold" style="font-size: 14px;">
-                    
+
                 </td>
                 <td class="right" width="15%">
                 </td>
             </tr>
             <tr>
-                <td class="" width="20%">
-                    <br/>{{ bureau.nom }} ({{ bureau.code }})<br>
-                    {{ bureau.addresse|default:"" }}<br>
-                    {% comment %}
-                    Résidence élégance<br>
-                    00225 ABIDJAN<br>
-                    {% endcomment %}
-                    Tel. : {{ bureau.telephone|default:"" }} Fax. : {{ bureau.fax|default:"" }}<br>
-                    Mail : {{ bureau.email|default:"" }}
-                </td>
-                <td class="center" style="padding-bottom:0px; font-size: 14px; vertical-align: middle;" width="60%">
-                        <h3>{{_("BORDEREAU DES COMMISSIONS DE")}}{% if type == "courtage" %}{{_("COURTAGE")}}{% else %}{{_("GESTION")}}{% endif %} {{_("REGLEES")}} - {{ operation.devise.libelle|default:"" }} ({{ operation.devise.code|default:"" }}) {% comment %} <br> {{_("Au")}} {{ operation.date_operation|date:'d/m/Y'|default_if_none:"" }} {% endcomment %}</h3>
-                        {% comment %} <div style="margin-top:-20px;">{{_("COMPAGNIE")}} : <b>{{ compagnie|default:"" }}</b></div> {% endcomment %}
-                </td>
-                <td width="20%" style="padding-left:20px;">
-                    {{ compagnie.nom }}<br>
-                    {{ compagnie.adresse|default:"" }}<br>
-                    {% comment %} 01 BP 3832<br>
-                    ABIDJAN 01<br> {% endcomment %}
-                </td>
+            <td class="" width="20%">
+                <br/>{{ bureau.nom }} ({{ bureau.code }})<br>
+                {{ bureau.addresse|default:""|safe }}<br>
+                Tel. : {{ bureau.telephone|default:"" }} Fax. : {{ bureau.fax|default:"" }}<br>
+                Mail : {{ bureau.email|default:"" }}
+            </td>
+            <td class="center" style="padding-bottom:0px; font-size: 14px; vertical-align: middle;" width="60%">
+                <h3>{{_("BORDEREAU DES COMMISSIONS DE")}}{% if type == "courtage" %}{{_("COURTAGE")}}{% else %}{{_("GESTION")}}{% endif %} {{_("REGLEES")}} - {{ operation.devise.libelle|default:"" }} ({{ operation.devise.code|default:"" }}) {% comment %} <br> Au {{ operation.date_operation|date:'d/m/Y'|default_if_none:"" }} {% endcomment %}</h3>
+                {% comment %} <div style="margin-top:-20px;">{{_("COURTAGE")}} : <b>{{ compagnie|default:"" }}</b></div> {% endcomment %}
+            </td>
+            <td width="20%" style="padding-left:20px;">
+                {{ compagnie.nom }}<br>
+                {{ compagnie.adresse|default:"" }}<br>
+            </td>
             </tr>
             <tr>
-            <td>{{_("Code courtier")}} : {{ bureau.code_courtier|default:"" }}</td>
-            <td>&nbsp;</td>
-            <td><span style="background-color:#DFF2FF;">{{_("NUMERO BORDEREAU")}} :</span> {{ operation.numero|default:"" }}</td>
+                <td>{{_("Code courtier")}} : {{ bureau.code_courtier|default:"" }}</td>
+                <td>&nbsp;</td>
+                <td><span style="background-color:#DFF2FF;">{{_("NUMERO BORDEREAU")}} :</span> {{ operation.numero|default:"" }}<br><br><br></td>
             </tr>
         </table>
     </div>
-    {% comment %} {% with count=1 %} {% endcomment %} 
-    <div id="footer_content"  style="font-size: 14px;">
-    <table>
-    <tr>
-    <td>{{_("Edité le")}} {{ operation.date_operation|date:'d/m/Y'|default_if_none:"" }}</td>
-    <td style="text-align:right">Page <pdf:pagenumber>/{{ nombre_pages }}</td>
-    </tr>
+    <br/>
+    <table class="table" repeat="2">
+        <thead>
+            <tr>
+              <th scope="col">{{_("Numero client")}}</th>
+              <th scope="col">{{_("Nom Client")}}</th>
+              <th scope="col">{{_("Numero Police")}}</th>
+              <th scope="col">{{_("Numero Quittance")}}</th>
+              <th scope="col">{{_("Echeance")}}</th>
+              {% if type == "courtage" %}
+                <th scope="col">{{_("Comm Courtage")}}</th>
+              {% else %}
+                <th scope="col">{{_("Comm Gestion")}}</th>
+              {% endif %}
+              <th scope="col">{{_("Prime Due")}}</th>
+              <th scope="col">{{_("Comm Reglee")}}</th>
+              <th scope="col">{{_("Règlement recu")}}</th>
+              {% comment %} <th scope="col">{{_("Com Apport")}}</th>
+              <th scope="col">{{_("Date Reg clt")}}</th> {% endcomment %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for encaissement_commission in encaissement_commissions %}
+            <tr>
+                  {% comment %} <td>{{ option_reglement.reglement.numero|default_if_none:"" }}</td> {% endcomment %}
+                  <td>{{ encaissement_commission.reglement.quittance.police.client.code|default_if_none:"" }}</td>
+                  <td>{{ encaissement_commission.reglement.quittance.police.client.nom|default_if_none:"" }}</td>
+                  <td>{{ encaissement_commission.reglement.quittance.police.numero|default_if_none:"" }}</td>
+                  <td>{{ encaissement_commission.reglement.quittance.numero|default_if_none:"" }}</td>
+                  <td>{{ encaissement_commission.reglement.quittance.date_fin|date:'d/m/Y'|default_if_none:""  }}</td>
+                {% if type == "courtage" %}
+                  <td class="text-right">{{ encaissement_commission.reglement.montant_com_courtage|money_field }}</td>
+                {% else %}
+                  <td class="text-right">{{ encaissement_commission.reglement.montant_com_gestion|money_field }}</td>
+                {% endif %}
+                  <td class="text-right">{{ encaissement_commission.reglement.quittance.prime_ttc|money_field }}</td>
+                  <td class="text-right">{{ encaissement_commission.montant|money_field }}</td>
+                  <td class="text-right" style="background-color:grey"></td>
+                  {% comment %} <td class="text-right">{{ option_reglement.reglement.montant_com_intermediaire|money_field }}</td>
+                  <td>{{ option_reglement.reglement.date_paiement|date:'d/m/Y'|default_if_none:"" }}</td> {% endcomment %}
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+            <td scope="row" colspan="6" style="text-align:left; margin-left:3"><b>{{_("Total Compagnie")}}: {{ compagnie.code }}
+            <td><b>{{ total_prime_ttc|money_field }}</b></td>
+            <td><b>{{ total_montant_com_encaisse|money_field }}</b></td>
+            <td><b>{{ total_montant_com_encaisse|money_field }}</b></td>
+            {% comment %}
+            <td><b>{{ total_montant_com_gestion|money_field }}</b></td>
+            <td><b>{{ total_montant_com_intermediaire|money_field }}</b></td> {% endcomment %}
+            </tr>
+
+            <tr>
+            <td scope="row" colspan="4"></td>
+            <td scope="row" colspan="4" style="text-align:left; margin-left:3"><b>Op div.: {{ op_designation|default:"" }}</b></td>
+            <td><b>{% if op_sens == "D" %}-{% endif %} {{ op_div|money_field }}</b></td>
+            {% comment %}
+            <td><b>{{ total_montant_com_gestion|money_field }}</b></td>
+            <td><b>{{ total_montant_com_intermediaire|money_field }}</b></td> {% endcomment %}
+            </tr>
+
+            {% comment %}
+            <tr>
+            <td scope="row" colspan="4"></td>
+            <td scope="row" colspan="4" style="text-align:left; margin-left:3"><b>{{_("Acomptes")}} {{ compagnie.code }} {{ compagnie.nom }} :</b></td>
+            <td><b>0</b></td>
+            {% comment %}
+            <td><b>{{ total_montant_com_gestion|money_field }}</b></td>
+            <td><b>{{ total_montant_com_intermediaire|money_field }}</b></td> {% endcomment %}
+            {% comment %}
+            </tr>
+            {% endcomment %}
+
+            <tr>
+            <td scope="row" colspan="6" style="text-align:left; margin-left:3"><b>{{_("Total Societe")}}: {{ bureau.code }}</b></td>
+            <td><b>{{ total_prime_ttc|money_field }}</b></td>
+            <td><b>{{ total_montant_com_encaisse|money_field }}</b></td>
+            <td><b>{{ total_montant_percu_final|money_field }}</b></td>
+            {% comment %}
+            <td><b>{{ total_montant_com_gestion|money_field }}</b></td>
+            <td><b>{{ total_montant_com_intermediaire|money_field }}</b></td> {% endcomment %}
+            </tr>
+        </tfoot>
     </table>
-    </div>
-
-        <table class="table" repeat="2">
-            <thead>
-                <tr>
-                  {% comment %} <th scope="col">{{_("Numéro Reg client")}}</th> {% endcomment %}
-                  <th scope="col">{{_("Numéro client")}}</th>
-                  <th scope="col">{{_("Nom Client")}}</th>
-                  <th scope="col">{{_("Numéro Police")}}</th>
-                  <th scope="col">{{_("Numéro Quittance")}}</th>
-                  <th scope="col">{{_("Echéance")}}</th>
-                  {% if type == "courtage" %}
-                    <th scope="col">{{_("Comm Courtage")}}</th>
-                  {% else %}
-                    <th scope="col">{{_("Comm Gestion")}}</th>
-                  {% endif %}
-                  <th scope="col">{{_("Prime Due")}}</th>
-                  <th scope="col">{{_("Comm Réglée")}}</th>
-                  <th scope="col">{{_("Règlement reçu")}}</th>
-                  {% comment %} <th scope="col">{{_("Com Apport")}}</th>
-                  <th scope="col">{{_("Date Reg clt")}}</th> {% endcomment %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for encaissement_commission in encaissement_commissions %}
-                <tr>
-                      {% comment %} <td>{{ option_reglement.reglement.numero|default_if_none:"" }}</td> {% endcomment %}
-                      <td>{{ encaissement_commission.reglement.quittance.police.client.code|default_if_none:"" }}</td>
-                      <td>{{ encaissement_commission.reglement.quittance.police.client.nom|default_if_none:"" }}</td>
-                      <td>{{ encaissement_commission.reglement.quittance.police.numero|default_if_none:"" }}</td>
-                      <td>{{ encaissement_commission.reglement.quittance.numero|default_if_none:"" }}</td>
-                      <td>{{ encaissement_commission.reglement.quittance.date_fin|date:'d/m/Y'|default_if_none:""  }}</td>
-                    {% if type == "courtage" %}
-                      <td class="text-right">{{ encaissement_commission.reglement.montant_com_courtage|money_field }}</td>
-                    {% else %}
-                      <td class="text-right">{{ encaissement_commission.reglement.montant_com_gestion|money_field }}</td>
-                    {% endif %}
-                      <td class="text-right">{{ encaissement_commission.reglement.quittance.prime_ttc|money_field }}</td>
-                      <td class="text-right">{{ encaissement_commission.montant|money_field }}</td>
-                      <td class="text-right" style="background-color:grey"></td>
-                      {% comment %} <td class="text-right">{{ option_reglement.reglement.montant_com_intermediaire|money_field }}</td>
-                      <td>{{ option_reglement.reglement.date_paiement|date:'d/m/Y'|default_if_none:"" }}</td> {% endcomment %}
-                </tr>
-                {% endfor %}
-            </tbody>
-            <tfoot>
-                <tr>
-                <td scope="row" colspan="6" style="text-align:left; margin-left:3"><b>{{_("Total Compagnie")}} : {{ compagnie.code }}
-                <td><b>{{ total_prime_ttc|money_field }}</b></td>
-                <td><b>{{ total_montant_com_encaisse|money_field }}</b></td>
-                <td><b>{{ total_montant_com_encaisse|money_field }}</b></td>
-                {% comment %}                 
-                <td><b>{{ total_montant_com_gestion|money_field }}</b></td>
-                <td><b>{{ total_montant_com_intermediaire|money_field }}</b></td> {% endcomment %}
-                </tr>
-
-                <tr>
-                <td scope="row" colspan="4"></td>
-                <td scope="row" colspan="4" style="text-align:left; margin-left:3"><b>Op div. : {{ op_designation|default:"" }}</b></td>
-                <td><b>{% if op_sens == "D" %}-{% endif %} {{ op_div|money_field }}</b></td>
-                {% comment %}                 
-                <td><b>{{ total_montant_com_gestion|money_field }}</b></td>
-                <td><b>{{ total_montant_com_intermediaire|money_field }}</b></td> {% endcomment %}
-                </tr>
-
-                {% comment %}
-                <tr>
-                <td scope="row" colspan="4"></td>
-                <td scope="row" colspan="4" style="text-align:left; margin-left:3"><b>{{_("Acomptes")}} {{ compagnie.code }} {{ compagnie.nom }} :</b></td>
-                <td><b>0</b></td>
-                {% comment %}                 
-                <td><b>{{ total_montant_com_gestion|money_field }}</b></td>
-                <td><b>{{ total_montant_com_intermediaire|money_field }}</b></td> {% endcomment %}
-                {% comment %}
-                </tr>
-                {% endcomment %}
-
-                <tr>
-                <td scope="row" colspan="6" style="text-align:left; margin-left:3"><b>{{_("Total Société")}} : {{ bureau.code }}</b></td>
-                <td><b>{{ total_prime_ttc|money_field }}</b></td>
-                <td><b>{{ total_montant_com_encaisse|money_field }}</b></td>
-                <td><b>{{ total_montant_percu_final|money_field }}</b></td>
-                {% comment %}                 
-                <td><b>{{ total_montant_com_gestion|money_field }}</b></td>
-                <td><b>{{ total_montant_com_intermediaire|money_field }}</b></td> {% endcomment %}
-                </tr>
-            </tfoot>
+    <div id="footer_content"  style="font-size: 14px;">
+        <table>
+            <tr>
+                <td>{{_("Edite le")}} {{ operation.date_operation|date:'d/m/Y'|default_if_none:"" }}</td>
+                <td style="text-align:right">Page <pdf:pagenumber>/{{ nombre_pages }}</td>
+            </tr>
         </table>
+    </div>
         
-{% comment %}          
+{% comment %}
         <br/>
         <br/>
-               
+
         <table>
             <tr>
                 <td width="5%" style="border:0px;"></td>

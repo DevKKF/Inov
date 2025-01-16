@@ -704,3 +704,8 @@ label:not(.form-check-label):not(.custom-file-label) {
     margin-top: 50px;
 }
 
+.bouton_action:hover{
+    cursor:pointer !important;
+    color:#F16623 !important;
+}
+

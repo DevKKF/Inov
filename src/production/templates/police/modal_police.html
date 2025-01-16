@@ -15,15 +15,15 @@
 				</div>
 				<div class="col-md-12 offset-0">
 					<ul class="nav nav-tabs" id="myTab" role="tablist">
-						<li class="nav-item"><a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true">{{_('GENERAL')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="intermediaire-tab" data-toggle="tab" href="#intermediaire" role="tab" aria-controls="intermediaire" aria-selected="false">{{_('APPORTEURS')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="garantie-tab" data-toggle="tab" href="#garantie" role="tab" aria-controls="garantie" aria-selected="false">{{_('GARANTIE')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="risque-tab" data-toggle="tab" href="#risque" role="tab" aria-controls="risque" aria-selected="false">{{_('RISQUE')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="marchandise-tab" data-toggle="tab" href="#marchandise" role="tab" aria-controls="marchandise" aria-selected="false">{{_('MARCHANDISES TRANSPORTEES')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="aliment-tab" data-toggle="tab" href="#aliment" role="tab" aria-controls="aliment" aria-selected="false">{{_('ALIMENTS')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="vehicule-tab" data-toggle="tab" href="#vehicule" role="tab" aria-controls="vehicule" aria-selected="false">{{_('VEHICULE')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="facturation-tab" data-toggle="tab" href="#facturation" role="tab" aria-controls="facturation" aria-selected="false">{{_('FACTURATION')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="prime-tab" data-toggle="tab" href="#prime" role="tab" aria-controls="prime" aria-selected="false">{{_('PRIME')}}</a></li>
+						<li class="nav-item"><a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true">{{_("GENERAL")}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="intermediaire-tab" data-toggle="tab" href="#intermediaire" role="tab" aria-controls="intermediaire" aria-selected="false">{{_("APPORTEURS")}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="garantie-tab" data-toggle="tab" href="#garantie" role="tab" aria-controls="garantie" aria-selected="false">{{_("GARANTIE")}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="risque-tab" data-toggle="tab" href="#risque" role="tab" aria-controls="risque" aria-selected="false">{{_("RISQUE")}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="marchandise-tab" data-toggle="tab" href="#marchandise" role="tab" aria-controls="marchandise" aria-selected="false">{{_("MARCHANDISES TRANSPORTEES")}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="aliment-tab" data-toggle="tab" href="#aliment" role="tab" aria-controls="aliment" aria-selected="false">{{_("ALIMENTS")}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="vehicule-tab" data-toggle="tab" href="#vehicule" role="tab" aria-controls="vehicule" aria-selected="false">{{_("VEHICULE")}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="facturation-tab" data-toggle="tab" href="#facturation" role="tab" aria-controls="facturation" aria-selected="false">{{_("FACTURATION")}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="prime-tab" data-toggle="tab" href="#prime" role="tab" aria-controls="prime" aria-selected="false">{{_("PRIME")}}</a></li>
 					</ul>
 					<div class="tab-content" id="myTabContent">
 
@@ -37,7 +37,7 @@
 											<select class="form-control tags-multiple branche" name="branche" id="branche">
 												<option value="">Choisir</option>
 												{% for branche in branches %}
-												<option value="{{ branche.id }}" data-code="{{ branche.code }}">{{ branche.nom }}</option>
+													<option value="{{ branche.id }}" data-code="{{ branche.code }}">{{ branche.nom }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -45,7 +45,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Produit')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control tags-multiple" name="produit" id="produit" autocomplete="off" required>
+											<select class="form-control tags-multiple produit" name="produit" id="produit" autocomplete="off" required>
 												<option value="">{{_("Choisir un produit")}}</option>
 											</select>
 										</div>

@@ -16,7 +16,7 @@ from configurations.models import Banque, Bureau, Civilite, Compagnie, Fractionn
     QualiteBeneficiaire, TypeAssurance, Devise, Profession, ModeCalcul, Taxe, Apporteur, BaseCalcul, TypeQuittance, \
     NatureQuittance, TypeCarosserie, CategorieVehicule, MarqueVehicule, NatureOperation, Prestataire, TypeTarif, Acte, \
     Rubrique, Periodicite, RegroupementActe, SousRubrique, TypePrefinancement, ReseauSoin, CompteTresorerie, \
-    SousRegroupementActe, Secteur, GroupeInter, Carosserie, Formule, Usage, Carburant, BusinessUnit, Garantie, ConditionsAssurance, MoyensTransport
+    SousRegroupementActe, Secteur, GroupeInter, Carosserie, Formule, Usage, Carburant, BusinessUnit, Garantie, ConditionsAssurance, MoyensTransport, TypeCourrier
 from shared.enum import Genre, Statut, StatutRelation, StatutFamilial, OptionYesNo, PlacementEtGestion, \
     ModeRenouvellement, TypeEncaissementCommission, TypeMajorationContrat, CalculTM, StatutContrat, StatutPolice, \
     StatutQuittance, \
@@ -61,14 +61,11 @@ class SecteurActivite(models.Model):
 
 
 class Client(models.Model):
-    veos_assure_sante_idper = models.CharField(max_length=100, blank=False, null=True)
-    veos_client_idper = models.CharField(max_length=100, blank=False, null=True)
     bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
     type_personne = models.ForeignKey(TypePersonne, blank=False, null=True, on_delete=models.RESTRICT)
     business_unit = models.ForeignKey(BusinessUnit, blank=False, null=True, on_delete=models.RESTRICT)
     type_client = models.ForeignKey(TypeClient, blank=False, null=True, on_delete=models.RESTRICT)
     pays = models.ForeignKey(Pays, blank=True, null=True, on_delete=models.RESTRICT)
-    groupe_international = models.ForeignKey(GroupeInter, blank=True, null=True, on_delete=models.RESTRICT)
     code = models.CharField(max_length=25, blank=False, null=True)
     code_provisoire = models.CharField(max_length=25, blank=False, null=True)
     nom = models.CharField(max_length=100, blank=False, null=True)
@@ -80,12 +77,10 @@ class Client(models.Model):
     telephone_fixe = models.CharField(max_length=20, blank=True, null=True)
     email = models.EmailField(max_length=50, blank=True, null=True)
     langue = models.ForeignKey(Langue, blank=False, null=True, on_delete=models.RESTRICT)
-    longitude = models.CharField(max_length=50, blank=True, null=True)
-    latitude = models.CharField(max_length=50, blank=True, null=True)
     ville = models.CharField(max_length=50, blank=True, null=True)
     adresse_postale = models.CharField(max_length=50, blank=True, null=True)
     adresse = models.CharField(max_length=100, blank=True, null=True)
-    gestionnaire = models.ForeignKey(User, related_name='gestionnaire_client', blank=True, null=True,
+    commercial = models.ForeignKey(User, related_name='commercial_client', blank=True, null=True,
                                      on_delete=models.RESTRICT)
     site_web = models.URLField(max_length=100, blank=True, null=True)
     twitter = models.CharField(max_length=100, blank=True, null=True)
@@ -1932,6 +1927,7 @@ class Acompte(models.Model):
 class TypeDocument(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
     is_sinistre = models.BooleanField(default=False)
+    is_police_quittante_clt = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -2073,12 +2069,23 @@ class CarteDigitalDematerialisee(models.Model):
         verbose_name_plural = 'Cartes Digital Dématérialisées'
 
 
+class Courrier(models.Model):
+    type_courrier = models.ForeignKey(TypeCourrier, null=True, on_delete=models.RESTRICT)
+    designation = models.CharField(max_length=255)
+    service = models.CharField(max_length=50, )
+    status = models.CharField(max_length=10, default='Inactif')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-class TypeCourrier(models.Model):
-    nom = models.CharField(max_length=100, unique=True)
+    def __str__(self):
+        return f" {self.type_courrier} - {self.designation} - {self.service} - {self.created_at} "
 
     class Meta:
-        db_table = 'production_typecourrier'
+        db_table = 'courrier'
+        verbose_name = 'Courriers'
+        verbose_name_plural = 'Courriers'
+
+
 # Les choix pour le champ service
 SERVICE_CHOICES = [
     ('production', 'Production'),
@@ -2091,22 +2098,3 @@ STATUS_CHOICES = [
     ('Actif', 'Actif'),
     ('Inactive', 'Inactive'),
 ]
-
-
-class Courrier(models.Model):
-    designation = models.CharField(max_length=255)
-    service = models.CharField(max_length=50, )
-    status = models.CharField(max_length=10, default='Inactif')
-    type_courrier = models.ForeignKey(TypeCourrier, blank=True, null=True, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
-    def __str__(self):
-        return f" {self.designation} - {self.service} - {self.status} - {self.created_at} "
-
-
-    class Meta:
-        db_table = "production_courrier"
-
-

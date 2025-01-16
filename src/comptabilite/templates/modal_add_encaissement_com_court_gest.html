@@ -24,7 +24,7 @@
 									<select class="form-control form-add_reglement_compagnie-select" name="compte_tresorerie" id="compte_tresorerie" required>
 										<option value="" selected>{{_('Choisir') }}</option>
 										{% for ct in comptes_tresoreries %}
-										<option value="{{ ct.id }}">{{ ct.libelle }}</option>
+											<option value="{{ ct.id }}">{{ ct.libelle }}</option>
 										{% endfor %}
 									</select>
 								</div>
@@ -37,7 +37,7 @@
 									<select class="form-control form-add_reglement_compagnie-select" name="compagnie" id="compagnie" required>
 										<option value="">{{_('Choisir') }}</option>
 										{% for compagnie in compagnies %}
-										<option value="{{ compagnie.id }}" data-href_reglements_reverses="{% url 'ajax_reglements_reverses_court_gest' compagnie.id type %}">{{ compagnie.nom }}</option>
+											<option value="{{ compagnie.id }}" data-href_reglements_reverses="{% url 'ajax_reglements_reverses_court_gest' compagnie.id type %}">{{ compagnie.nom }}</option>
 										{% endfor %}
 									</select>
 								</div>
@@ -50,7 +50,7 @@
 									<select class="form-control form-add_reglement_compagnie-select" name="banque" id="banque_rc">
 										<option value="">{{ _('Choisir') }}</option>
 										{% for banque in banques %}
-										<option value="{{ banque.id }}">{{ banque.libelle }}</option>
+											<option value="{{ banque.id }}">{{ banque.libelle }}</option>
 										{% endfor %}
 									</select>
 								</div>
@@ -74,7 +74,7 @@
 									<select class="form-control form-add_reglement_compagnie-select" name="mode_reglement" id="mode_reglement" required>
 										<option value="">{{ _('Choisir') }}</option>
 										{% for mode_reglement in modes_reglements %}
-										<option value="{{ mode_reglement.id }}">{{ mode_reglement.libelle }}</option>
+											<option value="{{ mode_reglement.id }}">{{ mode_reglement.libelle }}</option>
 										{% endfor %}
 									</select>
 								</div>
@@ -108,7 +108,7 @@
 									<select class="form-control form-add_reglement_compagnie-select" name="banque" id="banque_rc">
 										<option value="">Choisir') }}</option>
 										{% for banque in banques %}
-										<option value="{{ banque.id }}">{{ banque.libelle }}</option>
+											<option value="{{ banque.id }}">{{ banque.libelle }}</option>
 										{% endfor %}
 									</select>
 								</div>

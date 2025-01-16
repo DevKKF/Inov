@@ -3113,7 +3113,6 @@ def edition_lettre_cheque_pdf(request):
     return HttpResponse(File(pdf), content_type='application/pdf')
 
 
-
 @method_decorator(login_required, name='dispatch')
 class ReversesementCompagniesView(TemplateView):
     # permission_required = "comptabilite.view_reglement"
@@ -3152,9 +3151,11 @@ def ajax_reglements_a_reverser_compagnie(request, compagnie_id):
 
     polices = Police.objects.filter(id=assureur_police.historique_police.police_id)
 
-    reglements_compagnies = ReglementReverseCompagnie.objects.filter(quittance__police__in=polices, statut_reversement_compagnie=StatutReversementCompagnie.NON_REVERSE, statut_validite=StatutValidite.VALIDE).exclude(quittance__nature_quittance__code="Ristourne").exclude(quittance__type_quittance__code="HONORAIRE")
+    reglements_compagnies = (ReglementReverseCompagnie.objects.filter(quittance__police__in=polices, statut_reversement_compagnie=StatutReversementCompagnie.NON_REVERSE, statut_validite=StatutValidite.VALIDE).exclude(quittance__nature_quittance__code="Ristourne").exclude(quittance__type_quittance__code="HONORAIRE"))
 
-    pprint(polices)
+    print('assureur_police', assureur_police.compagnie.nom)
+    print('polices', polices)
+    print('reglements_compagnies', reglements_compagnies)
 
     return render(request, 'reglements_a_reverser_by_compagnie.html', {'reglements_compagnies':reglements_compagnies})
 
@@ -3248,7 +3249,6 @@ def add_reglement_compagnie(request):
         for compagnie in compagnies:
             if compagnie.nombre_reglements_a_reverser_cie == 0:
                 compagnies = compagnies.exclude(id=compagnie.id)
-
 
         today = datetime.now(tz=timezone.utc)
         return render(request, 'modal_add_reglement_compagnie.html',

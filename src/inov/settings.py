@@ -439,7 +439,7 @@ JAZZMIN_SETTINGS = {
             {
                 "name": "Action super admin",
                 "url": "db_super_admin_query",
-                # "icon": "fa fa-times",
+                "icon": "fa fa-times",
                 "permissions": ["configurations.view_wsbooby"],
             },
         ],

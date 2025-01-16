@@ -2647,3 +2647,28 @@ class MoyensTransport(models.Model):
         verbose_name = 'Moyens de transport'
         verbose_name_plural = 'Moyens de transport'
 
+
+class TypeCourrier(models.Model):
+    nom = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(null=True, auto_now_add=False)
+    updated_at = models.DateTimeField(null=True, auto_now=False)
+
+    class Meta:
+        db_table = 'type_courrier'
+        verbose_name = 'Type de courrier'
+        verbose_name_plural = 'Type de courrier'
+
+
+class TypeFichier(models.Model):
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    statut = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'type_fichier'
+        verbose_name = 'Type de fichier'
+        verbose_name_plural = 'Type de fichier'

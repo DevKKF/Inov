@@ -38,9 +38,10 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-sm-5 col-form-label">{{_("Ce document est-il confidentiel")}} ? </label>
+                    <label class="col-sm-5 col-form-label">{{_("Ce document est-il confidentiel")}} ? <span class="required">*</span></label>
                     <div class="col-sm-7">
-                        <input type="checkbox" value="OUI" name="confidentialite" id="confidentialite"/>
+                        <input type="checkbox" value="OUI" name="confidentialite" id="confidentialite"> Oui
+                        <input type="checkbox" value="NON" name="confidentialite" id="confidentialite" class="ml-5" checked> Non
                     </div>
                 </div>
                 <div class="form-group row">

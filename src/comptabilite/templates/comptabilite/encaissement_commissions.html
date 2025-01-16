@@ -5,9 +5,9 @@
 <div class="col-12 col-md-12 order-2 order-md-1">
   <div class="card">
     <div class="card-header">
-        <h3 class="card-title"><b>{{_('ENCAISSEMENT_DE_COMMISSIONS') }}</b></h3>
+        <h3 class="card-title"><b>{{_("ENCAISSEMENT DE COMMISSIONS") }}</b></h3>
         <div class="card-tools">
-            <span id="btnOpenDialogAddEncaissementCommision" class="btn btn-sm btn-default" data-toggle="modal" data-href="{% url 'add_encaissement_commission' %}"><i class="fas fa-money-bill"></i> {{ _('Encaisser_des_commissions') }}</span>
+            <span id="btnOpenDialogAddEncaissementCommision" class="btn btn-sm btn-default" data-toggle="modal" data-href="{% url 'add_encaissement_commission' %}"><i class="fas fa-money-bill"></i> {{_("Encaisser des commissions") }}</span>
         </div>
     </div>
     <div class="card-body">
@@ -17,13 +17,13 @@
               <table class="table table-bordered table-striped dataTable dtr-inline" id="table_reglements_compagnies">
                   <thead>
                       <tr>
-                        <th scope="col">{{_('Compagnie') }}</th>
-                        <th scope="col">{{_('Montant_total_regle_client') }}</th>
-                        <th scope="col">{{_('Total_com_courtage') }}</th>
-                        <th scope="col">{{_('Restant_com_courtage') }}</th>
-                        <th scope="col">{{_('Total_com_gestion') }}</th>
-                        <th scope="col">{{_('Restant_com_gestion') }}</th>
-                        <th scope="col">{{_('Nbre_lignes') }}</th>
+                        <th scope="col">{{_("Assureur") }}</th>
+                        <th scope="col">{{_("Montant total reglé client") }}</th>
+                        <th scope="col">{{_("Total com courtage") }}</th>
+                        <th scope="col">{{_("Restant com courtage") }}</th>
+                        <th scope="col">{{_("Total com gestion") }}</th>
+                        <th scope="col">{{_("Restant com gestion") }}</th>
+                        <th scope="col">{{_("Nbre lignes") }}</th>
                       </tr>
                     </thead>
                     <tbody>

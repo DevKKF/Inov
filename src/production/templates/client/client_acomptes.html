@@ -52,7 +52,7 @@
         overflow-x: hidden;
     }
 
-    .form-control {
+    .couleur_default,  .couleur_secondaire, .couleur_success{
       display: block;
       width: 100%;
       height: 30px !important;
@@ -214,7 +214,7 @@
                         <td class="text-center">
                             {% if not acompte.quittance_id %}
                                 <span class="badge badge-danger text-white btn_supprimer_acompte" data-acompte_id="{{ acompte.id }}" onclick="supprimer_acompte({{ acompte.id }})" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;&nbsp;&nbsp;
-                                <span class="badge badge-warning text-white btn_modifier_on_modal" data-model_name="acompte" data-href="{% url 'modifier_acompte' acompte.id %}" data-modal_title="Modification d'un acompte" title="Modifier" style="cursor:pointer;"><i class="fas fa-edit"></i></span>
+                                <span class="badge badge-warning text-white btn_modifier_on_modal" data-model_name="acompte" data-href="{% url 'modifier_acompte' acompte.id %}" data-modal_title="MODIFICATION D'UN ACOMPTE" title="Modifier" style="cursor:pointer;"><i class="fas fa-edit"></i></span>
                             {% endif %}
                         </td>
                     </tr>

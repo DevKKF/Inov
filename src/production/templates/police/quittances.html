@@ -37,10 +37,10 @@
     <div class="card">
       <div class="button-link mb-2">
           {% if assureur_police.compagnie.has_taux_com %}
-              <span id="btnOpenDialogExporterQuittance" class="btn btn-sm btn-primary pull-right ml-2" data-toggle="modal" data-href="{% url 'exporter_quittance' police.client.id %}"><i class="fa fa-cloud-upload"></i> {{_("Exporter quittance")}}</span>
-              <span id="btnOpenDialogAddLettrage" class="btn btn-sm btn-primary pull-right ml-2" data-toggle="modal" data-href="{% url 'add_lettrage' police.id %}"><i class="fas fa-money-bill"></i> {{_("Lettrage du compte")}}</span>
-              <span id="btnOpenDialogAddReglement" class="btn btn-sm btn-primary pull-right ml-2" data-toggle="modal" data-href="{% url 'add_reglement' police.id %}"><i class="fas fa-money-bill"></i> {{_("Faire un Règlement")}}</span>
-              <span id="btnOpenDialogAddQuittance" class="btn btn-sm btn-primary pull-right ml-2" data-toggle="modal" data-href="{% url 'add_quittance' police.id %}"><i class="fas fa-plus-circle"></i> {{_("Créer une quittance")}}</span>
+              <span id="btnOpenDialogExporterQuittance" class="btn btn-sm btn-primary pull-right ml-2 mb-2" data-toggle="modal" data-href="{% url 'exporter_quittance' police.client.id police.id %}"><i class="fa fa-cloud-upload"></i> {{_("Exporter quittance")}}</span>
+              <span id="btnOpenDialogAddLettrage" class="btn btn-sm btn-primary pull-right ml-2 mb-2" data-toggle="modal" data-href="{% url 'add_lettrage' police.id %}"><i class="fas fa-money-bill"></i> {{_("Lettrage du compte")}}</span>
+              <span id="btnOpenDialogAddReglement" class="btn btn-sm btn-primary pull-right ml-2 mb-2" data-toggle="modal" data-href="{% url 'add_reglement' police.id %}"><i class="fas fa-money-bill"></i> {{_("Faire un Règlement")}}</span>
+              <span id="btnOpenDialogAddQuittance" class="btn btn-sm btn-primary pull-right ml-2 mb-2" data-toggle="modal" data-href="{% url 'add_quittance' police.id %}"><i class="fas fa-plus-circle"></i> {{_("Créer une quittance")}}</span>
           {% else %}
               <span class="btn btn-info pull-right"><a style="color:white;" target="_blank" href="../../../configurations/compagnie/">{{_("Veuillez parametrer les taux de com sur la compagnie")}}</a></span>
           {% endif %}

@@ -189,3 +189,16 @@ def convertir_date_multiformat(date_str):
         except ValueError:
             continue
     return None
+
+
+
+#Convertir une date en format JJ/MM/AAAA
+@register.filter
+def convertir_date_jj_mm_aaaa(date_str):
+    formats = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%Y/%m/%d']
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_str, fmt).strftime('%d/%m/%Y')
+        except ValueError:
+            continue
+    return None

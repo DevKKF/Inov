@@ -25,7 +25,7 @@
 									<select class="form-control" name="nature_operation" id="nature_operation" >
 										<option value="">{{_('Choisir')}}</option>
 										{% for nature_operation in natures_operations %}
-										<option selected value="{{ nature_operation.id }}">{{ nature_operation.libelle }}</option>
+											<option selected value="{{ nature_operation.id }}">{{ nature_operation.libelle }}</option>
 										{% endfor %}
 									</select>
 								</div>
@@ -36,7 +36,7 @@
 									<select class="form-control" name="mode_reglement" id="mode_reglement" required>
 										<option value="">{{_('Choisir')}}</option>
 										{% for mode_reglement in modes_reglements %}
-										<option value="{{ mode_reglement.id }}">{{ mode_reglement.libelle }}</option>
+											<option value="{{ mode_reglement.id }}">{{ mode_reglement.libelle }}</option>
 										{% endfor %}
 									</select>
 								</div>
@@ -56,7 +56,7 @@
 									<select class="form-control" name="banque" id="banque" required>
 										<option value="">{{_('Choisir')}}</option>
 										{% for banque in banques %}
-										<option value="{{ banque.id }}">{{ banque.libelle }}</option>
+											<option value="{{ banque.id }}">{{ banque.libelle }}</option>
 										{% endfor %}
 									</select>
 								</div>
@@ -86,7 +86,7 @@
 									<select class="form-control" name="compte_tresorerie" id="compte_tresorerie" required>
 										<option value="">{{_('Choisir')}}</option>
 										{% for compte_tresorerie in comptes_tresoreries %}
-										<option value="{{ compte_tresorerie.id }}">{{ compte_tresorerie.libelle }}</option>
+											<option value="{{ compte_tresorerie.id }}">{{ compte_tresorerie.libelle }}</option>
 										{% endfor %}
 									</select>
 								</div>

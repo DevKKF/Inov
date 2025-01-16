@@ -5,7 +5,7 @@ from . import views
 from .views import ClientsView, ExcelFileView, FormulesUniversellesView, FormulesView, DetailsFormuleView, \
     DetailsClientView, PoliceClientView, ContactClientView, FilialeClientView, AcompteClientView, GEDClientView, QuittancesClientView, \
     PoliceBeneficiairesView, PoliceGedView, PoliceAvenantsView, PoliceTarifsSpecifiquesView, PoliceQuittancesView, \
-    PoliceSinistresView, PhotosBeneficiairesView, AnnulerQuittanceView, CourrierView
+    PoliceSinistresView, PhotosBeneficiairesView, AnnulerQuittanceView, CourrierView, PolicesEncoursView, PolicesArrivantEcheanceView, PolicesNonRenouvelleesResilieesView
 
 urlpatterns = [
     path("todo_manuel/", views.todo_manuel, name='todo_manuel'),
@@ -39,6 +39,7 @@ urlpatterns = [
     path('clear_session/', views.clear_session, name='clear_session'),
     path('get_compagnies/', views.get_compagnies, name='get_compagnies'),
     path('branche/<int:branche_id>/produits',views.produits_by_branche, name='branche_produits'),
+    path('produit/<int:produit_id>/sous-menu',views.produit_sous_menu, name='produit_sous_menu'),
 
     path("client/<int:client_id>/liste-contact", ContactClientView.as_view(), name='client_contacts'),
     path("client/<int:client_id>/contact/add", views.add_contact, name='client_add_contact'),
@@ -62,11 +63,21 @@ urlpatterns = [
     path('mouvement/<int:mouvement_id>/motifs',views.motifs_by_mouvement, name='mouvement_motifs'),
 
     path("client/<int:client_id>/quittance", QuittancesClientView.as_view(), name='client_quittances'),
-    path("client/<int:client_id>/exporter-quittance", views.exporter_quittance, name='exporter_quittance'),
+    path("client/<int:client_id>/<int:police_id>/exporter-quittance", views.exporter_quittance, name='exporter_quittance'),
+    path('police/generer_exportation_quittance/<int:typefichier_id>', views.generer_exportation_quittance, name='generer_exportation_quittance'),
 
     path('client/<int:client_id>/changement_compagnie',views.changement_compagnie, name='changement_compagnie'),
     path('client/<int:client_id>/transfert_beneficiaires_datatable', views.transfert_beneficiaires_datatable, name='transfert_beneficiaires_datatable'),
     path('client/<int:client_id>/transfert_beneficiaires', views.transfert_beneficiaires, name='transfert_beneficiaires'),
+
+    path('polices-en-cours/', PolicesEncoursView.as_view(), name='polices_en_cours'),
+    path('polices_en_cours_datatable/', views.polices_en_cours_datatable, name='polices_en_cours_datatable'),
+    path('polices-a-echeance-dans-90-jours/', PolicesArrivantEcheanceView.as_view(), name='polices_arrivant_echeance'),
+    path('polices_arrivant_echeance_datatable/', views.polices_arrivant_echeance_datatable, name='polices_arrivant_echeance_datatable'),
+
+    path('polices-non-renouvellees-resiliees/', PolicesNonRenouvelleesResilieesView.as_view(), name='polices_non_renouvellees_resiliees'),
+    path('polices_non_resiliees_renouvellees_datatable/', views.polices_non_renouvellees_resiliees_datatable, name='polices_non_renouvellees_resiliees_datatable'),
+
     # path('police/<int:police_id>/details',views.details_police,name='police.details'),
     path('police/<int:police_id>/details', views.DetailsPoliceView.as_view(), name='police.details'),
     path('police/<int:police_id>/historique-details', views.DetailsHistoriquePoliceView.as_view(), name='police.historique.details'),
@@ -77,7 +88,7 @@ urlpatterns = [
     path('police/<int:police_id>/add_reglement', views.add_reglement, name='add_reglement'),
     path('police/<int:police_id>/add_lettrage', views.add_lettrage, name='add_lettrage'),
     path('quittance/<int:quittance_id>', views.details_quittance, name='details_quittance'),
-    path('police/<int:police_id>/avenants', PoliceAvenantsView.as_view(), name='police_avenants'),
+    path('police/<int:police_id>/mouvements', PoliceAvenantsView.as_view(), name='police_avenants'),
     path('police/<int:police_id>/add_avenant', views.add_avenant, name='add_avenant'),
     path('police/<int:police_id>/tarifs_specifiques', PoliceTarifsSpecifiquesView.as_view(), name='police_tarifs_specifiques'),
     path('police/<int:police_id>/add_tarif_specifique', views.add_tarif_specifique, name='add_tarif_specifique'),
@@ -178,6 +189,7 @@ urlpatterns = [
     #
     path('annuler_quittance/', AnnulerQuittanceView.as_view(), name='annuler_quittance'),
     path('add_annuler_quittance/', views.add_annuler_quittance, name='add_annuler_quittance'),
+
 ]
 
 
