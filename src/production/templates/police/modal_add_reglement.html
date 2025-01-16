@@ -98,7 +98,7 @@
 									<select class="form-control" name="devise" id="devise" required>
 										<option value="">{{_('Choisir')}}</option>
 										{% for devise in devises %}
-										<option {% if devise.code == police.client.pays.devise.code %} selected {% endif %} value="{{ devise.id }}">{{ devise.libelle }} ({{ devise.code }})</option>
+											<option {% if devise.code == police.client.pays.devise.code %} selected {% endif %} value="{{ devise.id }}">{{ devise.libelle }} ({{ devise.code }})</option>
 										{% endfor %}
 									</select>
 								</div>
@@ -110,7 +110,7 @@
 						<table class="table table-bordered table-striped dataTable0 dtr-inline" id="table_quittances_impayees">
 						  <thead>
 							<tr>
-								<th scope="col"></th>
+								<th scope="col">##</th>
 								<th scope="col" style="width:200px;">{{_("Montant à régler")}}</th>
 								<th scope="col">{{_("Numéro Quittance")}}</th>
 								<th scope="col">{{_("Début période")}}</th>
@@ -141,7 +141,7 @@
 				</div>
 				<div class="modal-footer justify-content-between">
 					<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
-					<div>{{_("Montant Total")}}: <input type="text" class="money_field_negative montant_total_a_regler" readonly style="background:none;border:none;font-size:18px;"/> {{police.client.pays.devise.code}}</div>
+					<div>{{_("Montant Total")}} : <input type="text" class="money_field_negative montant_total_a_regler" readonly style="background:none;border:none;font-size:18px;"/> {{police.client.pays.devise.code}}</div>
 					<button disabled type="button" id="btn_save_reglement" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Valider')}}</button>
 				</div>
 			</div>

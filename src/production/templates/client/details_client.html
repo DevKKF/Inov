@@ -189,7 +189,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-5 col-form-label">{{_("Nom complet")}}</label>
                                 <div class="col-sm-7">
-                                <span class="form-control">{{ client.nom|default_if_none:"" }} {{ client.prenoms|default_if_none:"" }}</span>
+                                <span class="form-control" title="{{ client.nom|default_if_none:'' }} {{ client.prenoms|default_if_none:'' }}">{{ client.nom|default_if_none:"" }} {{ client.prenoms|default_if_none:"" }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -241,7 +241,7 @@
                         </div>
                 </div>
                 <hr>
-                <h6 class="o-primary">{{_('COORDONNEES')}}</h6>
+                <h6 class="o-primary">{{_("COORDONNEES & AUTRES")}}</h6>
                 <hr>
                 <div class="row">
                     <div class="col-md-6">
@@ -260,13 +260,13 @@
                         <div class="form-group row">
                             <label class="col-sm-5 col-form-label">{{_('Adresse')}}</label>
                             <div class="col-sm-7">
-                            <span class="form-control">{{ client.adresse|default_if_none:"" }}</span>
+                            <span class="form-control" title="{{ client.adresse|default_if_none:'' }}">{{ client.adresse|default_if_none:""|slice:":37" }}</span>
                             </div>
                         </div>
                         <div class="form-group row">
                             <label class="col-sm-5 col-form-label">{{_("Code postal")}}</label>
                             <div class="col-sm-7">
-                            <span class="form-control">{{ client.adresse_postale|default_if_none:"" }}</span>
+                            <span class="form-control">{{ client.adresse_postale|default_if_none:""|slice:":120" }}</span>
                             </div>
                         </div>
                     </div>
@@ -288,6 +288,16 @@
                             <label class="col-sm-5 col-form-label">{{_("E-mail")}}</label>
                             <div class="col-sm-7">
                             <span class="form-control">{{ client.email|default_if_none:"" }}</span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-6 col-form-label">{{_("Logo")}}</label>
+                            <div class="col-sm-6">
+                                {% if client.logo %}
+                                    <a href="{{request.scheme}}://{{request.META.HTTP_HOST}}{{client.logo.url}}" target="_blank">
+                                        <img style="width:50px;" src="{{request.scheme}}://{{request.META.HTTP_HOST}}{{client.logo.url}}" alt="" srcset="" class="logo-partenaire">
+                                    </a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

@@ -3,6 +3,7 @@ import datetime
 from pprint import pprint
 from decimal import Decimal
 from datetime import datetime, timezone, timedelta
+from datetime import date
 
 from django import template
 from django.contrib.humanize.templatetags.humanize import intcomma
@@ -158,3 +159,33 @@ def to_base64(file):
         return fichier_base64.decode('utf-8')
     except Exception as e:
         return ''  # Retourne une chaîne vide si quelque chose échoue
+
+
+@register.filter
+def money_format_mille(value):
+    try:
+        return f"{int(value):,}".replace(",", " ")
+    except (ValueError, TypeError):
+        return value
+
+
+@register.simple_tag
+def date_du_jour():
+    """
+    Retourne la date du jour.
+    """
+    return date.today()
+
+# Suppression des espaces entre les mots
+def supprimer_espaces(chaine):
+    return ''.join(str(chaine).split())
+
+#Convertir une date en format AAAA-MM-JJ
+def convertir_date_multiformat(date_str):
+    formats = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%Y/%m/%d']
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_str, fmt).strftime('%Y-%m-%d')
+        except ValueError:
+            continue
+    return None

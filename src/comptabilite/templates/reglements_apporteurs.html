@@ -5,9 +5,9 @@
 <div class="col-12 col-md-12 order-2 order-md-1">
   <div class="card">
     <div class="card-header">
-        <h3 class="card-title"><b>REGLEMENTS APPORTEURS</b></h3>
+        <h3 class="card-title"><b>{{_("REGLEMENTS APPORTEURS")}}</b></h3>
         <div class="card-tools">
-            <span id="btnOpenDialogAddReglementCompagnie" class="btn btn-sm btn-default" data-toggle="modal" data-href="{% url 'add_reglement_compagnie' %}"><i class="fas fa-money-bill"></i> Règler un apporteur</span>
+            <span id="btnOpenDialogAddReglementCompagnie" class="btn btn-sm btn-default" data-toggle="modal" data-href="{% url 'add_reglement_compagnie' %}"><i class="fas fa-money-bill"></i> {{_("Règler un apporteur")}}</span>
         </div>
     </div>
     <div class="card-body">
@@ -17,13 +17,13 @@
               <table class="table table-bordered table-striped dataTable dtr-inline" id="table_reglements_compagnies">
                   <thead>
                       <tr>
-                        <th scope="col">Nom Apporteur</th>
-                        <th scope="col">N° Règlement</th>
-                        <th scope="col">Mode règlement</th>
-                        <th scope="col">Montant reglé</th>
-                        <th scope="col">Date règlement</th>
-                        <th scope="col">Date reversement cie</th>
-                        <th scope="col">Statut</th>
+                        <th scope="col">{{_("Nom Apporteur")}}</th>
+                        <th scope="col">{{_("N° Règlement")}}</th>
+                        <th scope="col">{{_("Mode règlement")}}</th>
+                        <th scope="col">{{_("Montant reglé")}}</th>
+                        <th scope="col">{{_("Date règlement")}}</th>
+                        <th scope="col">{{_("Date reversement cie")}}</th>
+                        <th scope="col">{{_("Statut")}}</th>
                       </tr>
                     </thead>
                     <tbody>

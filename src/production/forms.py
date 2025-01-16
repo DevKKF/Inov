@@ -25,7 +25,7 @@ class ClientForm(forms.ModelForm):
 class PoliceForm(forms.ModelForm):
     class Meta:
         model = Police
-        fields = ['compagnie', ]
+        fields = ['produit', ]
 
 
     def __init__(self, *args, **kwargs):
@@ -61,7 +61,7 @@ class FilialeForm(forms.ModelForm):
 class AcompteForm(forms.ModelForm):
     class Meta:
         model = Acompte
-        fields = ['montant', 'date_versement' ]
+        fields = ['debit', 'credit', 'date_versement' ]
 
 
 #

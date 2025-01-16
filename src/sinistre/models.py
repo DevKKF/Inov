@@ -463,6 +463,7 @@ def upload_location_factureprestataire(instance, filename):
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     return 'dossiers_sinistres/bordereaux/%s.%s' % (file_name, extension)
 
+
 class FacturePrestataire(models.Model):
     numero = models.CharField(max_length=255, blank=True, null=True, unique=True)
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
@@ -494,10 +495,12 @@ class FacturePrestataire(models.Model):
             #("can_do_another_thing", "Can do another thing with this model"),
         ]
 
+
 def upload_location_bordereauordonnancement(instance, filename):
     filebase, extension = filename.rsplit('.', 1)
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     return 'dossiers_sinistres/bordereaux/%s.%s' % (file_name, extension)
+
 
 class BordereauOrdonnancement(models.Model):
     numero = models.CharField(max_length=255, blank=True, null=True, unique=True)
@@ -540,7 +543,6 @@ class BordereauOrdonnancement(models.Model):
             #("can_views_factures", "Can do something with this model"),
             #("can_do_another_thing", "Can do another thing with this model"),
         ]
-        
         
 
 def upload_location_paiementcomptable(instance, filename):
@@ -659,8 +661,6 @@ class ReglementFactureCompagnie(models.Model):
         db_table = 'reglement_facture_compagnie'
         verbose_name = 'Reglement facture'
         verbose_name_plural = 'Reglement facture'
-
-
 
 
 class Sinistre(models.Model):
@@ -1059,8 +1059,6 @@ class DocumentDossierSinistre(models.Model):
         verbose_name_plural = 'Documents prises en charge'
 
 
-
-
 # class BordereauSinistre(models.Model):
 #     bordereau = models.ForeignKey(BordereauDossierSinistre, related_name="sinistres", on_delete=models.RESTRICT)
 #     sinistre = models.ForeignKey(Sinistre, on_delete=models.RESTRICT)
@@ -1081,8 +1079,6 @@ permission = Permission.objects.create(
     name='Can review sinistre',
     content_type=content_type,
 )'''
-
-
 
 
 class ControlePlafond(models.Model):
@@ -1172,6 +1168,7 @@ class SinistreTemporaire(models.Model):
         verbose_name = 'Sinistre temporaire'
         verbose_name_plural = 'Sinistres temporaires'
 
+
 class DemandeRemboursementMobile(models.Model):
     date_sinistre = models.DateField(blank=True)
     acte = models.ForeignKey(Acte, on_delete=models.RESTRICT)
@@ -1195,8 +1192,6 @@ class DemandeRemboursementMobile(models.Model):
         db_table = 'demande_remboursement_mobile'
         verbose_name = "Demande de remboursement mobile"
         verbose_name_plural = "Demandes de remboursement mobiles"
-
-
 
 
 #suivi du traitement des factures prestataires
@@ -1227,6 +1222,7 @@ class TrackEtape(models.Model):
         db_table = 'track_etape'
         verbose_name = 'Etape'
         verbose_name_plural = 'Etape'
+
 
 class TrackEtapeFacture(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)

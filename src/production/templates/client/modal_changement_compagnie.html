@@ -21,7 +21,7 @@
                     <select name="ancienne_police" id="ancienne_police" class="form-control tags-multiple" autocomplete="off" required>
                       <option value="">{{_('Choisir')}}</option>
                       {% for police in anciennes_polices %}
-                      <option value="{{police.id}}">N° {{police.numero }} de {{police.compagnie|default_if_none:""}} ( {{police.date_debut_effet|date:'d/m/Y'|default_if_none:""}} - {{police.date_fin_effet|date:'d/m/Y'|default_if_none:""}})</option>
+                      <option value="{{police.id}}">{{_('N°')}} {{police.numero }} de {% for assureur in assureur_police %} {{ assureur.compagnie.nom|default_if_none:"" }} {% endfor %} ( {{derniere_historique.date_debut_effet|date:'d/m/Y'|default_if_none:""}} - {{derniere_historique.date_fin_effet|date:'d/m/Y'|default_if_none:""}})</option>
                       {% endfor %}
                     </select>
                   </div>
@@ -34,7 +34,7 @@
                     <select name="nouvelle_police" id="nouvelle_police" class="form-control tags-multiple" autocomplete="off" required>
                       <option value="">{{_('Choisir')}}</option>
                       {% for police in nouvelles_polices %}
-                      <option value="{{police.id}}">{{_('Numero')}} {{police.numero }} de {{police.compagnie|default_if_none:""}} ( {{police.date_debut_effet|date:'d/m/Y'|default_if_none:""}} - {{police.date_fin_effet|date:'d/m/Y'|default_if_none:""}})</option>
+                      <option value="{{police.id}}">{{_('Numero')}} {{police.numero }} de {% for assureur in assureur_police %} {{ assureur.compagnie.nom|default_if_none:"" }} {% endfor %} ( {{derniere_historique.date_debut_effet|date:'d/m/Y'|default_if_none:""}} - {{derniere_historique.date_fin_effet|date:'d/m/Y'|default_if_none:""}})</option>
                       {% endfor %}
                     </select>
                   </div>

@@ -334,9 +334,9 @@
         </div>
         <div class="info">
             {% if perms|can_view_self %}
-                <a href="{% jazzy_admin_url request.user request.current_app|default:"admin" %}" class="d-block">{{ request.user }}</a>
+                <a style="color:white !important" href="{% jazzy_admin_url request.user request.current_app|default:"admin" %}" class="d-block">{{ request.user }}</a>
             {% else %}
-                <span class="d-block">{{ request.user }}</span>
+                <span class="d-block" style="color:white !important">{{ request.user }}</span>
             {% endif %}
         </div>
       </div>
@@ -353,62 +353,55 @@
             <li class="nav-item">
                 <a href="{% url 'police.details' police.id %}" class="nav-link">
                   <i class="nav-icon fas fa-umbrella"></i>
-                  <p>
-                    Fiche de la police
-                  </p>
+                  <p>Fiche de la police</p>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{% url 'police_avenants' police.id %}" class="nav-link">
                   <i class="nav-icon fas fa-history"></i>
-                  <p>
-                    Avenants
-                  </p>
+                  <p>Avenants</p>
                 </a>
             </li>
 
 
              <li class="nav-item">
                 <a href="{% url 'police_courrier' police.id %}" class="nav-link">
-                  <i class="nav-icon fas fa-file-contract"></i>
-                  <p>
-                    Courrier
-                  </p>
+                  <i class="nav-icon fas fa-comments"></i>
+                  <p>Courriers</p>
                 </a>
             </li>
 
             <li class="nav-item">
                 <a href="{% url 'police_ged' police.id %}" class="nav-link">
                   <i class="nav-icon fas fa-folder-open"></i>
-                  <p>
-                    GED
-                  </p>
+                  <p>GED</p>
                 </a>
             </li>
-            {% if police.produit.type_produit_id == 1 %}
+            {% if police.produit.branche.code == '100991' or police.produit.branche.code == '100992' %}
                 <li class="nav-item">
                     <a href="{% url 'police_vehicules' police.id %}" class="nav-link">
                       <i class="nav-icon fa fa-car"></i>
-                      <p>
-                        Aliments
-                      </p>
+                      <p>Vehicules</p>
+                    </a>
+                </li>
+            {% elif police.produit.branche.code == '101004' or police.produit.branche.code == '101005' %}
+                <li class="nav-item">
+                    <a href="{% url 'police_marchandises' police.id %}" class="nav-link">
+                      <i class="nav-icon fa fa-cubes"></i>
+                      <p>Marchandises</p>
                     </a>
                 </li>
             {% endif %}
             <li class="nav-item">
                 <a href="{% url 'police_quittances' police.id %}" class="nav-link">
                   <i class="nav-icon fas fa-file-invoice-dollar"></i>
-                  <p>
-                    Quittances
-                  </p>
+                  <p>Quittances</p>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{% url 'police_sinistres' police.id %}" class="nav-link">
                   <i class="nav-icon fas fa-user-injured"></i>
-                  <p>
-                    Sinistres
-                  </p>
+                  <p>Sinistres</p>
                 </a>
             </li>
         </ul>
@@ -510,6 +503,7 @@
 {% endif %}
 
 {% include 'police/modal_vehicule.html' %}
+{% include 'police/modal_marchandise.html' %}
 {% include 'police/modal_import_vehicules.html' %}
 {% include 'police/modal_document.html' %}
 {% include 'police/modal_edition_cartes.html' %}

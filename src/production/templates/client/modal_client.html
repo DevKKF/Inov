@@ -35,13 +35,13 @@
 											</select>
 										</div>
 									</div>
-									<div class="form-group row">
+									<div class="form-group row champ_variable_client if_personne_physique">
 										<label class="col-sm-5 col-form-label">{{_("Type de client")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
 											<select class="form-control" name="type_client_id" id="type_client_id" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for tc in types_clients %}
-												<option value="{{ tc.id }}" {% if tc.libelle == 'STANDARD'|stringformat:"s" %}selected{% endif %}>{{ tc.libelle }}</option>
+													<option value="{{ tc.id }}" {% if tc.libelle == 'STANDARD'|stringformat:"s" %}selected{% endif %}>{{ tc.libelle }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -52,7 +52,7 @@
 											<select class="form-control" name="civilite_id" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for civilite in civilites %}
-												<option value="{{ civilite.id }}">{{ civilite.name }}</option>
+													<option value="{{ civilite.id }}">{{ civilite.name }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -80,9 +80,16 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Date de naissance")}} <span class="required">*</span></label>
+										<label class="col-sm-5 col-form-label">{{_("Date de naissance")}}</label>
 										<div class="col-sm-7">
 											<input type="date" class="form-control" name="date_naissance" id="date_naissance" autocomplete="off" value=""/>
+										</div>
+									</div>
+
+									<div class="form-group row" style="display:none">
+										<label class="col-sm-5 col-form-label">{{_("Date de création")}}</label>
+										<div class="col-sm-7">
+											<input type="date" class="form-control" name="date_naissance" id="date_creation" autocomplete="off" value=""/>
 										</div>
 									</div>
 
@@ -96,7 +103,7 @@
 											<select class="form-control" name="business_unit_id" id="business_unit_id" autocomplete="off">
 												<option value="">{{_('Choisir')}}</option>
 												{% for bu in business_units %}
-												<option value="{{ bu.id }}">{{ bu.libelle }}</option>
+													<option value="{{ bu.id }}">{{ bu.libelle }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -107,7 +114,7 @@
 											<select class="form-control tags-multiple" name="pays_id" id="pays_id" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for p in pays %}
-												<option value="{{ p.id }}">{{ p.nom }}</option>
+													<option value="{{ p.id }}" {% if p.code == "CI" %} selected {% endif %}>{{ p.nom }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -121,13 +128,13 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Tel fixe")}}</label>
 										<div class="col-sm-7">
-											<input type="number" class="form-control" name="telephone_fixe" autocomplete="off" value=""/>
+											<input type="text" class="form-control" name="telephone_fixe" autocomplete="off" value="" onkeypress="isInputNumber(event)">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Tel mobile")}} </label>
 										<div class="col-sm-7">
-											<input type="number" class="form-control" name="telephone_mobile" autocomplete="off" value="" />
+											<input type="text" class="form-control" name="telephone_mobile" autocomplete="off" value="" onkeypress="isInputNumber(event)">
 										</div>
 									</div>
 
@@ -220,3 +227,14 @@
 		</div>
 	</div>
 </div>
+
+<script>
+    function isInputNumber(evt){
+
+        var ch = String.fromCharCode(evt.which);
+
+        if(!(/[0-9]/.test(ch))){
+            evt.preventDefault();
+        }
+    }
+</script>

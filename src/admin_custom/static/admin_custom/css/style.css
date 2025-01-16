@@ -492,7 +492,7 @@ article .shimmer{
 
 
 /*pour gérer les statuts*/
-.badge-actif, .badge-accorde, .badge-effectue, .badge-valide, .badge-paye, .badge-en-cours, .badge-reverse{
+.badge-actif, .badge-accorde, .badge-effectue, .badge-valide, .badge-paye, .badge-en-cours, .badge-reverse, .badge-soldee{
   color: #fff;
   background-color: #28a745;
 }
@@ -589,17 +589,17 @@ article .shimmer{
 }
 
 .bg-inov-vive{
-    background: #EF6630;
+    background: #DC985D;
     color: #fff;
 }
 
 .bg-inov-elegante{
-    background: #6B726A;
+    background: #FFA500;
     color: #fff;
 }
 
 .bg-inov-variation{
-    background:  #658348 ;
+    background:  #639A88;
     color: #fff;
 }
 
@@ -618,8 +618,8 @@ article .shimmer{
   border: 1px solid #000;
 }
 
-.f_none_bold label:not(.form-check-label):not(.custom-file-label) {
-  font-weight: none !important;
+label:not(.form-check-label):not(.custom-file-label) {
+  font-weight: 200 !important;
 }
 
 #modal-police_aliment label:not(.form-check-label):not(.custom-file-label) {
@@ -630,3 +630,77 @@ article .shimmer{
 .date{
     color: red;
 }
+
+.btn-primary{
+	color: #fff;
+	background-color: #F16623;
+	border-color: #F16623;
+	box-shadow: none;
+}
+
+.btn-primary:hover{
+	color: #fff;
+	background-color: #d45802;
+	border-color: #d45802;
+	box-shadow: none;
+}
+
+.btn-warning{
+  color: #fff;
+  background-color: #AD4E09;
+  border-color: #AD4E09;
+  box-shadow: none;
+}
+
+.match{
+  font-weight:bold;
+}
+
+#suggestions {
+    z-index: 1000;
+    background-color: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#suggestions .list-group-item {
+    cursor: pointer;
+}
+
+#suggestions .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.text-italic {
+    font-style: italic !important;
+}
+
+.mt-5{
+    margin-top: 5px;
+}
+
+.mt-10{
+    margin-top: 10px;
+}
+
+.mt-15{
+    margin-top: 15px;
+}
+
+.mt-20{
+    margin-top: 20px;
+}
+
+.mt-30{
+    margin-top: 30px;
+}
+
+.mt-40{
+    margin-top: 40px;
+}
+
+.mt-50{
+    margin-top: 50px;
+}
+

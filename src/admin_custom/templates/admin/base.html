@@ -346,9 +346,9 @@
                         </div>
                         <div class="info">
                             {% if perms|can_view_self %}
-                                <a href="{% jazzy_admin_url request.user request.current_app|default:"admin" %}" class="d-block">{{ request.user }}</a>
+                                <a style="color:white !important" href="{% jazzy_admin_url request.user request.current_app|default:"admin" %}" class="d-block">{{ request.user }}</a>
                             {% else %}
-                                <span class="d-block">{{ request.user }}</span>
+                                <span class="d-block" style="color:white !important">{{ request.user }}</span>
                             {% endif %}
                         </div>
                     </div>

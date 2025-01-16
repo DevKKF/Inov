@@ -20,6 +20,11 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.http import JsonResponse
+from django.urls import reverse
+from rest_framework import status
+
+
 
 from api.api_helper import send_otp_mail, send_demande_rembours_mail
 from api.paginations import SmartResultsSetPagination
@@ -38,7 +43,7 @@ from configurations.models import User, ModeReglement
 from grh.helper import generate_uiid
 from grh.models import CampagneAppmobile, CampagneAppmobileProspect
 from production.models import Aliment, AlimentFormule, Bareme, Carte, FormuleGarantie, CarteDigitalDematerialisee, \
-    TypeDocument
+    TypeDocument, Police
 from shared.enum import EtatPolice, Statut, StatutSinistre, StatutEnrolement
 from shared.enum import StatutRemboursement
 from shared.helpers import get_tarif_acte_from_bareme, generate_numero_carte
@@ -1355,9 +1360,6 @@ class TestNumCartView(views.APIView):
         return Response(data={"numero_carte": numer_cart})
 
 
-
-
-
 class AddAyantDroitView(views.APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser]
@@ -1420,7 +1422,6 @@ class AddAyantDroitView(views.APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class ListProspectsView(views.APIView):
@@ -1885,6 +1886,7 @@ class PriseEnChargeView(views.APIView):
 
         return Response(jResponse, status_code, content_type="application/json; charset=utf-8")
 
+
 class PriseEnChargeActeInfoView(views.APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser]
@@ -2058,4 +2060,37 @@ class ConstantesView(views.APIView):
 
         }
         return Response(data)
+
+
+#Suggestion lors de la recherche des polices
+def suggestions(request):
+    query = request.GET.get('numero', '')
+    if query:
+        # Rechercher dans la base les numéros de police correspondant et inclure les informations nécessaires
+        results = (
+            Police.objects.filter(numero__icontains=query)
+            .select_related('client')  # Optimisation pour inclure les données du client
+            .values(
+                'id',  # Pour générer le lien
+                'numero',
+                'client__nom',
+            )[:10]
+        )
+        print("Police : ", results)
+        # Ajouter les données formatées pour chaque police
+        results_with_links = [
+            {
+                'numero_police': item['numero'],
+                'client_nom': item['client__nom'],
+                'details_url': reverse('police.details', args=[item['id']])
+            }
+            for item in results
+        ]
+        return JsonResponse(results_with_links, safe=False)
+
+    return JsonResponse([], safe=False)
+
+
+
+
 

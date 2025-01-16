@@ -1,7 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load my_filters %}
-{% block extrastyle %}
-
+{% load i18n static jazzmin admin_urls %}
 <style type="text/css">
     tr.tr_totaux td
     {
@@ -36,7 +35,20 @@
     }
     /**/
 </style>
+{% block content_title %}
+<div class="row mb-2">
+  <div class="col-sm-6">
+    <h1 class="m-0">{% trans 'Dashboard' %}</h1>
+  </div>
+  <div class="col-sm-6">
+    <ol class="breadcrumb float-sm-right">
+      <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
+      <li class="breadcrumb-item active">{% trans 'Dashboard' %}</li>
+    </ol>
+  </div>
+</div>
 {% endblock %}
+
 {% block content %}
 
 <div class="col-12 col-md-12 order-2 order-md-1">

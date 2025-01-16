@@ -57,7 +57,6 @@ import io
 
 
 
-
 def generate_numero_famille_all(request):
     aliments = Aliment.objects.filter(qualite_beneficiaire__code="AD", numero_famille__isnull=True)
     if aliments:
@@ -247,7 +246,6 @@ def recalculer_parts_sinistres_sucaf(request):
     return JsonResponse(response)
 
 
-
 def corriger_param_produit_compagnie(request):
     dd("DEJA EXECUTE, PAS BESOIN DE REEXECUTER, CONSERVER POUR UN USAGE ULTERIEUR")
 
@@ -376,7 +374,6 @@ def update_matricule(request):
     return JsonResponse(response)
 
 
-
 def correction_affections(request):
 
     affections = Affection.objects.all()
@@ -438,7 +435,6 @@ def custom_password_change(request):
 
     pprint("custom_password_change")
     return render(request, 'registration/password_change_form.html', {'form': form})
-
 
 
 def set_bureau(request):
@@ -1108,6 +1104,7 @@ def export_prestaitaires(request):
     else:
         return HttpResponse(status=405)
 
+
 def add_prestataire(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -1410,6 +1407,7 @@ def add_prescripteur(request):
 
     return JsonResponse(response)
 
+
 #@transaction.atomic
 def import_prescripteurs(request, prestataire_id):
     if request.method == 'POST':
@@ -1582,8 +1580,8 @@ def prescripteurs_by_prestataire(request, prestataire_id):
     prescripteurs_serialize = serializers.serialize('json', prescripteurs)
     return HttpResponse(prescripteurs_serialize, content_type='application/json')
 
-# PRESCRIPTEUR
 
+# PRESCRIPTEUR
 def prescripteurs_prestataires_datatable(request, prestataire_id):
     items_per_page = 10
     page_number = request.GET.get('page')

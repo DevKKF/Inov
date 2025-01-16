@@ -61,9 +61,12 @@ url_v2 = [
 ]
 
 # url_v2 += router.urls
+from . import views
 
 urlpatterns = [
     path('v2/', include(url_v2)),
+
+    path('suggestions', views.suggestions, name='suggestions'),
 ]
 
      

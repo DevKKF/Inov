@@ -24,7 +24,6 @@ urlpatterns = [
     path('get-fdr-data/', views.get_fdr_data, name='get_fdr_data'),
     path('fonds-de-roulements/init/', views.init_fonds_de_roulements, name='init_fonds_de_roulements'), # SCRIPT
 
-
     path('refacturation-assureur/', RefacturationAssureurView.as_view(), name='refacturation_assureur'),
     path("generation_facture_assureur/", views.generate_facture_assureur_datatable, name='generation_facture_assureur_datatable'),
     path("submit_generate_facture_assureur", views.submit_generate_facture_assureur, name='submit_generate_facture_assureur'),
@@ -42,7 +41,6 @@ urlpatterns = [
 
     path('obtenir_montant_facture/', views.obtenir_montant_sinistre, name='obtenir_montant_sinistre'),
 
-
     path('add_mise_en_reglement_factures_garant/',views.add_mise_en_reglement_factures_garant, name='add_mise_en_reglement_factures_garant'),
 
     path('suivi-tresorerie/', SuiviTresorerie.as_view(), name='suivi_tro'),
@@ -54,15 +52,12 @@ urlpatterns = [
     path('add_mise_en_reglement_ordonnancement',views.add_mise_en_reglement_ordonnancement, name='add_mise_en_reglement_ordonnancement'),
     path('generer_bordereau_reglement_ordonnancement_pdf/<int:operation_id>', views.generer_bordereau_reglement_ordonnancement_pdf, name='generer_bordereau_reglement_ordonnancement_pdf'),
 
-
     path('add_mise_en_reglement_ordonnancement_par_garant',views.add_mise_en_reglement_ordonnancement_par_garant, name='add_mise_en_reglement_ordonnancement_par_garant'),
     path('generer_bordereau_reglement_ordonnancement_par_garant_pdf/<int:operation_id>', views.generer_bordereau_reglement_ordonnancement_par_garant_pdf, name='generer_bordereau_reglement_ordonnancement_par_garant_pdf'),
 
     path("bordereau-ordonnancement-pdf/", views.bordereau_ordonnancement_pdf, name='pdf_bordereau_ordonnancement'),
 
-
     path('regenerate_bordereau_pdf/<int:paiement_comptable_id>/', views.regenerate_bordereau_pdf, name='regenerate_bordereau_pdf'),
-
 
     path('paiements-realises/', PaiementsRealises.as_view(), name='paiements-realises'),
     path('paiements_comptables_datatable/', views.paiements_comptables_datatable, name='paiements_comptables_datatable'),
@@ -80,8 +75,6 @@ urlpatterns = [
     path('suivi_treso/<int:compagnie_id>/', DetailTresorerie.as_view(), name='detail_suivi_treso'),
     # path('suivi_treso/<int:compagnie_id>/stats', views.get_camembert_data_detail_par_garant, name='get_camembert_data_detail_par_garant'),
     path('suivi_treso/datatable', views.datatable_facture_compagnie_specifique, name='datatable_facture_compagnie_specifique'),
-
-
 
     path('reglements_compagnies/', ReversesementCompagniesView.as_view(), name='reglements_compagnies'),
     path('encaissement_commissions/', EncaissementCommissionsView.as_view(), name='encaissement_commissions'),
@@ -101,7 +94,6 @@ urlpatterns = [
     path('generer_bordereau_encaissement_compagnie_pdf/<int:operation_id>', views.generer_bordereau_encaissement_compagnie_pdf, name='generer_bordereau_encaissement_compagnie_pdf'),
 
     path('execution-requete-excel-compta/', views.ExecutionRequeteExcelComptaView.as_view(), name='execution_requete_excel_compta'),
-
 
     #
     path('export_bordereaux_ordonnances/', export_bordereaux_ordonnances, name='export_bordereaux_ordonnances'),

@@ -21,7 +21,6 @@ class ReglementReverseCompagnie(Reglement):
         return super(ReglementReverseCompagnie, self).get_queryset().filter(statut_reversement_compagnie=StatutReversementCompagnie.REVERSE)
 
 
-
 class ReglementApporteurs(Reglement):
     class Meta:
         proxy = True
@@ -31,6 +30,7 @@ class ReglementApporteurs(Reglement):
     def get_queryset(self):
         return super(ReglementApporteurs, self).get_queryset().filter(statut_reversement_compagnie=StatutReversementCompagnie.REVERSE)
 
+
 class BordereauOrdonnance(BordereauOrdonnancement):
     class Meta:
         proxy = True
@@ -39,9 +39,6 @@ class BordereauOrdonnance(BordereauOrdonnancement):
 
     def get_queryset(self):
         return super(BordereauOrdonnancement, self).get_queryset().filter(statut_reversement_compagnie=StatutReversementCompagnie.REVERSE)
-
-
-
 
 
 class EncaissementCommission(models.Model):
@@ -86,8 +83,6 @@ class EncaissementCommission(models.Model):
         print(f"{self.reglement.numero} {montant}")
         return montant    
     
-
-
 
 class CompteComptable(models.Model):
     code = models.CharField(max_length=255, blank=True, null=True)

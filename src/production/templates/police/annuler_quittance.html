@@ -17,7 +17,7 @@
       <div class="card">
         <div class="card-header">
             <h3 class="card-title"><b>
-                {{_('ANNULATION_D_UNE_QUITTANCE_NON_REVERSEE_COMPAGNIE')}}
+                {{_("ANNULATION D'UNE QUITTANCE NON REVERSEE COMPAGNIE")}}
             </b></h3>
             <div class="card-tools">
             </div>
@@ -29,12 +29,12 @@
               {% csrf_token %}
                 <div class="col-md-12" style="border-left:0px;">
                     <div class="form-group row">
-                        <label class="col-sm-4 col-form-label text-right">{{_('Numero_Quittance')}}</label>
+                        <label class="col-sm-4 col-form-label text-right">{{_("Numéro Quittance")}}</label>
                         <div class="col-sm-4">
                             <input type="text" class="form-control" name="numero_quittance" id="numero_quittance" value="{{ numero_quittance }}" required>
                         </div>
                         <div class="col-sm-4">
-                            <button id="recherche" name="recherche" value="rechercher" type="submit" class="btn btn-complement-rouge">{{_('Rechercher')}}
+                            <button id="recherche" name="recherche" value="rechercher" type="submit" class="btn btn-complement-rouge">{{_("Rechercher")}}
                             <img id="loader" src="{% static 'admin_custom/img/loader.gif' %}" style="width: 40px;display: none;"/>
                       </button>
                     </div>
@@ -47,7 +47,7 @@
               <div class="card">
                 <div class="card-header">
                   <div class="card-title">
-                    <h6>{{_('Quittance')}}</h6>
+                    <h6>{{_("Quittance")}}</h6>
                   </div>
                 </div>
                 <div class="card-body">
@@ -57,17 +57,17 @@
 
                       <thead>
                         <tr>
-                          <th scope="col">{{_('Numero_Quittance')}}</th>
-                          <th scope="col">{{_('Type_Quittance')}}</th>
-                          <th scope="col">{{_('Compagnie')}}</th>
-                          <th scope="col">{{_('Client')}}</th>
-                          <th scope="col">{{_('Numero_Police')}}</th>
-                          <th scope="col">{{_('Prime_Toutes_Taxes_Comprises')}}</th>
-                          <th scope="col">{{_('Solde')}}</th>
-                          <th scope="col">{{_('Date_d_emission')}}</th>
-                          <th scope="col">{{_('Statut')}}</th>
-                          <th scope="col">{{_('Etat')}}</th>
-                          <th scope="col">{{_('Actions')}}</th>
+                          <th scope="col">{{_("N° Quittance")}}</th>
+                          <th scope="col">{{_("Type Quittance")}}</th>
+                          <th scope="col">{{_("Assureur")}}</th>
+                          <th scope="col">{{_("Client")}}</th>
+                          <th scope="col">{{_("N° Police")}}</th>
+                          <th scope="col">{{_("Prime TTC")}}</th>
+                          <th scope="col">{{_("Solde")}}</th>
+                          <th scope="col">{{_("Date d'émission")}}</th>
+                          <th scope="col">{{_("Statut")}}</th>
+                          <th scope="col">{{_("Etat")}}</th>
+                          <th scope="col">{{_("Actions")}}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -81,21 +81,21 @@
                             <td style="text-align:right">{{ quittance.solde|money_field|default_if_none:"0" }}</td>
                             <td style="text-align:right">{{ quittance.created_at|date:"d/m/Y H:m" }}</td>
                             <td>
-                            {% if quittance.statut == "IMPAYE" %}
-                            <span class="text-bold col-sm-12 badge badge-default" style="font-size:10px;color:white;">{{quittance.statut}}</span>
-                            {% else %}
-                            <span class="text-bold col-sm-12 badge badge-success" style="font-size:10px;color:white;">{{quittance.statut}}</span>
-                            {% endif %}
+                                {% if quittance.statut == "IMPAYE" %}
+                                    <span class="text-bold col-sm-12 badge badge-danger" style="font-size:10px;color:white;">{{quittance.statut}}</span>
+                                {% else %}
+                                    <span class="text-bold col-sm-12 badge badge-success" style="font-size:10px;color:white;">{{quittance.statut}}</span>
+                                {% endif %}
                             </td>
                             <td>
                               {% if quittance.statut_validite == "ANNULEE" %}
-                              <span class="text-bold col-sm-12 badge badge-danger" style="font-size:10px;color:white;">{{quittance.statut_validite}}</span>
+                                <span class="text-bold col-sm-12 badge badge-danger" style="font-size:10px;color:white;">{{quittance.statut_validite}}</span>
                               {% else %}
-                              <span class="text-bold col-sm-12 badge badge-en-attente" style="font-size:10px;color:white;">{{quittance.statut_validite}}</span>
+                                <span class="text-bold col-sm-12 badge badge-success" style="font-size:10px;color:white;">{{quittance.statut_validite}}</span>
                               {% endif %}
-                              </td>
+                            </td>
                             <td>
-                                <a href="#" onclick="annuleItem({{ quittance.id }}, '{{quittance.numero|default_if_none:""}}')"><span class="badge btn-sm btn-danger rounded-pill"><i class="fa fa-times"></i> {{_('Annuler')}}</span></a>
+                                <a href="#" onclick="annuleItem({{ quittance.id }}, '{{quittance.numero|default_if_none:''}}')"><span class="badge btn-sm btn-danger rounded-pill"><i class="fa fa-times"></i> {{_("Annuler")}}</span></a>
                             </td>
                         </tr>
                       </tbody>
@@ -112,13 +112,13 @@
           {% else %}
           
             {% if old_quittance %}
-            <div class="dossier_quittance text-danger text-center">{{_('La_quittance')}} {{ old_quittance }} {{_('a_bien_ete_supprimee')}} !</div>
+                <div class="dossier_quittance text-danger text-center">{{_("La quittance")}} {{ old_quittance }} {{_("a bien été supprimée")}} !</div>
             {% endif %}
             {% if numero_quittance %}
-            <div class="dossier_quittance text-danger text-center text-bold h4">{{_('Aucune_correspondance')}}</div>
+                <div class="dossier_quittance text-danger text-center text-bold h4">{{_("Aucune correspondance")}}</div>
             {% endif %}
             {% if reverse_reglement %}
-            <div class="dossier_quittance text-danger text-center text-bold h4">{{_('L_annulation_ne_peut_s_effectuer_car_au_moins_un_reglement_associe_est_reverse_compagnie')}}</div>
+                <div class="dossier_quittance text-danger text-center text-bold h4">{{_("L annulation ne peut s'effectuer, car au moins un règlement associe est reversé à une compagnie")}}</div>
             {% endif %}
 
           {% endif %}
@@ -135,7 +135,7 @@
 
         function annuleItem(id, text){
           $("#id_item").val(id);
-          $("#modal_head").html("ÊTES-VOUS SÛR(E) DE VOULOIR SUPPRIMER CETTE QUITTANCE ?"); // dépend une intervention au niveau de view pour traduire..
+          $("#modal_head").html("ÊTES-VOUS SÛR(E) DE VOULOIR ANNULER CETTE QUITTANCE ?"); // dépend une intervention au niveau de view pour traduire..
           $("#modal_text").html(text);
           $('#modal_annuler_quittance').modal();
         }

@@ -28,6 +28,7 @@ class Campagne(models.Model):
         verbose_name = 'Campagne'
         verbose_name_plural = 'campagnes'
 
+
  #  def save(self, *args, **kwargs):
  #      if not self.code:
  #          self.code = f'COM-{self.pk}'
@@ -106,6 +107,7 @@ class CampagneProspect(models.Model):
     completed_at = models.DateTimeField(auto_now_add=True)
     statut_enrolement = models.fields.CharField(choices=StatutEnrolement.choices, default=StatutEnrolement.ATTENTE, max_length=15, null=True)
 
+
 class CampagneAppmobile(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
@@ -121,6 +123,7 @@ class CampagneAppmobile(models.Model):
         db_table = 'campagne_appmobile'
         verbose_name = 'Campagne_appmobile'
         verbose_name_plural = 'campagne_appmobile'
+
 
 class CampagneAppmobileProspect(models.Model):
     campagne_appmobile = models.ForeignKey(CampagneAppmobile, on_delete=models.RESTRICT)

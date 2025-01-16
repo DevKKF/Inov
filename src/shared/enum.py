@@ -181,8 +181,8 @@ class PlacementEtGestion(models.TextChoices):
 
 
 class ModeRenouvellement(models.TextChoices):
-    TACITE_RECONDUCTION = 'TACITE RECONDUCTION'
-    SANS_TACITE_RECONDUCTION = 'SANS TACITE RECONDUCTION'
+    TACITE_RECONDUCTION = 'Tacite Reconduction'
+    SANS_TACITE_RECONDUCTION = 'Sans Tacite Reconduction'
     CHOISIR = ''
 
 

@@ -5,11 +5,11 @@
 <div class="col-12 col-md-12 order-2 order-md-1">
   <div class="card">
     <div class="card-header">
-        <h3 class="card-title"><b>{{_('REGLEMENTS COMPAGNIES') }}</b></h3>
+        <h3 class="card-title"><b>{{_("REGLEMENTS ASSUREURS") }}</b></h3>
     </div>
     <div class="card-body">
         <div class=" pull-right mb-2">
-        <span id="btnOpenDialogAddReglementCompagnie" class="btn btn-sm btn-primary mb-1" data-toggle="modal" data-href="{% url 'add_reglement_compagnie' %}"><i class="fas fa-money-bill"></i> {{_('Regler une compagnie') }}</span>
+        <span id="btnOpenDialogAddReglementCompagnie" class="btn btn-sm btn-primary mb-1" data-toggle="modal" data-href="{% url 'add_reglement_compagnie' %}"><i class="fas fa-money-bill"></i> {{_("Regler un assureur") }}</span>
         </div>
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
         <div class="row">
@@ -17,15 +17,15 @@
               <table class="table table-bordered table-striped dataTable dtr-inline" id="table_reglements_compagnies">
                   <thead>
                       <tr>
-                        <th scope="col">{{_('Compagnie') }}</th>
-                        <th scope="col">{{_('Total a reverser') }}</th>
-                        <th scope="col">{{_('Commissions') }}</th>
-                        <th scope="col">{{_('Nbre lignes') }}</th>
+                        <th scope="col">{{_("Assureur") }}</th>
+                        <th scope="col">{{_("Total à reverser") }}</th>
+                        <th scope="col">{{_("Commissions") }}</th>
+                        <th scope="col">{{_("Nbre lignes") }}</th>
                       </tr>
                     </thead>
                     <tbody>
                     {% for compagnie in compagnies %}
-                      <tr>
+                      <tr class="btnOpenDialogDetailCompagnieEncaissementReglement" data-compagnie="{{compagnie.id}}">
                         <td>{{ compagnie.nom|default_if_none:"" }}</td>
                         <td class="text-right">{{ compagnie.sum_reglements_a_reverser_cie|money_field }}</td>
                         <td class="text-right">{{ compagnie.sum_commissions_a_reverser_cie|money_field }}</td>

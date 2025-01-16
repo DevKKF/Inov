@@ -333,9 +333,9 @@
         </div>
         <div class="info">
             {% if perms|can_view_self %}
-                <a href="{% jazzy_admin_url request.user request.current_app|default:"admin" %}" class="d-block">{{ request.user }}</a>
+                <a style="color:white !important" href="{% jazzy_admin_url request.user request.current_app|default:"admin" %}" class="d-block">{{ request.user }}</a>
             {% else %}
-                <span class="d-block">{{ request.user }}</span>
+                <span class="d-block" style="color:white !important">{{ request.user }}</span>
             {% endif %}
         </div>
       </div>
@@ -359,7 +359,7 @@
             </li>
             <li class="nav-item">
                 <a href="{% url 'client_polices' client.id %}" class="nav-link">
-                  <i class="nav-icon fas fa-file-contract"></i>
+                  <i class="nav-icon fas fa-umbrella"></i>
                   <p>
                     Polices
                   </p>
@@ -383,9 +383,17 @@
             </li>
             <li class="nav-item">
                 <a href="{% url 'client_documents' client.id %}" class="nav-link">
-                  <i class="nav-icon fas fa-file-alt"></i>
+                  <i class="nav-icon fas fa-folder-open"></i>
                   <p>
                     GED
+                  </p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'client_quittances' client.id %}" class="nav-link">
+                  <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                  <p>
+                    Quittances
                   </p>
                 </a>
             </li>

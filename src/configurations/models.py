@@ -302,7 +302,6 @@ class PrestataireVeos(models.Model):
         verbose_name_plural = 'Prestataires VEOS'
 
 
-
 class UtilisateurVeos(models.Model):
     ID_PER = models.CharField(max_length=100, null=True)
     NOM = models.CharField(max_length=100, null=True)
@@ -427,6 +426,7 @@ class Secteur(models.Model):
         verbose_name = 'Secteur'
         verbose_name_plural = "Secteurs"
 
+
 class TypeEtablissement(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
     code = models.CharField(max_length=50, blank=True, null=True)
@@ -491,11 +491,11 @@ class Pays(models.Model):
 
 
 
-
 def upload_location_bureau(instance, filename):
     filebase, extension = filename.rsplit('.', 1)
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     return 'bureaux/tarifs/%s.%s' % (file_name, extension)
+
 
 class Bureau(models.Model):
     CA_TYPE = (
@@ -556,7 +556,8 @@ class BureauTaxe(models.Model):
         verbose_name = 'Taxe appliquée'
         verbose_name_plural = 'Taxes appliquées'
 
-# une sorte de taxe qui vient prelever comme l'AIB au Benin au lieu d'ajouter comme la TVA 
+
+# une sorte de taxe qui vient prelever comme l'AIB au Benin au lieu d'ajouter comme la TVA
 class Retenue(models.Model):
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     secteur = models.ForeignKey(Secteur, on_delete=models.RESTRICT, blank=True, null=True)
@@ -572,6 +573,7 @@ class Retenue(models.Model):
         verbose_name = 'Retenue'
         verbose_name_plural = 'Retenues'
 
+
 class TypeGarant(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
     code = models.CharField(max_length=50, blank=True, null=True)
@@ -585,6 +587,21 @@ class TypeGarant(models.Model):
         db_table = 'type_garants'
         verbose_name = 'Type de garant'
         verbose_name_plural = "Types de garant"
+
+
+class TypeCompagnie(models.Model):
+    libelle = models.CharField(max_length=50, blank=True, null=True)
+    code = models.CharField(max_length=50, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'type_compagnies'
+        verbose_name = 'Type de compagnie'
+        verbose_name_plural = "Types de compagnie"
 
 
 class GroupeCompagnie(models.Model):
@@ -641,7 +658,7 @@ class Compagnie(models.Model):
     def nombre_reglements_a_reverser_cie(self):
         #reglements = self.reglement.objects.filter(quittance__compagnie=self, statut_reversement_compagnie=StatutReversementCompagnie.NON_REVERSE)
 
-        return self.reglements.filter(statut_reversement_compagnie=StatutReversementCompagnie.NON_REVERSE, statut_validite=StatutValidite.VALIDE).count()
+        return self.reglements.filter(statut_reversement_compagnie=StatutReversementCompagnie.NON_REVERSE).exclude(quittance__type_quittance_id=2).count()
 
 
     @property
@@ -652,29 +669,29 @@ class Compagnie(models.Model):
     @property
     def nombre_reglements_a_recevoir_com_court(self):
         reglements = self.reglements.filter(statut_reversement_compagnie=StatutReversementCompagnie.REVERSE,
-                                      statut_commission=StatutEncaissementCommission.NON_ENCAISSEE)
-        
+                                      statut_commission=StatutEncaissementCommission.NON_ENCAISSEE, statut_validite=StatutValidite.VALIDE)
+
         for reglement in reglements:
             if reglement.montant_com_courtage_solde() != 0 and reglement.montant_com_courtage_solde() != (reglement.montant_journal_debit_courtage() - reglement.montant_journal_credit_courtage()):
                 pass
             else:
                 reglements = reglements.exclude(id=reglement.id)
 
-        return reglements.count()   
-    
+        return reglements.count()
+
     @property
     def nombre_reglements_a_recevoir_com_gest(self):
         reglements = self.reglements.filter(statut_reversement_compagnie=StatutReversementCompagnie.REVERSE,
-                                      statut_commission=StatutEncaissementCommission.NON_ENCAISSEE)
-        
+                                      statut_commission=StatutEncaissementCommission.NON_ENCAISSEE, statut_validite=StatutValidite.VALIDE)
+
         for reglement in reglements:
             if reglement.montant_com_gestion_solde() != 0 and reglement.montant_com_gestion_solde() != (reglement.montant_journal_debit_gestion() - reglement.montant_journal_credit_gestion()):
                 pass
             else:
                 reglements = reglements.exclude(id=reglement.id)
 
-        return reglements.count()   
-        
+        return reglements.count()
+
     @property
     def sum_reglements(self):
         return self.reglements.aggregate(montant_total=Sum('montant'))['montant_total'] or 0
@@ -713,17 +730,17 @@ class Compagnie(models.Model):
     @property
     def solde_montant_com_courtage(self):
         solde = 0
-        for reglement in self.reglements.filter(statut_reversement_compagnie=StatutReversementCompagnie.REVERSE):
+        for reglement in self.reglements.filter(statut_reversement_compagnie=StatutReversementCompagnie.REVERSE, statut_validite=StatutValidite.VALIDE):
             solde += reglement.montant_com_courtage_solde()
         return solde
-    
+
 
     @property
     def solde_montant_com_gestion(self):
         solde = 0
-        for reglement in self.reglements.filter(statut_reversement_compagnie=StatutReversementCompagnie.REVERSE):
+        for reglement in self.reglements.filter(statut_reversement_compagnie=StatutReversementCompagnie.REVERSE, statut_validite=StatutValidite.VALIDE):
             solde += reglement.montant_com_gestion_solde()
-        return solde    
+        return solde
 
 
     @property
@@ -741,7 +758,6 @@ class Compagnie(models.Model):
         db_table = 'compagnies'
         verbose_name = 'Compagnie'
         verbose_name_plural = 'Compagnies'
-
 
 
 class TypePrestataire(models.Model):
@@ -822,7 +838,6 @@ class Specialite(models.Model):
         verbose_name_plural = 'Specialités'
 
 
-
 class Prescripteur(models.Model):
     bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT, null=True)
     veos_code_specialite = models.CharField(max_length=50, blank=True, null=True)
@@ -846,8 +861,6 @@ class Prescripteur(models.Model):
         verbose_name_plural = 'Prescripteurs'
 
 
-
-
 class PrescripteurVeos(models.Model):
     id_per = models.CharField(max_length=200, blank=True, null=True)
     numero = models.CharField(max_length=200, blank=True, null=True)
@@ -865,6 +878,7 @@ class PrescripteurVeos(models.Model):
         db_table = 'prescripteurs_veos'
         verbose_name = 'Prescripteur Veos'
         verbose_name_plural = 'Prescripteurs VEOS'
+
 
 class QuittanceVeos(models.Model):
     NUMERO_CLIENT = models.CharField(max_length=255, null=True)
@@ -923,7 +937,6 @@ class QuittanceVeos(models.Model):
         db_table = 'quittances_veos'
         verbose_name = 'Quittance Veos'
         verbose_name_plural = 'Quittances VEOS'
-
 
 
 class Stock(models.Model):
@@ -1018,7 +1031,6 @@ class SousRubrique(models.Model):
         verbose_name_plural = 'Sous-rubriques'
 
 
-
 class TypeActe(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
     code = models.CharField(max_length=50, blank=True, null=True)
@@ -1032,7 +1044,6 @@ class TypeActe(models.Model):
         db_table = 'type_actes'
         verbose_name = "Type d'acte"
         verbose_name_plural = "Types d'acte"
-
 
 
 class RegroupementActe(models.Model):
@@ -1089,7 +1100,6 @@ class SousRegroupementActe(models.Model):
         verbose_name_plural = "Sous-regroup. d'actes"
 
 
-
 class SousRubriqueRegroupementActe(models.Model):
     sous_rubrique = models.ForeignKey(SousRubrique, null=True, on_delete=models.RESTRICT)
     regroupement_acte = models.ForeignKey(RegroupementActe, null=True, on_delete=models.RESTRICT)
@@ -1135,7 +1145,6 @@ class Acte(models.Model):
         current_user = get_current_authenticated_user()
         param_acte = ParamActe.objects.filter(acte=self, bureau=current_user.bureau).first()
         return param_acte.entente_prealable if param_acte else False
-
 
 
 class SousRegroupementActeActe(models.Model):
@@ -1190,7 +1199,6 @@ class ActeWaspito(models.Model):
         verbose_name_plural = 'Actes de waspito'
 
 
-
 class CategorieAffection(models.Model):
     libelle = models.CharField(max_length=255)
     code = models.CharField(max_length=255, blank=True, default=None, null=True)
@@ -1199,7 +1207,7 @@ class CategorieAffection(models.Model):
     status = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.libelle} - {self.code} - {self.status}"
+        return self.libelle
 
     class Meta:
         db_table = 'categorie_affection'
@@ -1347,6 +1355,7 @@ class Territorialite(models.Model):
         verbose_name = 'Territorialites'
         verbose_name_plural = 'Territorialites'
 
+
 class TypeProduit(models.Model):
     nom = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1360,6 +1369,7 @@ class TypeProduit(models.Model):
         verbose_name = 'Type Produit'
         verbose_name_plural = 'Type Produit'
 
+
 class Branche(models.Model):
     code = models.CharField(max_length=10, blank=True, null=True)
     nom = models.CharField(max_length=100, blank=True, null=True)
@@ -1371,7 +1381,7 @@ class Branche(models.Model):
         return f"{self.code} - {self.status} - {self.nom} "
 
     class Meta:
-        db_table = 'Branche'
+        db_table = 'branche'
         verbose_name = 'Branche'
         verbose_name_plural = 'Branches'
 
@@ -1385,7 +1395,7 @@ class Produit(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.nom
+        return f'{self.code} - {self.nom} - {self.branche} - {self.type_produit}'
 
     class Meta:
         db_table = 'produit'
@@ -1406,6 +1416,7 @@ class FloatRangeField(models.FloatField):
         defaults.update(kwargs)
         return super().formfield(**defaults)
 
+
 class ParamProduitCompagnie(models.Model):
     compagnie = models.ForeignKey(Compagnie, related_name="taux_com", on_delete=models.RESTRICT)
     produit = models.ForeignKey(Produit, null=True, on_delete=models.RESTRICT)
@@ -1424,7 +1435,6 @@ class ParamProduitCompagnie(models.Model):
         verbose_name_plural = 'Paramétrage des taux de com'
         
 
-        
 class Langue(models.Model):
     code = models.CharField(max_length=10, blank=True, null=True)
     libelle = models.CharField(max_length=100, blank=True, null=True)
@@ -1579,7 +1589,6 @@ class TypeUtilisateur(models.Model):
         db_table = 'type_utilisateurs'
         verbose_name = 'Type utilisateur'
         verbose_name_plural = 'Types utilisateurs'
-
 
 
 class User(AbstractUser):
@@ -1788,7 +1797,6 @@ class Apporteur(models.Model):
         db_table = 'apporteurs'
         verbose_name = 'Apporteur'
         verbose_name_plural = 'Apporteurs'
-
 
 
 class GroupeInter(models.Model):
@@ -2044,6 +2052,7 @@ class TypeCarosserie(models.Model):
         verbose_name = 'Type de carosserie'
         verbose_name_plural = "Types de carosserie"
 
+
 class Carosserie(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -2072,6 +2081,7 @@ class Carburant(models.Model):
         verbose_name = 'Carburants'
         verbose_name_plural = "Carburants"
 
+
 class Usage(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -2081,7 +2091,7 @@ class Usage(models.Model):
         return self.libelle
 
     class Meta:
-        db_table = 'usages'
+        db_table = 'usage'
         verbose_name = 'Usages'
         verbose_name_plural = "Usages"
 
@@ -2099,8 +2109,6 @@ class MarqueVehicule(models.Model):
         db_table = 'marque_vehicule'
         verbose_name = 'Marque'
         verbose_name_plural = "Marques"
-
-
 
 
 class Tarif(models.Model):
@@ -2210,7 +2218,6 @@ class SpecialiteActeAutorise(models.Model):
         verbose_name_plural = 'Actes autorisés'
 
 
-
 class ActionLog(models.Model):
     done_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     action = models.CharField(max_length=100, blank=True, null=True)
@@ -2229,7 +2236,6 @@ class ActionLog(models.Model):
         db_table = 'actionlog'
         verbose_name = 'action log'
         verbose_name_plural = 'action logs'
-
 
 
 class CronLog(models.Model):
@@ -2336,6 +2342,7 @@ class BackgroundQueryTask(models.Model):
         verbose_name = 'Requête en arrière-plan'
         verbose_name_plural = 'Requête en arrière-plan'
 
+
 class AdminGroupeBureau(models.Model):
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     user = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
@@ -2432,6 +2439,7 @@ class AlimentBaobab(models.Model):
         verbose_name = 'Aliment Baobab'
         verbose_name_plural = 'Aliments Baobab'
 
+
 class ModelLettreCheque(models.Model):
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     banque = models.ForeignKey(Banque, null=True, on_delete=models.RESTRICT)
@@ -2494,7 +2502,6 @@ class PeriodeVeos(models.Model):
         verbose_name = 'Période VEOS'
         verbose_name_plural = 'Période VEOS'
 
-        							
 
 class StatExcelWsBoby(models.Model):
     libelle_fr = models.CharField(max_length=255, blank=True, null=True, unique=True)
@@ -2527,6 +2534,7 @@ class ComptePrestataireVeos(models.Model):
         db_table = 'compte_prestataire_veos'
         verbose_name = 'Compte Prestataire VEOS'
         verbose_name_plural = 'Comptes Prestataires VEOS'
+
 
 class BusinessUnit(models.Model):
     libelle = models.CharField(max_length=100, blank=True, null=True, unique=True)
@@ -2576,7 +2584,6 @@ class Garantie(models.Model):
         verbose_name_plural = 'Garanties'
 
 
-
 class GarantieBranche(models.Model):
     branche = models.ForeignKey(Branche, null=True, on_delete=models.RESTRICT)
     garantie = models.ForeignKey(Garantie, null=True, on_delete=models.RESTRICT)
@@ -2591,7 +2598,6 @@ class GarantieBranche(models.Model):
         db_table = 'garantie_branche'
         verbose_name = 'Garanties / Branche'
         verbose_name_plural = 'Garanties / Branche'
-
 
 
 class GarantieFormule(models.Model):
@@ -2610,4 +2616,34 @@ class GarantieFormule(models.Model):
         verbose_name_plural = 'Garanties / Formules'
 
 
+class ConditionsAssurance(models.Model):
+    code = models.CharField(max_length=10, blank=True, null=True)
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.code} - {self.libelle} - {self.status} - {self.created_at}'
+
+    class Meta:
+        db_table = 'conditions_assurance'
+        verbose_name = "Conditions d'assurance"
+        verbose_name_plural = "Conditions d'assurance"
+
+
+class MoyensTransport(models.Model):
+    code = models.CharField(max_length=10, blank=True, null=True)
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.code} - {self.libelle} - {self.status} - {self.created_at}'
+
+    class Meta:
+        db_table = 'moyens_transport'
+        verbose_name = 'Moyens de transport'
+        verbose_name_plural = 'Moyens de transport'
 

@@ -1,408 +1,490 @@
+{% load i18n static jazzmin admin_urls %}
 <div  class="modal fade"  id="modal-modification_police" data-backdrop="static" data-keyboard="false" aria-hidden="true"  style="display: none">
 	<div class="modal-dialog modal-xl">
 		<div class="modal-content">
 			<form enctype="multipart/form-data" id="form_update_police" action="{% url 'modifier_police' police.id %}" method="post">
-			{% csrf_token %}
-			<div class="modal-header">
-				<h4 class="modal-title">{{_("MODIFICATION DE LA POLICE")}}<b>N° {{ police.numero }}</b></h4>
-				<button type="button"class="close"data-dismiss="modal"aria-label="Close">
-					<span aria-hidden="true">×</span>
-				</button>
-			</div>
-			<div class="modal-body">
-				<div class="alert  alert-dismissible fade show hidden" role="alert">
-				  <span class="message"> {{_("TRAITEMENT EN COURS")}}</span>
+				{% csrf_token %}
+				<input type="hidden" name="police_id" id="police_id" value="{{ police.id }}">
+				<div class="modal-header">
+					<h4 class="modal-title">{{_("MODIFICATION DE LA POLICE")}} <b>N° {{ police.numero }}</b> <span class="text-white">{{ police.id }}</span></h4>
+					<button type="button"class="close"data-dismiss="modal"aria-label="Close">
+						<span aria-hidden="true">×</span>
+					</button>
 				</div>
-				<div class="col-md-12 offset-0">
-					<ul class="nav nav-tabs" id="myTab" role="tablist">
-						<li class="nav-item"><a class="nav-link active" id="general-tab_modification" data-toggle="tab" href="#general_modification" role="tab" aria-controls="general_modification" aria-selected="true">{{_('GENERAL')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="intermediaire-tab_modification" data-toggle="tab" href="#intermediaire_modification" role="tab" aria-controls="intermediaire_modification" aria-selected="false">{{_('INTERMEDIAIRES')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="facturation-tab_modification" data-toggle="tab" href="#facturation_modification" role="tab" aria-controls="facturation_modification" aria-selected="false">{{_('FACTURATION')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="prime-tab_modification" data-toggle="tab" href="#prime_modification" role="tab" aria-controls="prime_modification" aria-selected="false">{{_('PRIME')}}</a></li>
-					</ul>
-					<div class="tab-content" id="myTabContent">
+				<div class="modal-body">
+					<div class="alert  alert-dismissible fade show hidden" role="alert">
+					  <span class="message"> {{_("TRAITEMENT EN COURS")}}</span>
+					</div>
+					<div class="col-md-12 offset-0">
+						<ul class="nav nav-tabs" id="myTab" role="tablist">
+							<li class="nav-item"><a class="nav-link active" id="general-tab_modification" data-toggle="tab" href="#general_modification" role="tab" aria-controls="general_modification" aria-selected="true">{{_('GENERAL')}}</a></li>
+							<li class="nav-item"><a class="nav-link" id="intermediaire-tab_modification" data-toggle="tab" href="#intermediaire_modification" role="tab" aria-controls="intermediaire_modification" aria-selected="false">{{_('APPORTEURS')}}</a></li>
+							<li class="nav-item"><a class="nav-link" id="garantie-tab_modification" data-toggle="tab" href="#garantie_modification" role="tab" aria-controls="garantie_modification" aria-selected="false">{{_('GARANTIES')}}</a></li>
+							<li class="nav-item"><a class="nav-link" id="facturation-tab_modification" data-toggle="tab" href="#facturation_modification" role="tab" aria-controls="facturation_modification" aria-selected="false">{{_('FACTURATION')}}</a></li>
+							<li class="nav-item"><a class="nav-link" id="prime-tab_modification" data-toggle="tab" href="#prime_modification" role="tab" aria-controls="prime_modification" aria-selected="false">{{_('PRIME')}}</a></li>
+						</ul>
+						<div class="tab-content" id="myTabContent">
 
-						<div class="tab-pane fade mt-3 show active" id="general_modification" role="tabpanel" aria-labelledby="general-tab_modification">
-							<div class="row">
-								<div class="col-md-6">
-									<div class="form-group row" style="display:none;">
-										<label class="col-sm-5 col-form-label">{{_('Branche')}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control " name="branche" id="branche_modification" required>
-												<option value="">{{_('Choisir')}}</option>
-												{% for branche in branches %}
-												<option {% if police.produit.branche.id == branche.id %} selected {% endif %} value="{{ branche.id }}" data-branche_code="{{ branche.code }}">{{ branche.nom }}</option>
-												{% endfor %}
-											</select>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Produit')}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control " name="produit" id="produit_modification">
-												<option value="">{{_('Choisir')}}</option>
-												{% for produit in produits %}
-												<option {% if police.produit.id == produit.id %} selected {% endif %} value="{{ produit.id }}" data-code="{{ produit.code }}">{{ produit.nom }}</option>
-												{% endfor %}
-											</select>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Assureur')}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control" name="compagnie" id="compagnie_modification" required>
-												<option value="">{{_('Choisir')}}</option>
-												{% for compagnie in compagnies %}
-												<option {% if police.compagnie.id == compagnie.id %} selected {% endif %} value="{{ compagnie.id }}">{{ compagnie.nom }} ({{ compagnie.code }})</option>
-												{% endfor %}
-											</select>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Numéro police Cie")}}</label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control" name="numero" value="{{ police.numero }}" />
-										</div>
-									</div>
-
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Date début")}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_debut_effet" value="{{ periode_couverture.date_debut_effet|date:'Y-m-d' }}" required readonly/>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Date Fin periode garantie")}}<span class="required">*</span></label>
-										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_fin_effet" value="{{ periode_couverture.date_fin_effet|date:'Y-m-d' }}" required readonly/>
-										</div>
-									</div>
-								</div>
-								<div class="vl"></div>
-								<div class="col-md-6" style="border-left:0px;margin-left:-10px;padding-left:20px;">
-
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Préavis de résiliation")}}<span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control" name="preavis_de_resiliation" required>
-												<option value="">Choisir</option>
-												<option {% if police.preavis_de_resiliation == '1' %} selected {% endif %} value="1">1 {{_('MOIS')}}</option>
-												<option {% if police.preavis_de_resiliation == '2' %} selected {% endif %} value="2">2 {{_('MOIS')}}</option>
-												<option {% if police.preavis_de_resiliation == '3' %} selected {% endif %} value="3">3 {{_('MOIS')}}</option>
-												<option {% if police.preavis_de_resiliation == '4' %} selected {% endif %} value="4">4 {{_('MOIS')}}</option>
-												<option {% if police.preavis_de_resiliation == '5' %} selected {% endif %} value="5">5 {{_('MOIS')}}</option>
-												<option {% if police.preavis_de_resiliation == '6' %} selected {% endif %} value="6">6 {{_('MOIS')}}</option>
-											</select>
-										</div>
-									</div>
-
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Mode renouvellement")}}<span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control" name="mode_renouvellement" required>
-												<option value="">{{_('Choisir')}}</option>
-												<option {% if mode_renouvellement.TACITE_RECONDUCTION == police.mode_renouvellement %} selected {% endif %}  value="{{ mode_renouvellement.TACITE_RECONDUCTION }}">{{ mode_renouvellement.TACITE_RECONDUCTION }}</option>
-												<option {% if mode_renouvellement.SANS_TACITE_RECONDUCTION == police.mode_renouvellement %} selected {% endif %}  value="{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}">{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}</option>
-											</select>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Apporteur')}} <span class="required"></span></label>
-										<div class="col-sm-7">
-											<div class="icheck-danger d-inline">
-											  <input type="radio" name="apporteur" value="OUI" id="yes_apporteur_modification"/>
-											  <label for="yes_apporteur_modification"> {{_('OUI')}} </label>
+							<div class="tab-pane fade mt-3 show active" id="general_modification" role="tabpanel" aria-labelledby="general-tab_modification">
+								<div class="row">
+									<div class="col-md-6">
+										<div class="form-group row" style="display:none;">
+											<label class="col-sm-5 col-form-label">{{_('Branche')}} <span class="required">*</span></label>
+											<div class="col-sm-7">
+												<select class="form-control " name="branche" id="branche_modification" required>
+													<option value="">{{_('Choisir')}}</option>
+													{% for branche in branches %}
+													<option {% if police.produit.branche.id == branche.id %} selected {% endif %} value="{{ branche.id }}" data-branche_code="{{ branche.code }}">{{ branche.nom }}</option>
+													{% endfor %}
+												</select>
 											</div>
-											<div class="icheck-danger d-inline" style="margin-left:50px;">
-											  <input type="radio" name="apporteur" value="NON" id="no_apporteur_modification" checked/>
-											  <label for="no_apporteur_modification">{{_('NON')}} </label>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_('Produit')}} <span class="required">*</span></label>
+											<div class="col-sm-7">
+												<select class="form-control" name="produit_modification" id="produit_modification" disabled>
+													<option value="">{{_('Choisir')}}</option>
+													{% for produit in produits %}
+														<option {% if police.produit.id == produit.id %} selected {% endif %} value="{{ produit.id }}" data-code="{{ produit.code }}">{{ produit.nom }}</option>
+													{% endfor %}
+												</select>
+												<input type="hidden" name="produit" id="produit" value="{{ police.produit.id }}">
+											</div>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_('Assureur')}} <span class="required">*</span></label>
+											<div class="col-sm-7">
+												<select class="form-control" name="compagnie_modification" id="compagnie_modification" required disabled>
+													<option value="">{{_('Choisir')}}</option>
+													{% for compagnie in compagnies %}
+														<option {% if assureur_police.compagnie_id == compagnie.id %} selected {% endif %} value="{{ compagnie.id }}" data-compagnie_id="{{ compagnie.id }}">{{ compagnie.nom|default_if_none:"" }}</option>
+													{% endfor %}
+												</select>
+												<input type="hidden" name="compagnie" id="compagnie" value="{{ assureur_police.compagnie_id }}">
+											</div>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Numéro police Cie")}}</label>
+											<div class="col-sm-7">
+												<input type="text" class="form-control" name="numero" value="{{ police.numero }}" readonly/>
+											</div>
+										</div>
+
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Date début")}} <span class="required">*</span></label>
+											<div class="col-sm-7">
+												<input type="date" class="form-control" name="date_debut_effet" value="{{ dernier_historique.date_debut_effet|date:'Y-m-d' }}" required/>
+											</div>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Date Fin periode garantie")}}<span class="required">*</span></label>
+											<div class="col-sm-7">
+												<input type="date" class="form-control" name="date_fin_effet" value="{{ dernier_historique.date_fin_effet|date:'Y-m-d' }}" required/>
 											</div>
 										</div>
 									</div>
+									<div class="vl"></div>
+									<div class="col-md-6" style="border-left:0px;margin-left:-10px;padding-left:20px;">
 
-									<div class="form-group row  ">
-										<label class="col-sm-5 col-form-label">{{_("Logo du partenaire")}}<span class="required"></span></label>
-										<div class="col-sm-6">
-											<input type="file" class="form-control" id="logo_partenaire_modification" name="logo_partenaire"/>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Préavis de résiliation")}}<span class="required">*</span></label>
+											<div class="col-sm-7">
+												<select class="form-control" name="preavis_de_resiliation" required>
+													<option value="">Choisir</option>
+													<option {% if police.preavis_de_resiliation == '1' %} selected {% endif %} value="1">1 {{_('Mois')}}</option>
+													<option {% if police.preavis_de_resiliation == '2' %} selected {% endif %} value="2">2 {{_('Mois')}}</option>
+													<option {% if police.preavis_de_resiliation == '3' %} selected {% endif %} value="3">3 {{_('Mois')}}</option>
+													<option {% if police.preavis_de_resiliation == '4' %} selected {% endif %} value="4">4 {{_('Mois')}}</option>
+													<option {% if police.preavis_de_resiliation == '5' %} selected {% endif %} value="5">5 {{_('Mois')}}</option>
+													<option {% if police.preavis_de_resiliation == '6' %} selected {% endif %} value="6">6 {{_('Mois')}}</option>
+												</select>
+											</div>
 										</div>
-										<div class="col-sm-1">
-											{% if police.logo_partenaire %}
-											<img style="height:37px;" src="{{request.scheme}}://{{request.META.HTTP_HOST}}{{police.logo_partenaire.url}}" alt="" srcset="" class="logo-partenaire">
-											{% endif %}
+
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Mode renouvellement")}}<span class="required">*</span></label>
+											<div class="col-sm-7">
+												<select class="form-control" name="mode_renouvellement" required>
+													<option value="">{{_('Choisir')}}</option>
+													<option {% if mode_renouvellement.TACITE_RECONDUCTION == dernier_historique.mode_renouvellement %} selected {% endif %}  value="{{ mode_renouvellement.TACITE_RECONDUCTION }}">{{ mode_renouvellement.TACITE_RECONDUCTION }}</option>
+													<option {% if mode_renouvellement.SANS_TACITE_RECONDUCTION == dernier_historique.mode_renouvellement %} selected {% endif %}  value="{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}">{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}</option>
+												</select>
+											</div>
 										</div>
+										{% if autre_assureur_police %}
+										<div class="form-group row">
+											<label class="col-sm-6 col-form-label">{{_("Autre assureur")}}</label>
+											<div class="col-sm-6">
+												{% for type in typecompagnie %}
+													<div class="icheck-danger d-inline mr-3">
+													  <input type="radio" name="typecompagnie" value="{{ type.id }}" class="typecompagnie" id="typecompagnie_modification" data-typecompagnie_id="{{ type.id }}" {% if autre_assureur_police.type_compagnie_id == type.id %} checked {% endif %} readonly>
+													  <label for="typecompagnie_modification">{{ type.libelle }}</label>
+													</div>
+												{% endfor %}
+											</div>
+										</div>
+										<div class="form-group row" id="box_compagnie_modification" style="">
+											<label class="col-sm-5 col-form-label">{{_("Choisir l'assureur")}} <span class="required">*</span></label>
+											<div class="col-sm-7">
+												<select class="form-control" name="compagnie_id" id="autre_compagnie_modification">
+													<option value="">{{_('Choisir')}}</option>
+													{% for compagnie in compagnie_autre %}
+														<option {% if autre_assureur_police.compagnie_id == compagnie.id %} selected {% endif %} value="{{ compagnie.id }}" data-compagnie_id="{{ compagnie.id }}">{{ compagnie.nom|default_if_none:"" }}</option>
+													{% endfor %}
+												</select>
+											</div>
+										</div>
+										{% endif %}
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Logo du partenaire")}}<span class="required"></span></label>
+											<div class="col-sm-6">
+												<input type="file" class="form-control" id="logo_partenaire_modification" name="logo_partenaire"/>
+											</div>
+											<div class="col-sm-1">
+												{% if police.logo_partenaire %}
+												<a href="{{request.scheme}}://{{request.META.HTTP_HOST}}{{police.logo_partenaire.url}}" target="_blank"><img style="height:37px;" src="{{request.scheme}}://{{request.META.HTTP_HOST}}{{police.logo_partenaire.url}}" alt="" srcset="" class="logo-partenaire"></a>
+												{% endif %}
+											</div>
+										</div>
+
 									</div>
-
 								</div>
 							</div>
-						</div>
 
-						<div class="tab-pane fade mt-3" id="intermediaire_modification" role="tabpanel" aria-labelledby="intermediaire-tab_modification">
-							<div class="row">
-								<div class="col-md-12">
-									<div class="col-sm-12" style="padding-right:0px;" id="test">
-										<table id="table_apporteurs_police_modification" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
+							<div class="tab-pane fade mt-3" id="intermediaire_modification" role="tabpanel" aria-labelledby="intermediaire-tab_modification">
+								<div class="row">
+									<div class="col-md-6">
+										<div class="form-group row">
+											<label class="col-sm-6 col-form-label">{{_('Apporteur')}} <span class="required"></span></label>
+											<div class="col-sm-6">
+												<div class="icheck-danger d-inline">
+												  <input type="radio" name="apporteur" value="OUI" id="yes_apporteur_modification" {% if dernier_historique.apporteur == "OUI" %} checked {% endif %}>
+												  <label for="yes_apporteur_modification"> {{_('OUI')}} </label>
+												</div>
+												<div class="icheck-danger d-inline" style="margin-left:50px;">
+												  <input type="radio" name="apporteur" value="NON" id="no_apporteur_modification" {% if dernier_historique.apporteur == "NON" %} checked {% endif %}>
+												  <label for="no_apporteur_modification">{{_('NON')}} </label>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-12">
+										<hr>
+										<div class="col-sm-12" style="padding-right:0px;" id="test_modification">
+											<table id="table_apporteurs_police_modification" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
+												<thead>
+													<tr>
+														<th style="width:;">{{_("Apporteur d'affaire")}}</th>
+														<th style="width:;">{{_("Base de calcul")}}</th>
+														<th style="width:20%;">{{_("Taux Com AN.")}} (%)</th>
+														<th style="width:20%;">{{_("Taux Com Renouv")}} (%)</th>
+														<th style="width:"></th>
+													</tr>
+												</thead>
+												<tbody>
+												<tr id="tr_initial_vide" style="display:none;">
+													<td style="vertical-align:middle;">
+														<div class="row" style="margin-right:5px;">
+															<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
+																<option value="">{{_('Choisir')}}</option>
+																{% for apporteur in apporteurs %}
+																<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %} value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
+																{% endfor %}
+															</select>
+
+														</div>
+													</td>
+													<td style="vertical-align:middle;padding:5px;">
+														<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
+															<option value="">{{_('Choisir')}}</option>
+															{% for bc in bases_calculs %}
+															<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
+															{% endfor %}
+														</select>
+													</td>
+													<td style="vertical-align:middle;padding:5px;">
+														<input maxlength="2" type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="0" />
+													</td>
+													<td style="vertical-align:middle;padding:5px;">
+														<input maxlength="2" type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="0" />
+													</td>
+													<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-default btnSupprimerLigneApporteur_modification"><i class="fa fa-times" style="font-size:12px;"></i></span></td>
+												</tr>
+												{% if apporteurs_police|length > 0 %}
+												{% for apporteur_police in apporteurs_police %}
+												<tr id="tr_{{apporteur_police.id}}">
+													<td style="vertical-align:middle;">
+														<div class="row" style="margin-right:5px;">
+															<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
+																<option value="">{{_('Choisir')}}</option>
+																{% for apporteur in apporteurs %}
+																<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %}  value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
+																{% endfor %}
+															</select>
+
+														</div>
+													</td>
+													<td style="vertical-align:middle;padding:5px;">
+														<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
+															<option value="">{{_('Choisir')}}</option>
+															{% for bc in bases_calculs %}
+															<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
+															{% endfor %}
+														</select>
+													</td>
+													<td style="vertical-align:middle;padding:5px;">
+														<input maxlength="5" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="{{ apporteur_police.taux_com_affaire_nouvelle|default_if_none:'0' }}" />
+													</td>
+													<td style="vertical-align:middle;padding:5px;">
+														<input maxlength="5" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="{{ apporteur_police.taux_com_renouvellement|default_if_none:'0' }}" />
+													</td>
+													<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-default btnSupprimerLigneApporteur_modification"><i class="fa fa-times" style="font-size:12px;"></i></span></td>
+												</tr>
+												{% endfor %}
+												{% else %}
+												<tr id="tr_0" style="">
+													<td style="vertical-align:middle;">
+														<div class="row" style="margin-right:5px;">
+															<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
+																<option value="">{{_('Choisir')}}</option>
+																{% for apporteur in apporteurs %}
+																<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %}  value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
+																{% endfor %}
+															</select>
+
+														</div>
+													</td>
+													<td style="vertical-align:middle;padding:5px;">
+														<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
+															<option value="">{{_('Choisir')}}</option>
+															{% for bc in bases_calculs %}
+															<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
+															{% endfor %}
+														</select>
+													</td>
+													<td style="vertical-align:middle;padding:5px;">
+														<input maxlength="2" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="0" />
+													</td>
+													<td style="vertical-align:middle;padding:5px;">
+														<input maxlength="2" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="0" />
+													</td>
+													<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-default btnSupprimerLigneApporteur_modification"><i class="fa fa-times" style="font-size:12px;"></i></span></td>
+												</tr>
+												{% endif %}
+												</tbody>
+												<tfoot style="display:none;">
+													<tr class="add-row"><td colspan="5"><span id="btnAddLigneApporteur_modification" style="cursor:pointer;" class="btn btn-sm btn-default float-right"><i class="fa fa-plus" style="font-size:12px;"></i> {{_('Ajouter_une_ligne')}}</span></td></tr>
+												</tfoot>
+											</table>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="tab-pane fade mt-3" id="garantie_modification" role="tabpanel" aria-labelledby="garantie-tab_modification">
+								<div class="row" style="max-height:500px;">
+									<div class="col-md-6">
+										<div class="form-group row">
+											<label class="col-sm-6 col-form-label">{{_('Garantie')}} <span class="required"></span></label>
+											<div class="col-sm-6">
+												<div class="icheck-danger d-inline">
+												  <input type="radio" name="garantie" value="OUI" id="yes_garantie_modification" checked>
+												  <label for="yes_garantie_modification"> {{_('OUI')}} </label>
+												</div>
+												<div class="icheck-danger d-inline" style="margin-left:50px;">
+												  <input type="radio" name="garantie" value="NON" id="no_garantie_modification">
+												  <label for="no_garantie_modification">{{_('NON')}} </label>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="vl"></div>
+									<div class="col-md-5">
+										<div class="form-group row" id="formule_block_modification">
+											<label class="col-sm-6 col-form-label">{{_('Formule')}}</label>
+											<div class="col-sm-6">
+												<select class="form-control " name="formule" id="formule_modification" autocomplete="off">
+													<option value="">{{_('Choisir')}}</option>
+													{% for formule in formules %}
+														<option value="{{ formule.id }}" data-formule_id="{{ formule.id }}">{{ formule.libelle }}</option>
+													{% endfor %}
+												</select>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-12" id="test_garantie_modification">
+										<hr>
+										<div class="text-danger mb-2" id="garantie-message-error"></div>
+										<div class="text-warning mb-2" id="garantie-message-warning"></div>
+										<table id="table_garantie_police_modification" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
 											<thead>
 												<tr>
-													<th style="width:;">{{_("Apporteur d'affaire")}}</th>
-													<th style="width:;">{{_("Base de calcul")}}</th>
-													<th style="width:20%;">{{_("Taux Com AN.")}} (%)</th>
-													<th style="width:20%;">{{_("Taux Com Renouv")}} (%)</th>
-													<th style="width:"></th>
+													<th style="width:5%">##</th>
+													<th>{{_("Garantie")}}</th>
+													<th class="text-center" style="width:20%">{{_("Franchise")}} (F CFA)</th>
+													<th class="text-center" style="width:20%;">{{_("Capital")}} (F CFA)</th>
 												</tr>
 											</thead>
 											<tbody>
-											<tr id="tr_initial_vide" style="display:none;">
-												<td style="vertical-align:middle;">
-													<div class="row" style="margin-right:5px;">
-														<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
-															<option value="">{{_('Choisir')}}</option>
-															{% for apporteur in apporteurs %}
-															<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %} value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
-															{% endfor %}
-														</select>
-
-													</div>
-												</td>
-												<td style="vertical-align:middle;padding:5px;">
-													<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
-														<option value="">{{_('Choisir')}}</option>
-														{% for bc in bases_calculs %}
-														<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
-														{% endfor %}
-													</select>
-												</td>
-												<td style="vertical-align:middle;padding:5px;">
-													<input maxlength="2" type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="0" />
-												</td>
-												<td style="vertical-align:middle;padding:5px;">
-													<input maxlength="2" type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="0" />
-												</td>
-												<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-default btnSupprimerLigneApporteur_modification"><i class="fa fa-times" style="font-size:12px;"></i></span></td>
-											</tr>
-											{% if apporteurs_police|length > 0 %}
-											{% for apporteur_police in apporteurs_police %}
-											<tr id="tr_{{apporteur_police.id}}">
-												<td style="vertical-align:middle;">
-													<div class="row" style="margin-right:5px;">
-														<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
-															<option value="">{{_('Choisir')}}</option>
-															{% for apporteur in apporteurs %}
-															<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %}  value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
-															{% endfor %}
-														</select>
-
-													</div>
-												</td>
-												<td style="vertical-align:middle;padding:5px;">
-													<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
-														<option value="">{{_('Choisir')}}</option>
-														{% for bc in bases_calculs %}
-														<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
-														{% endfor %}
-													</select>
-												</td>
-												<td style="vertical-align:middle;padding:5px;">
-													<input maxlength="5" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="{{ apporteur_police.taux_com_affaire_nouvelle|default_if_none:'0' }}" />
-												</td>
-												<td style="vertical-align:middle;padding:5px;">
-													<input maxlength="5" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="{{ apporteur_police.taux_com_renouvellement|default_if_none:'0' }}" />
-												</td>
-												<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-default btnSupprimerLigneApporteur_modification"><i class="fa fa-times" style="font-size:12px;"></i></span></td>
-											</tr>
-											{% endfor %}
-											{% else %}
-											<tr id="tr_0" style="">
-												<td style="vertical-align:middle;">
-													<div class="row" style="margin-right:5px;">
-														<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
-															<option value="">{{_('Choisir')}}</option>
-															{% for apporteur in apporteurs %}
-															<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %}  value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
-															{% endfor %}
-														</select>
-
-													</div>
-												</td>
-												<td style="vertical-align:middle;padding:5px;">
-													<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
-														<option value="">{{_('Choisir')}}</option>
-														{% for bc in bases_calculs %}
-														<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
-														{% endfor %}
-													</select>
-												</td>
-												<td style="vertical-align:middle;padding:5px;">
-													<input maxlength="2" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="0" />
-												</td>
-												<td style="vertical-align:middle;padding:5px;">
-													<input maxlength="2" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="0" />
-												</td>
-												<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-default btnSupprimerLigneApporteur_modification"><i class="fa fa-times" style="font-size:12px;"></i></span></td>
-											</tr>
-											{% endif %}
 											</tbody>
-											<tfoot style="display:none;">
-												<tr class="add-row"><td colspan="5"><span id="btnAddLigneApporteur_modification" style="cursor:pointer;" class="btn btn-sm btn-default float-right"><i class="fa fa-plus" style="font-size:12px;"></i> {{_('Ajouter_une_ligne')}}</span></td></tr>
-											</tfoot>
 										</table>
 									</div>
 								</div>
 							</div>
-						</div>
 
-						<div class="tab-pane fade mt-3" id="facturation_modification" role="tabpanel" aria-labelledby="facturation-tab_modification">
-							<div class="row">
-								<div class="col-md-6">
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Fractionnement')}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control" name="fractionnement" required>
-												<option value="">{{_('Choisir')}}</option>
-												{% for fractionnement in fractionnements %}
-												<option {% if police.fractionnement.id == fractionnement.id %} selected {% endif %} value="{{ fractionnement.id }}">{{ fractionnement.libelle }}</option>
-												{% endfor %}
-											</select>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Mode règlement")}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control" name="mode_reglement" required>
-												<option value="">{{_('Choisir')}}</option>
-												{% for mode_reglement in modes_reglements %}
-												<option {% if police.mode_reglement.id == mode_reglement.id %} selected {% endif %} value="{{ mode_reglement.id }}">{{ mode_reglement.libelle }}</option>
-												{% endfor %}
-											</select>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Régularisation")}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control" name="regularisation" required>
-												<option value="">{{_('Choisir')}}</option>
-												{% for regularisation in regularisations %}
-												<option {% if police.regularisation.id == regularisation.id %} selected {% endif %} value="{{ regularisation.id }}">{{ regularisation.libelle }}</option>
-												{% endfor %}
-											</select>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Date prochaine facture")}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_prochaine_facture" value="{{ periode_couverture.date_debut_effet|date:'Y-m-d' }}" required/>
-										</div>
-									</div>
-								</div>
-								<div class="vl"></div>
-								<div class="col-md-5" style="border-left:0px;margin-left: 20px;">
-
-									<div class="form-group row">
-										<label class="col-sm-6 col-form-label">{{_("Taux com Courtage AN.")}} <span class="required">*</span></label>
-										<div class="col-sm-6">
-											<input type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification" name="taux_com_courtage" id="taux_com_courtage_modification" autocomplete="off" value="{{ police.taux_com_courtage|default_if_none:'0' }}" required readonly0/>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-6 col-form-label">{{_("Taux com Courtage Terme")}} <span class="required"></span></label>
-										<div class="col-sm-6">
-											<input type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification" name="taux_com_courtage_terme" id="taux_com_courtage_terme_modification" autocomplete="off" value="{{ police.taux_com_courtage_terme|default_if_none:'0' }}" readonly0/>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-6 col-form-label">{{_('Participation')}} <span class="required">*</span></label>
-										<div class="col-sm-6">
-											<div class="icheck-danger d-inline">
-											  <input type="radio" {% if optionYesNo.OUI == police.participation %} checked {% endif %} name="participation" value="OUI" class="participation" id="yes_participation_modification"/>
-											  <label for="yes_participation_modification"> {{_('OUI')}} </label>
+							<div class="tab-pane fade mt-3" id="facturation_modification" role="tabpanel" aria-labelledby="facturation-tab_modification">
+								<div class="row">
+									<div class="col-md-6">
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_('Fractionnement')}} <span class="required">*</span></label>
+											<div class="col-sm-7">
+												<select class="form-control" name="fractionnement" required>
+													<option value="">{{_('Choisir')}}</option>
+													{% for fractionnement in fractionnements %}
+													<option {% if dernier_historique.fractionnement.id == fractionnement.id %} selected {% endif %} value="{{ fractionnement.id }}">{{ fractionnement.libelle }}</option>
+													{% endfor %}
+												</select>
 											</div>
-											<div class="icheck-danger d-inline" style="margin-left:50px;">
-											  <input type="radio" {% if optionYesNo.NO == police.participation %} checked {% endif %} name="participation" value="NON" class="participation" id="no_participation_modification" checked/>
-											  <label for="no_participation_modification">{{_('NON')}} </label>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Mode règlement")}} <span class="required">*</span></label>
+											<div class="col-sm-7">
+												<select class="form-control" name="mode_reglement" required>
+													<option value="">{{_('Choisir')}}</option>
+													{% for mode_reglement in modes_reglements %}
+													<option {% if dernier_historique.mode_reglement.id == mode_reglement.id %} selected {% endif %} value="{{ mode_reglement.id }}">{{ mode_reglement.libelle }}</option>
+													{% endfor %}
+												</select>
+											</div>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Régularisation")}} <span class="required">*</span></label>
+											<div class="col-sm-7">
+												<select class="form-control" name="regularisation" required>
+													<option value="">{{_('Choisir')}}</option>
+													{% for regularisation in regularisations %}
+													<option {% if dernier_historique.regularisation.id == regularisation.id %} selected {% endif %} value="{{ regularisation.id }}">{{ regularisation.libelle }}</option>
+													{% endfor %}
+												</select>
+											</div>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Date prochaine facture")}} <span class="required">*</span></label>
+											<div class="col-sm-7">
+												<input type="date" class="form-control" name="date_prochaine_facture" value="{{ police.date_prochaine_facture|date:'Y-m-d' }}" required/>
 											</div>
 										</div>
 									</div>
-									<div class="form-group row" id="box_taux_participation" style="display:none;">
-										<label class="col-sm-6 col-form-label">{{_('Taux_de_participation ')}}</label>
-										<div class="col-sm-6">
-											<input type="text" class="form-control money_field" name="taux_participation" id="taux_participation_modification" value="{{ police.taux_participation|default_if_none:'0' }}"/>
+									<div class="vl"></div>
+									<div class="col-md-5" style="border-left:0px;margin-left: 20px;">
+
+										<div class="form-group row">
+											<label class="col-sm-6 col-form-label">{{_("Taux com Courtage AN.")}} <span class="required">*</span></label>
+											<div class="col-sm-6">
+												<input type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification" name="taux_com_courtage" id="taux_com_courtage_modification" autocomplete="off" value="{{ dernier_historique.taux_com_courtage|default_if_none:'0' }}" required readonly0/>
+											</div>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-6 col-form-label">{{_("Taux com Courtage Terme")}} <span class="required"></span></label>
+											<div class="col-sm-6">
+												<input type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification" name="taux_com_courtage_terme" id="taux_com_courtage_terme_modification" autocomplete="off" value="{{ dernier_historique.taux_com_courtage_terme|default_if_none:'0' }}" readonly0/>
+											</div>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-6 col-form-label">{{_('Participation')}} <span class="required">*</span></label>
+											<div class="col-sm-6">
+												<div class="icheck-danger d-inline">
+												  <input type="radio" name="participation" value="OUI" class="participation_modification" id="yes_participation_modification" {% if police.participation == optionYesNo.OUI %} checked {% endif %}>
+												  <label for="yes_participation_modification"> {{_('OUI')}} </label>
+												</div>
+												<div class="icheck-danger d-inline" style="margin-left:50px;">
+												  <input type="radio" name="participation" value="NON" class="participation_modification" id="no_participation_modification" {% if police.participation == optionYesNo.NON %} checked {% endif %}>
+												  <label for="no_participation_modification">{{_('NON')}} </label>
+												</div>
+											</div>
+										</div>
+										<div class="form-group row" id="box_taux_participation_modification" style="display:none;">
+											<label class="col-sm-6 col-form-label">{{_("Taux de participation")}}</label>
+											<div class="col-sm-6">
+												<input type="text" class="form-control money_field" name="taux_participation" id="taux_participation_modification" value="{{ dernier_historique.taux_participation|default_if_none:'0' }}"/>
+											</div>
 										</div>
 									</div>
 								</div>
 							</div>
-						</div>
 
-						<div class="tab-pane fade mt-3" id="prime_modification" role="tabpanel" aria-labelledby="prime-tab_modification">
-							<div class="row">
-								<div class="col-md-6">
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Prime HT")}}<span class="required"></span></label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control money_field calculs_handler_police_modification" name="prime_ht" id="prime_ht_modification" value="{{ police.prime_ht|default_if_none:'0' }}" />
+							<div class="tab-pane fade mt-3" id="prime_modification" role="tabpanel" aria-labelledby="prime-tab_modification">
+								<div class="row">
+									<div class="col-md-6">
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Prime HT")}}<span class="required"></span></label>
+											<div class="col-sm-7">
+												<input type="text" class="form-control money_field calculs_handler_police_modification" name="prime_ht" id="prime_ht_modification" value="{{ dernier_historique.prime_ht|default_if_none:'0' }}" />
+											</div>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Coût police Cie")}} <span class="required"></span></label>
+											<div class="col-sm-7">
+												<input type="text" class="form-control money_field calculs_handler_police_modification" name="cout_police_compagnie" id="cout_police_compagnie_modification" value="{{ dernier_historique.cout_police_compagnie|default_if_none:'0' }}" />
+											</div>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Coût police courtier")}} <span class="required"></span></label>
+											<div class="col-sm-7">
+												<input type="text" class="form-control money_field calculs_handler_police_modification" name="cout_police_courtier" id="cout_police_courtier_modification" value="{{ dernier_historique.cout_police_courtier|default_if_none:'0' }}" />
+											</div>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_('Taxe')}} <span class="required"></span></label>
+											<div class="col-sm-7">
+												<input type="text" class="form-control money_field calculs_handler_police_modification" name="taxe" id="taxe_modification" value="{{ dernier_historique.taxe|default_if_none:'0' }}" />
+											</div>
+										</div>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Autres Taxes")}}<span class="required"></span></label>
+											<div class="col-sm-6" style="padding-right:0px;">
+												<input style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field calculs_handler_police_modification" name="autres_taxes" id="autres_taxes_modification" value="{{ dernier_historique.autres_taxes|default_if_none:'' }}" readonly/>
+											</div>
+											<div class="col-sm-1" style="padding-left:0px;">
+												<span class="btn " style="background:gray;color:white;border-top-left-radius:0px;border-bottom-left-radius:0px;" data-toggle="modal" data-target="#modal-autres_taxes_modification">+</span>
+											</div>
 										</div>
 									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Coût police Cie")}} <span class="required"></span></label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control money_field calculs_handler_police_modification" name="cout_police_compagnie" id="cout_police_compagnie_modification" value="{{ police.cout_police_compagnie|default_if_none:'0' }}" />
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Coût police courtier")}} <span class="required"></span></label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control money_field calculs_handler_police_modification" name="cout_police_courtier" id="cout_police_courtier_modification" value="{{ police.cout_police_courtier|default_if_none:'0' }}" />
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Taxe')}} <span class="required"></span></label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control money_field calculs_handler_police_modification" name="taxe" id="taxe_modification" value="{{ police.taxe|default_if_none:'0' }}" />
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Autres Taxes")}}<span class="required"></span></label>
-										<div class="col-sm-6" style="padding-right:0px;">
-											<input style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field calculs_handler_police_modification" name="autres_taxes" id="autres_taxes_modification" value="{{ police.autres_taxes|default_if_none:'' }}" readonly/>
-										</div>
-										<div class="col-sm-1" style="padding-left:0px;">
-											<span class="btn " style="background:gray;color:white;border-top-left-radius:0px;border-bottom-left-radius:0px;" data-toggle="modal" data-target="#modal-autres_taxes_modification">+</span>
-										</div>
-									</div>
-								</div>
-								<div class="vl"></div>
-								<div class="col-md-5" style="border-left:0px;margin-left: 20px;">
+									<div class="vl"></div>
+									<div class="col-md-5" style="border-left:0px;margin-left: 20px;">
 
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Prime TTC")}} <span class="required"></span></label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="prime_ttc" id="prime_ttc_modification" value="{{ police.prime_ttc|default_if_none:'0' }}" readonly/>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Prime TTC")}} <span class="required"></span></label>
+											<div class="col-sm-7">
+												<input type="text" class="form-control money_field" name="prime_ttc" id="prime_ttc_modification" value="{{ dernier_historique.prime_ttc|default_if_none:'0' }}" readonly/>
+											</div>
 										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Com Courtage")}} <span class="required"></span></label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="commission_courtage" id="commission_courtage_modification" value="{{ police.commission_courtage|default_if_none:'0' }}" readonly/>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Com Courtage")}} <span class="required"></span></label>
+											<div class="col-sm-7">
+												<input type="text" class="form-control money_field" name="commission_courtage" id="commission_courtage_modification" value="{{ dernier_historique.commission_courtage|default_if_none:'0' }}" readonly/>
+											</div>
 										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Retro Apporteurs")}} <span class="required"></span></label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="commission_intermediaire" id="total_commission_intermediaire_modification" value="{{ police.commission_intermediaires|default_if_none:'0' }}"  readonly/>
+										<div class="form-group row">
+											<label class="col-sm-5 col-form-label">{{_("Retro Apporteurs")}} <span class="required"></span></label>
+											<div class="col-sm-7">
+												<input type="text" class="form-control money_field" name="commission_intermediaire" id="total_commission_intermediaire_modification" value="{{ dernier_historique.commission_intermediaires|default_if_none:'0' }}"  readonly/>
+											</div>
 										</div>
 									</div>
 								</div>
 							</div>
+
 						</div>
 
 					</div>
-
+					<div class="modal-footer justify-content-between">
+						<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
+						<div></div>
+						<input type="hidden" id="liste_autres_taxes_modification" name="liste_autres_taxes_modification">
+						<button type="button" id="btn_save_modification_police" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Valider')}}</button>
+					</div>
 				</div>
-				<div class="modal-footer justify-content-between">
-					<button type="button" class="btn btn-default" data-dismiss="modal">{{_('Retour')}}</button>
-					<div></div>
-					<input type="hidden" id="liste_autres_taxes_modification" name="liste_autres_taxes_modification">
-					<button type="button" id="btn_save_modification_police" class="btn o-bg-primary">{{_('Valider')}}</button>
-				</div>
-			</div>
 			</form>
 		</div>
 	</div>
@@ -460,3 +542,4 @@
 	</div>
 </div>
 <!-- fin modal interne des autres taxes -->
+<script src="{% static "admin_custom/js/modal_js.js" %}"></script>

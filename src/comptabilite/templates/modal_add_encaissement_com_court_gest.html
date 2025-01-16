@@ -5,7 +5,7 @@
 			{% csrf_token %}
 			<input type="hidden" id="com_type" value="{{ type }}">
 			<div class="modal-header">
-				<h4 class="modal-title">{% if type == "courtage" %}{{ _("FORMULAIRE D'ENCAISSEMENT DE COMMISSION DE COURTAGE") }} {% else %} {{ _("FORMULAIRE D'ENCAISSEMENT DE COMMISSION DE GESTION") }} {% endif %}</b></h4>
+				<h4 class="modal-title">{% if type == "courtage" %}{{_("FORMULAIRE D'ENCAISSEMENT DE COMMISSION DE COURTAGE") }} {% else %} {{_("FORMULAIRE D'ENCAISSEMENT DE COMMISSION DE GESTION") }} {% endif %}</b></h4>
 				<button type="button"class="close"data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">×</span>
 				</button>
@@ -19,10 +19,10 @@
 						<div class="col-md-6">
 
 							<div class="form-group row">
-									<label class="col-sm-6 col-form-label">{{ _("Compte d'encaissement") }} <span class="required">*</span></label>
+									<label class="col-sm-6 col-form-label">{{_("Compte d'encaissement") }} <span class="required">*</span></label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="compte_tresorerie" id="compte_tresorerie" required>
-										<option value="" selected>{{ _('Choisir') }}</option>
+										<option value="" selected>{{_('Choisir') }}</option>
 										{% for ct in comptes_tresoreries %}
 										<option value="{{ ct.id }}">{{ ct.libelle }}</option>
 										{% endfor %}
@@ -32,10 +32,10 @@
 
 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Compagnie') }} <span class="required">*</span></label>
+								<label class="col-sm-6 col-form-label">{{_("Assureur") }} <span class="required">*</span></label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="compagnie" id="compagnie" required>
-										<option value="">{{ _('Choisir') }}</option>
+										<option value="">{{_('Choisir') }}</option>
 										{% for compagnie in compagnies %}
 										<option value="{{ compagnie.id }}" data-href_reglements_reverses="{% url 'ajax_reglements_reverses_court_gest' compagnie.id type %}">{{ compagnie.nom }}</option>
 										{% endfor %}
@@ -45,7 +45,7 @@
 
 							{% comment %} 							
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Banque émettrice') }}</label>
+								<label class="col-sm-6 col-form-label">{{_("Banque émettrice") }}</label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="banque" id="banque_rc">
 										<option value="">{{ _('Choisir') }}</option>
@@ -58,7 +58,7 @@
  							{% endcomment %}
 						
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Banque emettrice') }}</label>
+								<label class="col-sm-6 col-form-label">{{_("Banque emettrice") }}</label>
 								<div class="col-sm-6">
 									<input type="text" class="form-control alpha_num_n_space_input" name="banque_emettrice" id="banque_emettrice"/>
 								</div>
@@ -69,7 +69,7 @@
 						<div class="col-md-6" style="border-left:0px;margin-left:-10px;padding-left:20px;">
 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _("Mode d'encaissement") }} <span class="required">*</span></label>
+								<label class="col-sm-6 col-form-label">{{_("Mode d'encaissement") }} <span class="required">*</span></label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="mode_reglement" id="mode_reglement" required>
 										<option value="">{{ _('Choisir') }}</option>
@@ -81,14 +81,14 @@
 							</div>
 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Date encaissement') }} <span class="required">*</span></label>
+								<label class="col-sm-6 col-form-label">{{_("Date encaissement") }} <span class="required">*</span></label>
 								<div class="col-sm-6">
 									<input type="date" class="form-control" name="date_paiement" value="{{ today|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}"  max="{{ today|date:'Y-m-d' }}" readonly required/>
 								</div>
 							</div>
 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Reference') }}</label>
+								<label class="col-sm-6 col-form-label">{{_("Reference") }}</label>
 								<div class="col-sm-6">
 									<input type="text" class="form-control" name="numero_piece" />
 								</div>
@@ -96,14 +96,14 @@
 
 						{% comment %} 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Numéro pièce') }} <span class="required"></span></label>
+								<label class="col-sm-6 col-form-label">{{_("Numéro pièce") }} <span class="required"></span></label>
 								<div class="col-sm-6">
 									<input type="text" class="form-control" name="numero_piece"/>
 								</div>
 							</div>
 
 							<div class="form-group row">
-									<label class="col-sm-6 col-form-label">{{ _('Banque émettrice') }}<span class="required" id=""></span></label>
+									<label class="col-sm-6 col-form-label">{{_("Banque émettrice") }}<span class="required" id=""></span></label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="banque" id="banque_rc">
 										<option value="">Choisir') }}</option>
@@ -116,34 +116,34 @@
 		 				{% endcomment %}
 						</div>
 					</div>
-					<div class="row table-responsive text-nowrap" style="border-top:1px solid #eee;"><span>{{ _('Liste des reglements reverses') }}</span>
+					<div class="row table-responsive text-nowrap" style="border-top:1px solid #eee;"><span>{{_("Liste des règlements reversés") }}</span>
 						<div id="box_reglements_reverses">
 							<!-- LISTE A CHARGER DYNAMIQUEMENT  -->
 							<table class="table table-bordered table-striped dataTable0 dtr-inline" id="table_reglements_reverses">
 							  <thead>
 								<tr>
 								<th scope="col" width="2%"></th>
-								<th scope="col" width="10%">{{_('Numero Reg client') }}</th>
-								<th scope="col" width="10%">{{_('Numero Piece') }}</th>
+								<th scope="col" width="10%">{{_("Numero Reg client") }}</th>
+								<th scope="col" width="10%">{{_("Numero Piece") }}</th>
 								{% if type == "courtage" %}
-								<th scope="col" width="7%">{{_('Com court') }}</th>
-								<th scope="col" width="10%">{{_('Com court enc') }}</th>
+								<th scope="col" width="7%">{{_("Com court") }}</th>
+								<th scope="col" width="10%">{{_("Com court enc") }}</th>
                         		{% else %}
-								<th scope="col" width="7%">{{_('Com gest') }}</th>
-								<th scope="col" width="10%">{{_('Com gest enc') }}</th>
+								<th scope="col" width="7%">{{_("Com gest") }}</th>
+								<th scope="col" width="10%">{{_("Com gest enc") }}</th>
                         		{% endif %}
-								<th scope="col" width="9%">{{_('Montant Restant') }}</th>
-								<th scope="col" width="10%">{{_('Numero Quittance') }}</th>
-								<th scope="col" width="11%">{{_('Client') }}</th>
-								<th scope="col" width="7%">{{_('Mt Reg clt') }}</th>
-								<th scope="col" width="7%">{{_('Mt CIE') }}</th>
-								{% comment %} <th scope="col">{{ _('Com Apport') }}</th> {% endcomment %}
-								{% comment %} <th scope="col">{{ _('Date Reversement') }}</th> {% endcomment %}
+								<th scope="col" width="9%">{{_("Montant Restant") }}</th>
+								<th scope="col" width="10%">{{_("Numero Quittance") }}</th>
+								<th scope="col" width="11%">{{_("Client") }}</th>
+								<th scope="col" width="7%">{{_("Mt Reg clt") }}</th>
+								<th scope="col" width="7%">{{_("Mt CIE") }}</th>
+								{% comment %} <th scope="col">{{_("Com Apport") }}</th> {% endcomment %}
+								{% comment %} <th scope="col">{{_("Date Reversement") }}</th> {% endcomment %}
 								</tr>
 							  </thead>
 							  <tbody>
 							  	<tr>
-								  <td colspan="15" style="text-align:center;">{{ _('Selectionner une compagnie pour charger la liste') }}</td>
+								  <td colspan="15" style="text-align:center;">{{ _("Sélectionner un assureur pour charger la liste") }}</td>
 								</tr>
 							  </tbody>
 							</table>
@@ -170,7 +170,7 @@
 						<div class="col-md-2">
 
 							<div class="form-group row">
-								<label class="col-sm-3 col-form-label">{{_('Debit') }}</label>
+								<label class="col-sm-3 col-form-label">{{_('Débit') }}</label>
 								<div class="col-sm-9">
 									<input type="text" class="form-control handle_calculer_montant_total_a_encaisser money_field" name="debit_difference" id="debit_difference" />
 								</div>
@@ -179,7 +179,7 @@
 						<div class="col-md-2">
 
 							<div class="form-group row">
-								<label class="col-sm-3 col-form-label">{{_('Credit') }}</label>
+								<label class="col-sm-3 col-form-label">{{_('Crédit') }}</label>
 								<div class="col-sm-9">
 									<input type="text" class="form-control handle_calculer_montant_total_a_encaisser money_field" name="credit_difference" id="credit_difference" />
 								</div>
@@ -198,11 +198,11 @@
 
 
 				<div class="modal-footer justify-content-between">
-					<button type="button" class="btn btn-default" data-dismiss="modal">{{_('Retour') }}</button>
-					{% comment %} <div>{{ _('Total reg clt') }}: <input type="text" class="money_field montant_total_reglements_coches" readonly style="background:none;border:none;font-size:18px;width:150px;font-weight:bold;"/></div> {% endcomment %}
-					{% comment %} <div>{{ _('Montant Total Cie') }}: <input type="text" class="money_field montant_total_a_regler_compagnie" readonly style="background:none;border:none;font-size:18px;width:150px;font-weight:bold;"/> {{police.client.pays.devise.code}}</div> {% endcomment %}
-					<div>{{ _('Commissions à encaisser') }} : <input type="text" name="montant_total_regle" class="money_field montant_total_com" readonly style="background:none;border:none;font-size:18px;width:150px;font-weight:bold;"/></div>
-					<button disabled type="button" id="btn_save_encaissement" class="btn o-bg-primary">{{_('Valider') }}</button>
+					<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour') }}</button>
+					{% comment %} <div>{{ _("Total reg clt") }}: <input type="text" class="money_field montant_total_reglements_coches" readonly style="background:none;border:none;font-size:18px;width:150px;font-weight:bold;"/></div> {% endcomment %}
+					{% comment %} <div>{{ _("Montant Total Cie") }}: <input type="text" class="money_field montant_total_a_regler_compagnie" readonly style="background:none;border:none;font-size:18px;width:150px;font-weight:bold;"/> {{police.client.pays.devise.code}}</div> {% endcomment %}
+					<div>{{ _("Commissions à encaisser") }} : <input type="text" name="montant_total_regle" class="money_field montant_total_com" readonly style="background:none;border:none;font-size:18px;width:150px;font-weight:bold;"/></div>
+					<button disabled type="button" id="btn_save_encaissement" class="btn o-bg-primary"><i class="fa fa-check-circle"></i> {{_('Valider') }}</button>
 				</div>
 
 

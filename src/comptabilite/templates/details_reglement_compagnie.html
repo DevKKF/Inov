@@ -58,7 +58,7 @@
 <div class="col-md-12" class="accordion" id="accordionClient">
   <div class="card offset">
     <div class="card-header nobg">
-      <h3 class="card-title o-primary">{{_('FICHE_CLIENT')}}</h3>
+      <h3 class="card-title o-primary">{{_("FICHE DU CLIENT")}}</h3>
       <div class="card-tools">
         <span style="cursor:pointer;" class="btn btn-tool btn_modifier_client" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit text-warning"></i></span>&nbsp;
         <button
@@ -81,25 +81,25 @@
       <div class="row">
         <div class="col-12 col-md-12 order-2 order-md-1">
           <div class="callout">
-            <h5>{{_('CLIENT')}}</h5>
+            <h5>{{_("CLIENT")}}</h5>
             <div class="row invoice-info">
               <div class="col-sm-3 invoice-col">
-                <strong>{{_('Assure')}}</strong><br />
+                <strong>{{_("Assure")}}</strong><br />
                 <span class="">{{ client.nom|default_if_none:"" }} {{ client.prenoms|default_if_none:"" }}</span>
               </div>
 
               <div class="col-sm-3 invoice-col">
-                <b>{{_('Reference')}}</b><br />
+                <b>{{_("Reference")}}</b><br />
                 <span class="">{{ client.id|default_if_none:""|stringformat:"06d" }} - {{ client.pays.code|default_if_none:"" }} </span>
               </div>
 
               <div class="col-sm-3 invoice-col">
-                <strong>{{_('Type')}}</strong><br />
+                <strong>{{_("Type")}}</strong><br />
                 <span class="">{{ client.type_client|default_if_none:"" }}</span>
               </div>
 
               <div class="col-sm-3 invoice-col">
-                <b>{{_('Ville')}}</b><br />
+                <b>{{_("Ville")}}</b><br />
                 <span class="">{{ client.ville|default_if_none:"" }}</span>
               </div>
 
@@ -112,7 +112,7 @@
                   <div class="info-box collapsed active" data-toggle="collapse0" id="btnInfosClient" href="#collapseInfosClient" aria-expanded="true">
                       <span class="info-box-icon text-white elevation-1"><i class="fas fa-user-tag"></i></span></span>
                       <div class="info-box-content">
-                        <span class="info-box-text">{{_('FICHE_CLIENT')}}</span>
+                        <span class="info-box-text">{{_("FICHE CLIENT")}}</span>
                       </div>
                   </div>
 
@@ -123,7 +123,7 @@
                   <div class="info-box collapsed" data-toggle="collapse0" id="btnPolices" href="#collapsePolices">
                       <span class="info-box-icon text-white elevation-1"><i class="fas fa-file-contract"></i></span></span>
                       <div class="info-box-content">
-                        <span class="info-box-text">{{_('POLICES')}}</span>
+                        <span class="info-box-text">{{_("POLICES")}}</span>
                       </div>
                   </div>
 
@@ -134,7 +134,7 @@
                   <div class="info-box collapsed" data-toggle="collapse0" id="btnQuittances" href="#collapseQuittances">
                       <span class="info-box-icon text-white elevation-1"><i class="fas fa-file-invoice-dollar"></i></span></span>
                       <div class="info-box-content">
-                        <span class="info-box-text">{{_('QUITTANCES')}}</span>
+                        <span class="info-box-text">{{_("QUITTANCES")}}</span>
                       </div>
                   </div>
 
@@ -145,7 +145,7 @@
                   <div class="info-box collapsed" data-toggle="collapse0" id="btnContacts" href="#collapseContacts">
                       <span class="info-box-icon text-white elevation-1"><i class="fas fa-phone-alt"></i></span></span>
                       <div class="info-box-content">
-                        <span class="info-box-text">{{_('CONTACTS')}}</span>
+                        <span class="info-box-text">{{_("CONTACTS")}}</span>
                       </div>
                   </div>
 
@@ -157,7 +157,7 @@
                     <span class="info-box-icon text-white elevation-1"><i class="fas fa-users"></i
                     ></span>
                     <div class="info-box-content">
-                      <span class="info-box-text">{{_('FILIALES')}}</span>
+                      <span class="info-box-text">{{_("FILIALES")}}</span>
                     </div>
                   </div>
 
@@ -169,7 +169,7 @@
                 <div class="info-box collapsed" data-toggle="collapse0" id="btnGed" href="#collapseGed" aria-expanded="true">
                     <span class="info-box-icon text-white elevation-1"><i class="far fa-file-alt"></i></span></span>
                     <div class="info-box-content">
-                      <span class="info-box-text">{{_('GED')}}</span>
+                      <span class="info-box-text">{{_("GED")}}</span>
                     </div>
                 </div>
 
@@ -180,7 +180,7 @@
                   <div class="info-box collapsed" data-toggle="collapse0" id="btnAcomptes" href="#collapseAcomptes" aria-expanded="true">
                       <span class="info-box-icon text-white elevation-1"><i class="fas fa-funnel-dollar"></i></span></span>
                       <div class="info-box-content">
-                        <span class="info-box-text">{{_('ACOMPTES')}}</span>
+                        <span class="info-box-text">{{_("ACOMPTES")}}</span>
                       </div>
                   </div>
 
@@ -197,7 +197,7 @@
               <h4></h4>
               <div class="card shadow_OLD">
                 <div class="card-header">
-                    <h3 class="card-title text-white">{{_('FICHE CLIENT')}}</h3>
+                    <h3 class="card-title text-white">{{_("FICHE CLIENT")}}</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse"><i class="fas fa-minus"></i></button>
                         <!--button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button-->
@@ -208,25 +208,25 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_('Nom_complet')}}</label>
+                                <label class="col-sm-5 col-form-label">{{_("Nom complet")}}</label>
                                 <div class="col-sm-7">
                                 <span class="form-control">{{ client.nom|default_if_none:"" }} {{ client.prenoms|default_if_none:"" }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_('Code_client')}}</label>
+                                <label class="col-sm-5 col-form-label">{{_("Code client")}}</label>
                                 <div class="col-sm-7">
                                 <span class="form-control">{{ client.id|stringformat:"06d" }} - {{ client.pays.code }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_('Langue')}}</label>
+                                <label class="col-sm-5 col-form-label">{{_("Langue")}}</label>
                                 <div class="col-sm-7">
                                 <span class="form-control">{{ client.langue|default_if_none:"" }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_('Type_personne')}}</label>
+                                <label class="col-sm-5 col-form-label">{{_("Type personne")}}</label>
                                 <div class="col-sm-7">
                                 <span class="form-control">{{ client.type_personne|default_if_none:"" }}</span>
                                 </div>
@@ -235,49 +235,49 @@
                         <div class="vl"></div>
                         <div class="col-md-5">
                             <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_('Type')}}</label>
+                                <label class="col-sm-5 col-form-label">{{_("Type")}}</label>
                                 <div class="col-sm-7">
                                 <span class="form-control">{{ client.type_client|default_if_none:""  }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_('Charge_de_clientelle')}}</label>
+                                <label class="col-sm-5 col-form-label">{{_("Charge de clientelle")}}</label>
                                 <div class="col-sm-7">
                                 <span class="form-control">{{ client.gestionnaire|default_if_none:""  }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_('Referent')}}</label>
+                                <label class="col-sm-5 col-form-label">{{_("Referent")}}</label>
                                 <div class="col-sm-7">
                                 <span class="form-control">{{ client.referent|default_if_none:"" }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_('Date_de_enregistrement')}}</label>
+                                <label class="col-sm-5 col-form-label">{{_("Date d'enregistrement")}}</label>
                                 <div class="col-sm-7">
                                 <span class="form-control">{{ client.created_at|date:'d/m/Y à H:i:s'|default_if_none:""  }}</span>
                                 </div>
                             </div>
                         </div>
                 </div>
-                <h6 class="o-primary">{{_('COORDONNEES')}}</h6>
+                <h6 class="o-primary">{{_("COORDONNEES")}}</h6>
                 <hr>
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Pays')}}</label>
+                            <label class="col-sm-5 col-form-label">{{_("Pays")}}</label>
                             <div class="col-sm-7">
                             <span class="form-control">{{ client.pays|default_if_none:"" }}</span>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Ville')}}</label>
+                            <label class="col-sm-5 col-form-label">{{_("Ville")}}</label>
                             <div class="col-sm-7">
                             <span class="form-control">{{ client.ville|default_if_none:"" }}</span>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Adresse')}}</label>
+                            <label class="col-sm-5 col-form-label">{{_("Adresse")}}</label>
                             <div class="col-sm-7">
                             <span class="form-control">{{ client.adresse|default_if_none:"" }}</span>
                             </div>
@@ -286,37 +286,37 @@
                     <div class="vl"></div>
                     <div class="col-md-5">
                         <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Telephone_fixe')}}</label>
+                            <label class="col-sm-5 col-form-label">{{_("Telephone_fixe")}}</label>
                             <div class="col-sm-7">
                             <span class="form-control">{{ client.telephone_fixe|default_if_none:"" }}</span>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Telephone_mobile')}}</label>
+                            <label class="col-sm-5 col-form-label">{{_("Telephone_mobile")}}</label>
                             <div class="col-sm-7">
                             <span class="form-control">{{ client.telephone_mobile|default_if_none:"" }}</span>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Email')}}</label>
+                            <label class="col-sm-5 col-form-label">{{_("Email")}}</label>
                             <div class="col-sm-7">
                             <span class="form-control">{{ client.email|default_if_none:"" }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <h6 class="o-primary">{{_('RESEAUX_SOCIAUX')}}</h6>
+                <h6 class="o-primary">{{_("RESEAUX SOCIAUX")}}</h6>
                 <hr>
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Site_web ')}}</label>
+                            <label class="col-sm-5 col-form-label">{{_("Site web")}}</label>
                             <div class="col-sm-7">
                             <span class="form-control"><a href="https://{{client.site_web}}" target="_blank"> {{ client.site_web|default_if_none:"" }}</a></span>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Facebook')}}</label>
+                            <label class="col-sm-5 col-form-label">{{_("Facebook")}}</label>
                             <div class="col-sm-7">
                             <span class="form-control"><a href="https://{{client.facebook}}" target="_blank">{{ client.facebook|default_if_none:"" }}</a></span>
                             </div>
@@ -325,13 +325,13 @@
                     <div class="vl"></div>
                     <div class="col-md-5">
                         <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Twitter')}}</label>
+                            <label class="col-sm-5 col-form-label">{{_("Twitter")}}</label>
                             <div class="col-sm-7">
                             <span class="form-control"><a href="https://{{client.twitter}}" target="_blank">{{ client.twitter|default_if_none:"" }}</a></span>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Instagram')}}</label>
+                            <label class="col-sm-5 col-form-label">{{_("Instagram")}}</label>
                             <div class="col-sm-7">
                             <span class="form-control"><a href="https://{{client.instagram}}" target="_blank">{{ client.instagram|default_if_none:"" }}</a></span>
                             </div>
@@ -351,9 +351,9 @@
               <h4></h4>
               <div class="card shadow_OLD">
                 <div class="card-header">
-                    <h3 class="card-title text-white">{{_('CONTACTS')}}</h3>
+                    <h3 class="card-title text-white">{{_("CONTACTS")}}</h3>
                     <div class="card-tools">
-                        <a class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-contact"><i class="fas fa-plus"></i> {{_('Ajouter_un_contact')}}</a>
+                        <a class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-contact"><i class="fas fa-plus"></i> {{_("Ajouter un contact")}}</a>
                     </div>
                 </div>
 
@@ -363,22 +363,22 @@
                             <thead>
                                 <tr role="row">
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Browser: activate to sort column ascending">
-                                      {{_('  Nom')}}
+                                      {{_("Nom")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Prenoms')}}
+                                        {{_("Prénoms")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Fonction')}}
+                                        {{_("Fonction")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Telephone')}}
+                                        {{_("Téléphone")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                      {{_('Email')}}
+                                      {{_("Email")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Action')}}
+                                        {{_("Action")}}
                                     </th>
                                 </tr>
                             </thead>
@@ -412,7 +412,7 @@
               <h4></h4>
               <div class="card shadow_OLD">
                 <div class="card-header">
-                    <h3 class="card-title text-white">{{_('LISTE_DE_SES_QUITTANCES')}}</h3>
+                    <h3 class="card-title text-white">{{_("LISTE DE SES QUITTANCES")}}</h3>
                     <div class="card-tools">
 
                     </div>
@@ -423,16 +423,15 @@
                          <table id="table_quittances" class="table table-bordered table-striped dataTable dtr-inline" role="grid" aria-describedby="example1_info" style="width:100%;">
                             <thead>
                                 <tr role="row">
-                                    <th scope="col">{{_('Numero_Quittance')}}</th>
-                                    <th scope="col">{{_('Type')}}</th>
-                                    <th scope="col">{{_('Date_d_emission')}}</th>
-                                    <th scope="col">{{_('Debut_periode')}}</th>
-                                    <th scope="col">{{_('Prime_ttc')}}</th>
-                                    <th scope="col">{{_('Mt_cie')}}</th>
-                                    <th scope="col">{{_('Com_Gestion')}}</th>
-                                    <th scope="col">{{_('Com_Courtage')}}</th>
-                                    <th scope="col">{{_('Devise')}}</th>
-                                    <th scope="col">{{_('Statut')}}</th>
+                                    <th scope="col">{{_("N° Quittance")}}</th>
+                                    <th scope="col">{{_("Type")}}</th>
+                                    <th scope="col">{{_("Date d'émission")}}</th>
+                                    <th scope="col">{{_("Debut periode")}}</th>
+                                    <th scope="col">{{_("Prime ttc")}}</th>
+                                    <th scope="col">{{_("Mt cie")}}</th>
+                                    <th scope="col">{{_("Com Courtage")}}</th>
+                                    <th scope="col">{{_("Devise")}}</th>
+                                    <th scope="col">{{_("Statut")}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -444,7 +443,6 @@
                                     <td>{{ quittance.date_debut|date:'d-m-Y'|default_if_none:"" }}</td>
                                     <td class="text-right">{{ quittance.prime_ttc|money_field }}</td>
                                     <td class="text-right">{{ quittance.montant_cie|money_field }}</td>
-                                    <td class="text-right">{{ quittance.commission_gestion|money_field }}</td>
                                     <td class="text-right">{{ quittance.commission_courtage|money_field }}</td>
                                     <td>{{ quittance.devise|default_if_none:"" }}</td>
                                     <td class="">
@@ -468,9 +466,9 @@
               <h4></h4>
               <div class="card shadow_OLD">
                 <div class="card-header">
-                    <h3 class="card-title text-white">{{_('LISTE_DE_SES_POLICES')}}</h3>
+                    <h3 class="card-title text-white">{{_("LISTE DE SES POLICES")}}</h3>
                     <div class="card-tools">
-                        <a class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-police"><i class="fas fa-plus"></i> {{_('Creer_une_police')}}</a>
+                        <a class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-police"><i class="fas fa-plus"></i> {{_("Créer une police")}}</a>
                     </div>
                 </div>
 
@@ -480,34 +478,34 @@
                             <thead>
                                 <tr role="row">
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Browser: activate to sort column ascending">
-                                        {{_('Numero')}}
+                                        {{_("Numéro")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Browser: activate to sort column ascending">
-                                        {{_('Produit')}}
+                                        {{_("Produit")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Assureur')}}
+                                        {{_("Assureur")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Prime_HT')}}
+                                        {{_("Prime HT")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                      {{_('Prime_TTC')}}
+                                      {{_("Prime TTC")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Com_gestion')}}
+                                        {{_("Com gestion")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Com_courtage')}}
+                                        {{_("Com courtage")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Engine version: activate to sort column ascending">
-                                       {{_('Date_debut')}}
+                                       {{_("Date début")}}
                                     </th>
                                     <th class="sorting sorting_asc" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="CSS grade: activate to sort column descending" aria-sort="ascending">
-                                        {{_('Date_echeance')}}
+                                        {{_("Date échéance")}}
                                     </th>
                                     <th class="sorting sorting_asc" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="CSS grade: activate to sort column descending" aria-sort="ascending">
-                                        {{_('Actions')}}
+                                        {{_("Actions")}}
                                     </th>
                                 </tr>
                             </thead>
@@ -545,9 +543,9 @@
               <h4></h4>
               <div class="card shadow_OLD">
                 <div class="card-header">
-                    <h3 class="card-title text-white">{{_('FILIALES')}}</h3>
+                    <h3 class="card-title text-white">{{_("FILIALES")}}</h3>
                     <div class="card-tools">
-                        <a class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-filiale"><i class="fas fa-plus"></i>{{_('Ajouter une filiale')}}</a>
+                        <a class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-filiale"><i class="fas fa-plus"></i>{{_("Ajouter une filiale")}}</a>
                     </div>
                 </div>
 
@@ -557,19 +555,19 @@
                             <thead>
                                 <tr role="row">
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Browser: activate to sort column ascending">
-                                        {{_('Nom')}}
+                                        {{_("Nom")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Pays')}}
+                                        {{_("Pays")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Ville')}}
+                                        {{_("Ville")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Adresse')}}
+                                        {{_("Adresse")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Action')}}
+                                        {{_("Action")}}
                                     </th>
                                 </tr>
                             </thead>
@@ -602,9 +600,9 @@
               <h4></h4>
               <div class="card shadow_OLD">
                 <div class="card-header">
-                    <h3 class="card-title text-white">{{_('GESTION_ELECTRONIQUE_DE_DOCUMENTS')}}</h3>
+                    <h3 class="card-title text-white">{{_("GESTION ELECTRONIQUE DE DOCUMENTS")}}</h3>
                     <div class="card-tools">
-                        <a class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-document"><i class="fas fa-plus"></i> {{_('Ajouter_un_document')}}</a>
+                        <a class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-document"><i class="fas fa-plus"></i> {{_("Ajouter un document")}}</a>
                     </div>
                 </div>
 
@@ -614,16 +612,16 @@
                             <thead>
                                 <tr role="row">
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Nom_du_document')}}
+                                        {{_("Nom du document")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Type_de_document')}}
+                                        {{_("Type de document")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Fichier')}}
+                                        {{_("Fichier")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Action')}}
+                                        {{_("Action")}}
                                     </th>
                                 </tr>
                             </thead>
@@ -655,9 +653,9 @@
               <h4></h4>
               <div class="card shadow_OLD">
                 <div class="card-header">
-                    <h3 class="card-title text-white">{{_('ACOMPTES')}}</h3>
+                    <h3 class="card-title text-white">{{_("ACOMPTES")}}</h3>
                     <div class="card-tools">
-                        <a class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-acompte"><i class="fas fa-plus"></i> {{_('Ajouter_un_acompte')}}</a>
+                        <a class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-acompte"><i class="fas fa-plus"></i> {{_("Ajouter_un_acompte")}}</a>
                     </div>
                 </div>
 
@@ -667,13 +665,13 @@
                             <thead>
                                 <tr role="row">
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                       {{('Montant')}}
+                                       {{('Montant")}}
                                     </th>
                                     <th class="sorting sorting_asc" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="CSS grade: activate to sort column descending" aria-sort="ascending">
-                                        {{_('Date_versement')}}
+                                        {{_("Date versement")}}
                                     </th>
                                     <th class="sorting sorting_asc" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="CSS grade: activate to sort column descending" aria-sort="ascending">
-                                        {{_('Action')}}
+                                        {{_("Action")}}
                                     </th>
                                 </tr>
                             </thead>
@@ -696,9 +694,6 @@
           </div>
         </div>
         <!-- FIN ACOMPTES DU CLIENT  -->
-
-
-
       </div>
     </div>
   </div>

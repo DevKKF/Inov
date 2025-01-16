@@ -27,6 +27,7 @@ class AdminGroupeBureauAdmInLine(admin.TabularInline):
             kwargs["queryset"] = Bureau.objects.filter(status=True)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+
 class ActeWaspitoAdmin(admin.ModelAdmin):
     list_display = ('libelle_fr', 'libelle_en', 'code_waspito','acte','cotation','prix','status')
     list_per_page = 10
@@ -36,12 +37,12 @@ class TaxeInline(admin.TabularInline):
     model = BureauTaxe
     extra = 1
 
+
 class FonctionAdmin(admin.ModelAdmin):
     list_display = ('libelle',)
     search_fields = ('libelle',)
     list_filter = ('libelle',)
     list_per_page = 10
-
 
 
 #@admin.register(SinistreVeos)
@@ -53,7 +54,6 @@ class SinistreVeosAdmin(ImportExportModelAdmin):
     search_fields = ('ID_SIN', 'NUMERO_DOSSIER', 'ID_PER_PRESTA')
     list_filter = ('STATUT_IMPORT', 'DATE_SINISTRE')
     list_per_page = 10
-
 
 
 class TarifAdmin(admin.ModelAdmin):
@@ -82,11 +82,13 @@ class CompagnieVeosAdmin(ImportExportModelAdmin):
 class SecteurActiviteAdmin(admin.ModelAdmin):
     list_display = ('libelle', 'status', 'created_at')
 
+
 class ClientVeosAdmin(ImportExportModelAdmin):
     list_display = ('ID_PER', 'CODE', 'NOM', 'PRENOMS', 'DATE_NAISSANCE', 'TELEPHONE_FIXE', 'TELEPHONE_MOBILE', 'EMAIL', 'VILLE', 'ADRESSE', 'TYPE_PER', 'LANG', 'PAYS', 'BUREAU', 'STATUT_IMPORT')
     list_filter = ('ID_PER', 'CODE', 'NOM', 'PRENOMS','TYPE_PER','BUREAU', 'STATUT_IMPORT')
     search_fields = ('ID_PER', 'CODE', 'NOM', 'PRENOMS','TYPE_PER','BUREAU', 'STATUT_IMPORT')
     list_per_page = 20
+
 
 class PoliceVeosAdmin(ImportExportModelAdmin):
     list_display = ('NUMERO',)
@@ -255,6 +257,7 @@ class ParamProduitCompagnieInline(admin.TabularInline):
     model = ParamProduitCompagnie
     extra = 1
 
+
 class CompagnieAdmin(admin.ModelAdmin):
     inlines = [ParamProduitCompagnieInline]  # , Pres
     list_display = ('nom', 'code', 'groupe_compagnie', 'type_garant', 'telephone', )
@@ -279,14 +282,15 @@ class CompagnieAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-
 class MotifAdmin(admin.ModelAdmin):
     list_display = ('code','libelle',)
+
 
 class PrescripteurAdmin(ImportExportModelAdmin):
     list_filter = ('nom', 'prenoms', 'numero_ordre')
     list_display = ('nom', 'prenoms', 'numero_ordre', 'telephone', 'email',)
     search_field = ('nom', 'prenoms', 'numero_ordre')
+
 
 class TypePrestataireSpecialiteInline(admin.TabularInline):
     model = SpecialiteTypePresta
@@ -297,9 +301,11 @@ class PrestataireReseauxInline(admin.TabularInline):
     model = PrestataireReseauSoin
     extra = 1
 
+
 class TarifPrestataireClientInline(admin.TabularInline):
     model = TarifPrestataireClient
     extra = 0
+
 
 class PrescripteurPrestataireInline(admin.TabularInline):
     model = PrescripteurPrestataire
@@ -366,8 +372,6 @@ class PrestataireAdmin(ImportExportModelAdmin):
                             prestataire_id=prestataire.pk
                         )
 
-  
-
 
 class TypePrestataireAdmin(admin.ModelAdmin):
     inlines = [TypePrestataireSpecialiteInline]
@@ -375,6 +379,7 @@ class TypePrestataireAdmin(admin.ModelAdmin):
     list_filter = ('name',)
     search_field = ('name',)
     list_per_page = 10
+
 
 class TypeEtablissementAdmin(admin.ModelAdmin):
     list_display = ('libelle', 'code')
@@ -388,7 +393,6 @@ class SpecialiteAdmin(ImportExportModelAdmin):
     list_display = ('name', 'status')
     search_field = ('name', 'status')
     list_per_page = 10
-
 
 
 class ParamActeInline(admin.TabularInline):
@@ -420,6 +424,7 @@ class SousRubriqueRegroupementInline(admin.TabularInline):
     model = SousRubriqueRegroupementActe
     extra = 1
 
+
 class SousRubriqueAdmin(admin.ModelAdmin):
     form = SousRubriqueForm
 
@@ -428,6 +433,7 @@ class SousRubriqueAdmin(admin.ModelAdmin):
     list_filter = ('rubrique', 'libelle',)
     list_display = ('code', 'libelle', 'rubrique',)
     search_field = ('code', 'libelle',)
+
 
 class RegroupementActeAdmin(admin.ModelAdmin):
     form = RegroupementActeForm
@@ -531,7 +537,7 @@ class ParamProduitCompagnieInline(admin.TabularInline):
 
 class ProduitAdmin(admin.ModelAdmin):
     inlines = [ParamProduitCompagnieInline]
-    list_display = ('nom', 'branche')
+    list_display = ('code', 'nom', 'branche')
     list_per_page = 20
 
 class BrancheAdmin(admin.ModelAdmin):
@@ -597,10 +603,10 @@ class TypeDocumentAdmin(admin.ModelAdmin):
 
 
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'last_name', 'first_name', 'prestataire', 'type_utilisateur', 'is_active', 'is_superuser')
+    list_display = ('username', 'last_name', 'first_name', 'is_active', 'is_superuser')
 
-    list_filter = ('username', 'last_name', 'first_name', ('prestataire', admin.RelatedOnlyFieldListFilter), 'prestataire__type_prestataire', ('utilisateur_grh', admin.RelatedOnlyFieldListFilter), 'is_active', 'is_superuser')
-    #search_fields = ('username', 'last_name', 'first_name', 'email', 'prestataire',  'prestataire__type_prestataire', 'is_active', 'is_superuser')
+    list_filter = ('username', 'last_name', 'first_name', 'is_active', 'is_superuser')
+    #search_fields = ('username', 'last_name', 'first_name', 'email', 'is_active', 'is_superuser')
     list_per_page = 10
     readonly_fields = ('utilisateur_grh',)
 
@@ -609,7 +615,7 @@ class CustomUserAdmin(UserAdmin):
     ]
 
     superuser_fieldsets = (
-        (None, {"fields": ("username", "password", "first_name", "last_name", "email", "prestataire", "type_utilisateur", "utilisateur_grh", "client_grh")}),
+        (None, {"fields": ("username", "password", "first_name", "last_name", "email")}),
         (
             "Permissions",
             {
@@ -627,7 +633,7 @@ class CustomUserAdmin(UserAdmin):
     )
 
     staff_fieldsets = (
-        (None, {"fields": ("username", "password", "first_name", "last_name", "email", "prestataire", "type_utilisateur", "client_grh")}),
+        (None, {"fields": ("username", "password", "first_name", "last_name", "email")}),
         (
             "Permissions",
             {
@@ -644,7 +650,7 @@ class CustomUserAdmin(UserAdmin):
     )
 
     superuser_add_fieldsets = (
-        (None, {"fields": ("username", "password1", "password2", "first_name", "last_name", "email", "prestataire", "type_utilisateur", "client_grh")}),
+        (None, {"fields": ("username", "password1", "password2", "first_name", "last_name", "email")}),
         (
             "Permissions",
             {
@@ -662,7 +668,7 @@ class CustomUserAdmin(UserAdmin):
 
     staff_add_fieldsets = (
         (None, {"fields": (
-        "username", "password1", "password2", "first_name", "last_name", "email", "prestataire", "type_utilisateur",
+        "username", "password1", "password2", "first_name", "last_name", "email",
         "client_grh")}),
         (
             "Permissions",
@@ -679,11 +685,11 @@ class CustomUserAdmin(UserAdmin):
         ),
     )
 
-    def type_prestataire(self, obj):
+    """def type_prestataire(self, obj):
         return obj.prestataire.type_prestataire if obj.prestataire else None
 
     type_prestataire.admin_order_field = 'prestataire__type_prestataire'
-    type_prestataire.short_description = 'Type Prestataire'
+    type_prestataire.short_description = 'Type Prestataire' """
 
 
     def get_fieldsets(self, request, obj=None):
@@ -703,8 +709,10 @@ class CustomUserAdmin(UserAdmin):
         queryset = super().get_queryset(request)
 
         if request.user.is_superuser:
+            print("Bureau ", request.user.bureau)
             queryset = queryset.filter(bureau=request.user.bureau)
         else:
+            print("Bureau ", request.user.bureau)
             queryset = queryset.filter(bureau=request.user.bureau, is_superuser=False)
 
         return queryset
@@ -1148,6 +1156,19 @@ class GarantieFormuleAdmin(admin.ModelAdmin):
     get_garanties.short_description = "Garanties"
 
 
+class ConditionsAssuranceAdmin(admin.ModelAdmin):
+    list_filter = ('libelle',)
+    list_display = ('libelle','code', 'status')
+    search_field = ('libelle', 'code', 'status')
+    list_per_page = 20
+
+
+class MoyensTransportAdmin(admin.ModelAdmin):
+    list_filter = ('libelle',)
+    list_display = ('libelle','code', 'status')
+    search_field = ('libelle', 'code', 'status')
+    list_per_page = 20
+
 
 admin.site.register(Bureau, BureausAdmin)
 admin.site.register(Compagnie, CompagnieAdmin)
@@ -1157,15 +1178,14 @@ admin.site.register(Compagnie, CompagnieAdmin)
 # admin.site.register(Specialite, SpecialiteAdmin)
 # admin.site.register(Rubrique, RubiqueAdmin)
 # admin.site.register(SousRubrique, SousRubriqueAdmin)
-admin.site.register(Acte)
+# admin.site.register(Acte)
 # admin.site.register(RegroupementActe, RegroupementActeAdmin)
 # admin.site.register(SousRegroupementActe, SousRegroupementActeAdmin)
 # admin.site.register(TypeActe)
 admin.site.register(Prestataire, PrestataireAdmin)
 admin.site.register(TypePrestataire, TypePrestataireAdmin)
-# admin.site.register(Acte)
 admin.site.register(CategorieAffection)
-admin.site.register(Affection)
+# admin.site.register(Affection)
 admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(Civilite)
 # admin.site.register(TypeAssure)
@@ -1189,7 +1209,6 @@ admin.site.register(Devise,DeviseAdmin)
 #admin.site.register(Duree,) #à réactiver plus tard
 # admin.site.register(QualiteBeneficiaire,)
 # admin.site.register(TypeAssurance,)
-# admin.site.register(Banque)
 # admin.site.register(Devise)
 # admin.site.register(ModeCalcul,)
 # admin.site.register(TypeTarif,)
@@ -1236,13 +1255,15 @@ admin.site.register(Garantie)
 admin.site.register(GarantieBranche, GarantieBrancheAdmin)
 admin.site.register(Formule)
 admin.site.register(GarantieFormule, GarantieFormuleAdmin)
+admin.site.register(ConditionsAssurance, ConditionsAssuranceAdmin)
+admin.site.register(MoyensTransport, MoyensTransportAdmin)
+admin.site.register(User, CustomUserAdmin)
 # admin.site.register(Retenue, RetenueAdmin)
 
 # admin.site.register(MailingList)
 
 # admin.site.register(PeriodeVeos, PeriodeVeosAdmin)
 # admin.site.register(ComptePrestataireVeos, ComptePrestataireVeosAdmin)
-admin.site.register(User, CustomUserAdmin)
 
 #admin.site.register(ActeWaspito, ActeWaspitoAdmin)
 #admin.site.register(GroupeInter, GroupeInterAdmin)
@@ -1251,10 +1272,9 @@ admin.site.register(User, CustomUserAdmin)
 #admin.site.register(PeriodeComptable, PeriodeComptableAdmin)
 #admin.site.register(ModeCreation, ModeCreationAdmin)
 #admin.site.register(TypeRemboursement, TypeRemboursementAdmin)
-#admin.site.unregister(User)
-# admin.site.register(User, CustomUserAdmin)
+#admin.site.register(User)
 # admin.site.register(ActeWaspito, ActeWaspitoAdmin)
-admin.site.register(GroupeInter, GroupeInterAdmin)
+#admin.site.register(GroupeInter, GroupeInterAdmin)
 # admin.site.register(StatExcelWsBoby, StatExcelWsBobyAdmin)
 #admin.site.register(Retenue, RetenueAdmin)
 #admin.site.register(MailingList)
@@ -1306,5 +1326,3 @@ admin.site.register(GroupeInter, GroupeInterAdmin)
 #admin.site.register(TypeDocument,TypeDocumentAdmin) #à réactiver plus tard
 #admin.site.register(Mouvement) #à réactiver plus tard
 #admin.site.register(Motif, MotifAdmin) #à réactiver plus tard
-
-# admin.site.register(BusinessUnit)

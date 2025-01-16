@@ -2,20 +2,21 @@
 	<div class="modal-dialog modal-xl">
 		<div class="modal-content">
 			<form enctype="multipart/form-data" id="form_add_vehicule" action="{% url 'add_vehicule' police.id %}" method="post">
-			{% csrf_token %}
-			<div class="modal-header">
-				<h4 class="modal-title">{{_("AJOUT D'UN VEHICULE")}}</h4>
-				<button type="button" class="close"data-dismiss="modal"aria-label="Close">
-					<span aria-hidden="true">×</span>
-				</button>
-			</div>
-			<div class="modal-body">
+				<input type="hidden" value="{{ police.produit.id }}" data-produit_id="{{ police.produit.branche.id }}" data-branche_code="{{ police.produit.branche.code }}" data-typeproduit_id="{{ police.produit.type_produit.id }}">
+				{% csrf_token %}
+				<div class="modal-header">
+					<h4 class="modal-title">{{_("AJOUT D'UN VEHICULE")}} <span class="text-white">{{ police.id }}</span></h4>
+					<button type="button" class="close"data-dismiss="modal"aria-label="Close">
+						<span aria-hidden="true">×</span>
+					</button>
+				</div>
+				<div class="modal-body">
 				<div class="alert  alert-dismissible fade show hidden" role="alert">
 				  <span class="message">{{_("TRAITEMENT EN COURS")}}</span>
 				</div>
 				<div class="col-md-12 offset-0">
 					<ul class="nav nav-tabs" id="myTab" role="tablist">
-						<li class="nav-item"><a class="nav-link active" id="generalinformations-tab" data-toggle="tab" href="#generalinformations" role="tab" aria-controls="generalinformations" aria-selected="true">{{_('INFORMATIONS_GENERALES')}}</a></li>
+						<li class="nav-item"><a class="nav-link active" id="generalinformations-tab" data-toggle="tab" href="#generalinformations" role="tab" aria-controls="generalinformations" aria-selected="true">{{_("INFORMATIONS GENERALES")}}</a></li>
 					</ul>
 					<div class="tab-content" id="myTabContent">
 
@@ -78,7 +79,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Valeur neuve")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="valeur_a_neuf" value="" />
+											<input type="text" class="form-control money_field" name="valeur_neuve" value="" />
 										</div>
 									</div>
 									<div class="form-group row">
@@ -160,28 +161,26 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Poids à charge")}}</label>
+										<label class="col-sm-5 col-form-label">{{_("Poids à vide")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="poid_vide" value=""/>
+											<input type="text" class="form-control money_field" name="poids_a_vide" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Propriétaire")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="commentaire" value="" required>
+											<input type="text" class="form-control" name="proprietaire" value="" required>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Commentaire")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="proprietaire" value="">
+											<input type="text" class="form-control" name="commentaire" value="">
 										</div>
 									</div>
 								</div>
 							</div>
 						</div>
-
-
 					</div>
 
 				</div>

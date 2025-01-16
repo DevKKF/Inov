@@ -5,10 +5,10 @@
 <div class="col-12 col-md-12 order-2 order-md-1">
   <div class="card">
     <div class="card-header">
-        <h3 class="card-title"><b>REGLEMENTS COMPAGNIES</b></h3>
+        <h3 class="card-title"><b>{{_("REGLEMENTS ASSUREURS")}}</b></h3>
         <div class="card-tools">
           <!--a class="btn btn-sm btn-default" data-toggle="modal"  data-target="#modal-client"><i class="fas fa-plus"></i> Nouveau règlement CIE</-->
-        <span id="btnOpenDialogAddReglementCompagnie" class="btn btn-sm btn-default" data-toggle="modal" data-href="{% url 'add_reglement_compagnie' %}"><i class="fas fa-money-bill"></i> Règler une compagnie</span>
+        <span id="btnOpenDialogAddReglementCompagnie" class="btn btn-sm btn-default" data-toggle="modal" data-href="{% url 'add_reglement_compagnie' %}"><i class="fas fa-money-bill"></i> Règler un assureur</span>
         </div>
     </div>
     <div class="card-body">
@@ -18,10 +18,10 @@
               <table class="table table-bordered table-striped dataTable dtr-inline" id="table_reglements_compagnies">
                   <thead>
                       <tr>
-                        <th scope="col">Compagnie</th>
-                        <th scope="col">Total à reverser</th>
-                        <th scope="col">Commissions</th>
-                        <th scope="col">Nbre lignes</th>
+                        <th scope="col">{{_("Assureur")}}</th>
+                        <th scope="col">{{_("Total à réverser")}}</th>
+                        <th scope="col">{{_("Commissions")}}</th>
+                        <th scope="col">{{_("Nbre lignes")}}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -41,9 +41,6 @@
     </div>
   </div>
 </div>
-
-
-
 
 {% endblock %}
 

@@ -45,8 +45,8 @@
               {% csrf_token %}
               {% if user.is_authenticated %}
                   <p class="errornote">
-                      <div class="callout callout-danger">
-                          <p>
+                      <div class="callout callout-danger" style="background:#fff; padding:5px; border-radius:5px; margin-bottom:10px">
+                          <p style="color:red">
                               {% blocktrans trimmed %}
                                   You are authenticated as {{ username }}, but are not authorized to
                                   access this page. Would you like to login to a different account?
@@ -57,13 +57,13 @@
               {% endif %}
               {% if form.errors %}
                   {% if form.username.errors %}
-                      <div class="callout callout-danger">
-                          <p>{{ form.username.label }}: {{ form.username.errors|join:', ' }}</p>
+                      <div class="callout callout-danger" style="background:#fff; padding:5px; border-radius:5px; margin-bottom:10px">
+                          <p style="color:red">{{ form.username.label }}: {{ form.username.errors|join:', ' }}</p>
                       </div>
                   {% endif %}
                   {% if form.password.errors %}
-                      <div class="callout callout-danger">
-                          <p>{{ form.password.label }}: {{ form.password.errors|join:', ' }}</p>
+                      <div class="callout callout-danger" style="background:#fff; padding:5px; border-radius:5px; margin-bottom:10px">
+                          <p style="color:red">{{ form.password.label }}: {{ form.password.errors|join:', ' }}</p>
                       </div>
                   {% endif %}
                   {% if form.non_field_errors %}

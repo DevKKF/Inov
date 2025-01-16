@@ -16,9 +16,9 @@
 
 				<div class="col-md-12 offset-0">
 					<ul class="nav nav-tabs" id="myTab" role="tablist">
-						<li class="nav-item"><a class="nav-link active" id="infos_quittance-tab" data-toggle="tab" href="#infos_quittance" role="tab" aria-controls="infos_quittance" aria-selected="true">{{_('INFORMATIONS_DE_LA_QUITTANCE')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="reglements-tab" data-toggle="tab" href="#reglements" role="tab" aria-controls="reglements" aria-selected="false">{{_('LISTE_DES_REGLEMENTS')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="ged_beneficiaire-tab" data-toggle="tab" href="#ged_beneficiaire" role="tab" aria-controls="ged" aria-selected="false">{{_('GED')}}</a></li>
+						<li class="nav-item"><a class="nav-link active" id="infos_quittance-tab" data-toggle="tab" href="#infos_quittance" role="tab" aria-controls="infos_quittance" aria-selected="true">{{_("INFORMATIONS DE LA QUITTANCE")}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="reglements-tab" data-toggle="tab" href="#reglements" role="tab" aria-controls="reglements" aria-selected="false">{{_("LISTE DES REGLEMENTS")}}</a></li>
+						<!--li class="nav-item"><a class="nav-link" id="ged_beneficiaire-tab" data-toggle="tab" href="#ged_beneficiaire" role="tab" aria-controls="ged" aria-selected="false">{{_('GED')}}</a></li-->
 
 					</ul>
 					<div class="tab-content" id="myTabContent">
@@ -35,37 +35,37 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Type_de_quittance')}}</label>
+										<label class="col-sm-5 col-form-label">{{_("Type de quittance")}}</label>
 										<div class="col-sm-7">
 											<span type="text" class="form-control text-right">{{quittance.type_quittance}}</span>
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Date_d_emission')}}</label>
+										<label class="col-sm-5 col-form-label">{{_("Date d'émission")}}</label>
 										<div class="col-sm-7">
 											<span type="date" class="form-control text-right" name="date_emission">{{quittance.date_emission|date:"d/m/Y"}}</span>
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Date_debut')}}</label>
+										<label class="col-sm-5 col-form-label">{{_("Date début")}}</label>
 										<div class="col-sm-7">
 											<span type="date" class="form-control text-right" name="date_debut">{{quittance.date_debut|date:"d/m/Y"}}</span>
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Date_fin')}}</label>
+										<label class="col-sm-5 col-form-label">{{_("Date fin")}}</label>
 										<div class="col-sm-7">
 											<span type="date" class="form-control text-right" name="date_fin">{{quittance.date_fin|date:"d/m/Y"}}</span>
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Prime_HT')}} <span class="required"></span></label>
+										<label class="col-sm-5 col-form-label">{{_("Prime HT")}} <span class="required"></span></label>
 										<div class="col-sm-7">
 											<span type="text" class="form-control money_field_negative calculs_handler_police" name="prime_ht" id="prime_ht">{{quittance.prime_ht}}</span>
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Cout_police_Cie')}} <span class="required"></span></label>
+										<label class="col-sm-5 col-form-label">{{_("Coût police Cie")}} <span class="required"></span></label>
 										<div class="col-sm-7">
 											<span type="text" class="form-control money_field_negative calculs_handler_police" name="cout_police_compagnie" id="cout_police_compagnie">{{quittance.cout_police_compagnie}}</span>
 										</div>
@@ -75,7 +75,7 @@
 								<div class="col-md-5" style="border-left:0px;">
 
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Cout_police_courtier')}}<span class="required"></span></label>
+										<label class="col-sm-5 col-form-label">{{_("Coût police courtier")}}<span class="required"></span></label>
 										<div class="col-sm-7">
 											<span type="text" class="form-control money_field_negative calculs_handler_police" name="cout_police_courtier" id="cout_police_courtier">{{quittance.cout_police_courtier}}</span>
 										</div>
@@ -87,7 +87,7 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Autres_Taxes ')}}<span class="required"></span></label>
+										<label class="col-sm-5 col-form-label">{{_("Autres Taxes")}}<span class="required"></span></label>
 										<div class="{% if quittance.autres_taxes <= 0 %}col-sm-7{% endif %} {% if quittance.autres_taxes > 0 %}col-sm-5{% endif %}" {% if quittance.autres_taxes > 0 %} style="padding-right:0px;"{% endif %}>
 											<span style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field_negative calculs_handler_police" name="autres_taxes" id="autres_taxes">{{quittance.autres_taxes}}</span>
 										</div>
@@ -98,27 +98,20 @@
 										{% endif %}
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Prime_TTC')}} <span class="required"></span></label>
+										<label class="col-sm-5 col-form-label">{{_("Prime TTC")}} <span class="required"></span></label>
 										<div class="col-sm-7">
 											<span type="text" class="form-control money_field_negative" name="prime_ttc" id="prime_ttc">{{quittance.prime_ttc}}</span>
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Com_Courtage')}} ({{quittance.taux_com_courtage|default_if_none:"" }})%<span class="required"></span></label>
+										<label class="col-sm-5 col-form-label">{{_("Com Courtage")}} ({{quittance.taux_com_courtage|default_if_none:"" }})%<span class="required"></span></label>
 										<div class="col-sm-7">
 											<input type="hidden" class="form-control" name="taux_com_courtage" id="taux_com_courtage" value="{{quittance.taux_com_courtage}}"/>
 											<span type="text" class="form-control money_field_negative" name="commission_courtage" id="commission_courtage">{{quittance.commission_courtage}}</span>
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Com_Gestion')}} ({{quittance.taux_com_gestion|default_if_none:"" }})%<span class="required"></span></label>
-										<div class="col-sm-7">
-											<input type="hidden" class="form-control" name="taux_com_gestion" id="taux_com_gestion" value="{{quittance.taux_com_gestion}}"/>
-											<span type="text" class="form-control money_field_negative" name="commission_gestion" id="commission_gestion">{{quittance.commission_gestion}}</span>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Retrocession_apporteur')}} <span class="required"></span></label>
+										<label class="col-sm-5 col-form-label">{{_("Retrocession apporteur")}} <span class="required"></span></label>
 										<div class="col-sm-7">
 											<span type="text" class="form-control money_field_negative" name="commission_intermediaire" id="total_commission_intermediaire">{{quittance.commission_intermediaires}}</span>
 										</div>
@@ -127,19 +120,63 @@
 							</div>
 
 						</div>
-
 						<!-- FIN TAB INFOS QUITTANCE -->
 
 
-						<!-- add ged -->
+                        <!-- TAB REGLEMENTS QUITTANCE -->
+						<div class="tab-pane fade mt-3" id="reglements" role="tabpanel" aria-labelledby="reglements-tab">
 
+							<div class="row">
+								<div class="col-12 col-md-12 col-sm-12 table-responsive">
+									<table class="table table-bordered table-striped dataTable dtr-inline" id="table_reglements">
+										<thead>
+										  <tr>
+											<th scope="col">{{_("N° Règlement")}}</th>
+											<th scope="col">{{_("N° Pièce")}}</th>
+											<th scope="col">{{_("Banque")}}</th>
+											<th scope="col">{{_("Mode règlement")}}</th>
+											<th scope="col">{{_("Montant reglé")}}</th>
+											<th scope="col">{{_("Dévise")}}</th>
+											<th scope="col">{{_("Date règlement")}}</th>
+											<th scope="col">{{_("Revers Cie")}}</th>
+											<!--th scope="col">Enc com</th-->
+											<th scope="col">{{_("Date saisie")}}</th>
+											<th scope="col">{{_("Enregistrer par")}}</th>
+											<th scope="col">{{_("Action")}}</th>
+										  </tr>
+										</thead>
+										<tbody>
+											{% for reglement in reglements %}
+											  <tr>
+												<td>{{ reglement.numero|default_if_none:"" }}</td>
+												<td>{{ reglement.numero_piece|default_if_none:"" }}</td>
+												<td>{{ reglement.banque.libelle|default_if_none:"" }}</td>
+												<td>{{ reglement.mode_reglement|default_if_none:"" }}</td>
+												<td class="text-right">{{ reglement.montant|money_field }}</td>
+												<td>{{ reglement.devise.code|default_if_none:"" }}</td>
+												<td>{{ reglement.date_paiement|date:'d/m/Y'|default_if_none:"" }}</td>
+												<td><span class="badge badge-{{ reglement.statut_reversement_compagnie|lower|replace_espace }}" title="{{ reglement.statut_reversement_compagnie|date:'d/m/Y'|default_if_none:'' }}">{{ reglement.statut_reversement_compagnie|default_if_none:"" }}</span></td>
+												<!--td><span class="badge badge-{{ reglement.statut_commission|lower|replace_espace }}">{{ reglement.statut_commission|default_if_none:"" }}</span></td-->
+												<td>{{ reglement.created_at|date:'d/m/Y à H:i'|default_if_none:"" }}</td>
+												<td>{{ reglement.created_by|default_if_none:"" }}</td>
+												<td></td>
+											  </tr>
+											{% endfor %}
+										</tbody>
+								  </table>
+								</div>
+							</div>
 
+						</div>
+						<!-- FIN REGLEMENTS QUITTANCE -->
+
+                        <!-- TAB GED -->
 						<div class="tab-pane fade mt-3" id="ged_beneficiaire" role="tabpanel" aria-labelledby="ged_beneficiaire-tab">
 							<div class="rowd" style="padding-top:0px;">
 								<div class="card">
 									<div class="card-header nobg">
 										<div class="card-title">
-										  Ses documents
+										  Liste des documents
 										</div>
 										<div class="card-tools">
 										  <span class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-document_beneficiaire"><i class="fas fa-plus"></i> Nouveau document</span>
@@ -149,11 +186,11 @@
 										<table class="table table-bordered table-striped dataTable dtr-inline" id="table_documents">
 											<thead>
 											  <tr>
-												<th scope="col">Nom du document</th>
-												<th scope="col">Type de document</th>
-												<th scope="col">Fichier</th>
-												<th scope="col">Date ajout</th>
-												<th scope="col">Action</th>
+												<th scope="col">{{_("Nom du document")}}</th>
+												<th scope="col">{{_("Type de document")}}</th>
+												<th scope="col">{{_("Fichier")}}</th>
+												<th scope="col">{{_("Date ajout")}}</th>
+												<th scope="col">{{_("Action")}}</th>
 											  </tr>
 											</thead>
 											<tbody>
@@ -175,49 +212,7 @@
 								</div>
 							</div>
 						</div>
-
-						<!-- TAB REGLEMENTS QUITTANCE -->
-						<div class="tab-pane fade mt-3" id="reglements" role="tabpanel" aria-labelledby="reglements-tab">
-
-							<div class="row">
-								<table class="table table-bordered table-striped dataTable dtr-inline" id="table_reglements">
-								<thead>
-								  <tr>
-									<th scope="col">{{_('Numero_Reglement')}}</th>
-									<th scope="col">{{_('Numero_Piece')}}</th>
-									<th scope="col">{{_('Banque')}}</th>
-									<th scope="col">{{_('Mode_reglement')}}</th>
-									<th scope="col">{{_('Montant_regle')}}</th>
-									<th scope="col">{{_('Devise')}}</th>
-									<th scope="col">{{_('Date_reglement')}}</th>
-									<th scope="col">{{_('Revers_Cie')}}</th>
-									<!--th scope="col">Enc com</th-->
-									<th scope="col">{{_('Date_saisie')}}</th>
-									<th scope="col">{{_('Enregistre_par')}}</th>
-								  </tr>
-								</thead>
-								<tbody>
-								{% for reglement in reglements %}
-								  <tr>
-									<td>{{ reglement.numero|default_if_none:"" }}</td>
-									<td>{{ reglement.numero_piece|default_if_none:"" }}</td>
-									<td>{{ reglement.banque.libelle|default_if_none:"" }}</td>
-									<td>{{ reglement.mode_reglement|default_if_none:"" }}</td>
-									<td class="text-right">{{ reglement.montant|money_field }}</td>
-									<td>{{ reglement.devise.code|default_if_none:"" }}</td>
-									<td>{{ reglement.date_paiement|date:'d/m/Y'|default_if_none:"" }}</td>
-									<td><span class="badge badge-{{ reglement.statut_reversement_compagnie|lower|replace_espace }}" title="{{ reglement.statut_reversement_compagnie|date:'d/m/Y'|default_if_none:'' }}">{{ reglement.statut_reversement_compagnie|default_if_none:"" }}</span></td>
-									<!--td><span class="badge badge-{{ reglement.statut_commission|lower|replace_espace }}">{{ reglement.statut_commission|default_if_none:"" }}</span></td-->
-									<td>{{ reglement.created_at|date:'d/m/Y à H:i'|default_if_none:"" }}</td>
-									<td>{{ reglement.created_by|default_if_none:"" }}</td>
-								  </tr>
-								{% endfor %}
-								</tbody>
-							  </table>
-							</div>
-
-						</div>
-						<!-- FIN REGLEMENTS QUITTANCE -->
+                        <!-- FIN GED -->
 
 					</div>
 
@@ -240,22 +235,22 @@
 			<form id="form_add_autres_taxes_quittance" action="" method="post">
 				{% csrf_token %}
 				<div class="modal-header">
-					<h4 class="modal-title">{{_('LISTE_DES_AUTRES_TAXES')}}</h4>
+					<h4 class="modal-title">{{_("LISTE DES AUTRES TAXES")}}</h4>
 					<button type="button"class="close"data-dismiss="modal"aria-label="Close">
 						<span aria-hidden="true">×</span>
 					</button>
 				</div>
 				<div class="modal-body">
 					<div class="alert  alert-dismissible fade show hidden" role="alert">
-						<span class="message"> {{_('TRAITEMENT_EN_COURS')}}</span>
+						<span class="message"> {{_("TRAITEMENT EN COURS")}}</span>
 					</div>
 					<div class="col-md-12 offset-0">
 						<div class="row">
 							<table style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
 								<thead>
 									<tr>
-										<th style="width:70%;">{{_('Taxe')}}</th>
-										<th>{{_('Montant')}}</th>
+										<th style="width:70%;">{{_("Taxe")}}</th>
+										<th>{{_("Montant")}}</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -275,7 +270,7 @@
 					</div>
 				</div>
 				<div class="modal-footer justify-content-between">
-					<button type="button" class="btn btn-default" data-dismiss="modal">{{_('Fermer')}}</button>
+					<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Fermer')}}</button>
 					<span>{{_('Montant_Total')}}: <span class="badge badge-warning money_field" style="font-weight:bold;">{{quittance.autres_taxes}}</span> {{quittance.police.client.pays.devise}}</span>
 				</div>
 			</form>
@@ -299,7 +294,7 @@
 		  <div class="row">
 			  <div class="col-md-12">
 				  <div class="form-group row">
-					  <label class="col-sm-5 col-form-label">Type de document *</label>
+					  <label class="col-sm-5 col-form-label">Type de document <span class="required">*</span></label>
 					  <div class="col-sm-7">
 					  <select class="form-control" name="type_document" id="type_document" required>
 						  <option value="">Choisir</option>
@@ -310,19 +305,19 @@
 					  </div>
 				  </div>
 				  <div class="form-group row">
-					  <label class="col-sm-5 col-form-label">Nom du document  *</label>
+					  <label class="col-sm-5 col-form-label">Nom du document <span class="required">*</span></label>
 					  <div class="col-sm-7">
 					  <input type="text" class="form-control" name="nom" id="nom" required/>
 					  </div>
 				  </div>
 				  <div class="form-group row">
-					  <label class="col-sm-5 col-form-label">Fichier *</label>
+					  <label class="col-sm-5 col-form-label">Fichier <span class="required">*</span></label>
 					  <div class="col-sm-7">
 						  <input type="file" class="form-control" name="fichier" id="fichier" required/>
 					  </div>
 				  </div>
 				  <div class="form-group row">
-					  <label class="col-sm-5 col-form-label">Ce document est-il confidentiel ? *</label>
+					  <label class="col-sm-5 col-form-label">Ce document est-il confidentiel ? <span class="required">*</span></label>
 					  <div class="col-sm-7">
 						  <input type="checkbox" value="OUI" name="confidentialite" id="confidentialite"/>
 					  </div>
@@ -337,12 +332,8 @@
 		  </div>
 		</div>
 		<div class="modal-footer justify-content-between">
-		  <button type="button" class="btn btn-default" data-dismiss="modal">
-			Retour
-		  </button>
-		  <button type="button" id="btn_save_document" data-option="aliment" class="btn o-bg-primary">
-			Valider
-		  </button>
+		  <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> Retour</button>
+		  <button type="button" id="btn_save_document" data-option="aliment" class="btn bg-info"><i class="fa fa-check-circle"></i> Valider</button>
 		</div>
 		  </form>
 	  </div>

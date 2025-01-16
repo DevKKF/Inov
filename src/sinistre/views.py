@@ -1206,7 +1206,6 @@ class AnnulerBordereauOrdonnancementView(TemplateView):
         }
 
 
-
 # model 2
 @method_decorator(login_required, name='dispatch')
 class SaisiePrestationGestionnairesView(TemplateView):
@@ -5941,6 +5940,7 @@ def search_benef_by_name_datatable(request):
         "draw": int(request.GET.get('draw', 1)),
     })
 
+
 @login_required
 def add_sinistre_gestionnaire(request):
     if request.method == 'POST':
@@ -7087,6 +7087,7 @@ def close_dossier_medication(request, dossier_sinistre_id):
 
         return JsonResponse(response)
 
+
 #TODO remove 'tm_prefinanced': tm_prefinanced and get the option on sinistre object
 def render_pdf_view(request, id):
     dossiers_sinistres = DossierSinistre.objects.filter(id=id, statut_validite=StatutValidite.VALIDE)
@@ -7433,6 +7434,7 @@ class GenerateFactureView(ListView):
             # "adhs": adhs
         }
 
+
 def get_prestataires_generate_facture(request):
     prestataire_ids = Sinistre.objects.filter(prestataire__bureau=request.user.bureau,dossier_sinistre__isnull=False,
                                                             facture_prestataire__isnull=True,
@@ -7449,6 +7451,7 @@ def get_prestataires_generate_facture(request):
     return JsonResponse({
         "data": data,
     })
+
 
 def search_prestataires_generate_facture_by_name_datatable(request):
     items_per_page = int(request.GET.get('length', 10))
@@ -7502,6 +7505,7 @@ def search_prestataires_generate_facture_by_name_datatable(request):
         "draw": int(request.GET.get('draw', 1)),
     })
 
+
 def search_assures_generate_facture_by_name_datatable(request):
     items_per_page = int(request.GET.get('length', 10))
     start = int(request.GET.get('start', 0))
@@ -7553,8 +7557,6 @@ def search_assures_generate_facture_by_name_datatable(request):
         "recordsFiltered": paginator.count,
         "draw": int(request.GET.get('draw', 1)),
     })
-
-
 
 
 def search_adherents_generate_facture_by_name_datatable(request):
@@ -8757,7 +8759,6 @@ def borderau_ordonnancement_pdf(request, liste_sinistre, prestataire, bordereau_
     return pdf
 
 
-
 def borderau_ordonnancement_rd_pdf(request, liste_sinistre, adherent_principal, bordereau_ordonnancement):
     from itertools import groupby
 
@@ -8849,6 +8850,7 @@ def borderau_ordonnancement_rd_pdf(request, liste_sinistre, adherent_principal, 
     pdf = render_pdf('courriers/borderau_ordonnancement_rd.html', contexte)
 
     return pdf
+
 
 def borderau_ordonnancement_rd_assure_pdf(request, liste_sinistre, assure, bordereau_ordonnancement):
     from itertools import groupby
@@ -9171,8 +9173,6 @@ def regenerer_borderau_ordonnancement_pdf(request, bordereau_ordonnancement_id):
 
     #AFFICHER DIRECTEMENT
     return HttpResponse(File(pdf), content_type='application/pdf')
-
-
 
 
 def borderau_ordonnancement_pdf_exemple(request):

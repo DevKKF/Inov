@@ -3,17 +3,15 @@
   <thead>
     <tr>
       <th scope="col"></th>
-			<th scope="col">{{_('Numero_Reg_client')}}</th>
-      <th scope="col">{{_('Numero_Quittance')}}</th>
-      <th scope="col">{{_('Client')}}</th>
-			<th scope="col">{{_('Prime_totale')}}</th>
-      <th scope="col">{{_('Mt_Reg_clt')}}</th>
-      <th scope="col">{{_('Mt_CIE')}}</th>
-		  <th scope="col">{{_('Com_court')}}</th>
-			<th scope="col">{{_('Com_gest')}}</th>
-			<th scope="col">{{_('Com_Apport')}}</th>
-			<th scope="col">{{_('Date_Reg_clt')}}</th>
-      
+      <th scope="col">{{_("N° Reg client")}}</th>
+      <th scope="col">{{_("N° Quittance")}}</th>
+      <th scope="col">{{_("Client")}}</th>
+      <th scope="col">{{_("Prime totale")}}</th>
+      <th scope="col">{{_("Mt Reg clt")}}</th>
+      <th scope="col">{{_("Mt CIE")}}</th>
+      <th scope="col">{{_("Com court")}}</th>
+      <th scope="col">{{_("Retro Apport")}}</th>
+      <th scope="col">{{_("Date Reg clt")}}</th>
     </tr>
   </thead>
   <tbody>
@@ -27,7 +25,6 @@
       <td class="text-right">{{ reglement.montant|money_field }}</td>
       <td class="text-right">{{ reglement.montant_compagnie|money_field }}</td>
       <td class="text-right">{{ reglement.montant_com_courtage|money_field }}</td>
-      <td class="text-right">{{ reglement.montant_com_gestion|money_field }}</td>
       <td class="text-right">{{ reglement.montant_com_intermediaire|money_field }}</td>
       <td>{{ reglement.date_paiement|date:'d/m/Y'|default_if_none:"" }}</td>
     </tr>

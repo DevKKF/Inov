@@ -1,75 +1,79 @@
 {% extends 'police/menu_police.html' %}
+{% load i18n %}
 {% load my_filters %}
 {% block extrastyle %} {% endblock %}
+{% block content_title %}
+    <div class="row mb-2">
+          <div class="col-sm-6">
+            <h4 class="m-0 f-bold">POLICE : N° {{ police.numero|default_if_none:"" }}</h4>
+          </div>
+          <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                      <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
+                      <li class="breadcrumb-item">Production</li>
+                      <li class="breadcrumb-item"><a href="{% url 'clients' %}">Clients</a></li>
+                      <li class="breadcrumb-item"><a href="{% url 'police.details' police.id %}">Police</a></li>
+                      <li class="breadcrumb-item active">Sinistres</li>
+                </ol>
+          </div>
+    </div>
+{% endblock %}
 {% block content %}
 <div class="col-12 col-md-12 order-2 order-md-1">
   <div class="card">
     <div class="card-header">
-        <h3 class="card-title text-white">{{_('LISTE_DES_SINISTRES')}}</h3>
-        <div class="card-tools btn-export-sinistre">
-            <a href="{% url 'export_sinistres_police' police.id %}" class="btn btn-sm btn-default"><i class="fa fa-file-o"></i> {{_('Exporter_vers_Excel')}}</a>
-		</div>
+        <h3 class="card-title text-white">{{_("LISTE DES SINISTRES")}}</h3>
+        <div class="card-tools btn-export-sinistre"></div>
     </div>
 
   <div style="background:#CCCCCC;padding:10px;border-bottom:1px solid #eee;padding-bottom:10px;margin-bottom:10px;">
-    <form method="get"><label style="font-weight:normal;font-size:12px;display:none;"><i>{{_('Formulaire_de_recherche')}}</i></label>
+    <form method="get"><label style="font-weight:normal;font-size:12px;display:none;"><i>{{_("Formulaire de recherche")}}</i></label>
         <div class="row">
-            <div class="col-12 col-md-12 col-sm-12 row">
-
-                <div class="col-sm-3 row">
-                    <span class="col-sm-5 text-right" style="margin-top:5px;">{{_('Numero_sinistre')}} : </span>
-                    <div class="col-sm-7">
-                        <input class="form-control" type="text" name="ns" id="num_sinistre" style="border-radius:3px;border:1px solid brown;text-transform:uppercase;">
-                    </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>{{_("Numero sinistre")}} :</label>
+                    <input class="form-control" type="text" name="ns" id="num_sinistre" style="border-radius:3px;border:1px solid brown;text-transform:uppercase;">
                 </div>
-
-                <div class="col-sm-2 row" style="display:none;">
-                    <span class="col-sm-6 text-right" style="margin-top:5px;">{{_('Numero_BS')}} : </span>
-                    <div class="col-sm-6">
-                        <input class="form-control" type="text" name="nb" id="num_feuille_soins" style="border-radius:3px;border:1px solid brown;text-transform:uppercase;">
-                    </div>
+            </div>
+            <div class="col-md-3 d-none">
+                <div class="form-group">
+                    <label>{{_("Numero BS")}} :</label>
+                    <input class="form-control" type="text" name="nb" id="num_feuille_soins" style="border-radius:3px;border:1px solid brown;text-transform:uppercase;">
                 </div>
-
-                <div class="col-sm-3 row">
-                    <span class="col-sm-5 text-right" style="margin-top:5px;">{{_('Prestataire')}} : </span>
-                    <div class="col-sm-7">
-                        <select name="prestataire" id="prestataire_id" class="form-control tags-multiple" style="border-radius:3px;border:1px solid brown;text-transform:uppercase;">
-                          <option value="">{{_('Choisir')}}</option>
-                          {% for prestataire in prestataires %}
-                          <option value="{{prestataire.id}}">{{prestataire.name}}</option>
-                          {% endfor %}
-                        </select>
-                    </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>{{_("Prestataire")}} :</label>
+                    <select name="prestataire" id="prestataire_id" class="form-control tags-multiple" style="border-radius:3px;border:1px solid brown;text-transform:uppercase;">
+                      <option value="">{{_('Choisir')}}</option>
+                      {% for prestataire in prestataires %}
+                        <option value="{{prestataire.id}}">{{prestataire.name}}</option>
+                      {% endfor %}
+                    </select>
                 </div>
-
-                {% comment %}
-                <div class="col-md-4 row">
-                    <span class="col-sm-7 text-right" style="margin-top:5px;">Type Remboursement : </span>
-                    <div class="col-sm-5">
-                        <select name="type_remboursement" id="type_remboursement" class="form-control tags-multiple">
-                          <option value="">Choisir</option>
-                          {% for type_remboursement in type_remboursements %}
-                          <option value="{{type_remboursement.id}}">{{type_remboursement.libelle}}</option>
-                          {% endfor %}
-                        </select>
-                    </div>
+            </div>
+            <div class="col-md-3 d-none">
+                <div class="form-group">
+                    <label>{{_("Type Remboursement")}} :</label>
+                    <select name="type_remboursement" id="type_remboursement" class="form-control tags-multiple">
+                      <option value="">Choisir</option>
+                      {% for type_remboursement in type_remboursements %}
+                        <option value="{{type_remboursement.id}}">{{type_remboursement.libelle}}</option>
+                      {% endfor %}
+                    </select>
                 </div>
-                {% endcomment %}
-
-                <div class="col-sm-3 row">
-                    <span class="col-sm-5 text-right" style="margin-top:5px;">{{_('Numero_carte ')}}: </span>
-                    <div class="col-sm-7">
-                        <input class="form-control" type="text" name="nc" id="num_assure" style="border-radius:3px;border:1px solid brown;text-transform:uppercase;">
-                    </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>{{_("Numero carte")}} :</label>
+                    <input class="form-control" type="text" name="nc" id="num_assure" style="border-radius:3px;border:1px solid brown;text-transform:uppercase;">
                 </div>
-
-                <div class="col-sm-3 row">
-                    <span class="col-sm-7 text-right" style="margin-top:5px;">{{_('Date_prestation')}} : </span>
-                    <div class="col-sm-5">
-                        <input class="form-control" type="date" name="d" id="date_prestation" value="" style="border-radius:3px;border:1px solid brown;text-transform:uppercase;">
-                    </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>{{_("Date prestation")}} :</label>
+                    <input class="form-control" type="date" name="d" id="date_prestation" value="" style="border-radius:3px;border:1px solid brown;text-transform:uppercase;">
                 </div>
-
             </div>
         </div>
     </form>
@@ -78,20 +82,21 @@
     <div class="card-body">
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
         <div class="row">
-          <div class="col-12 col-md-12 col-sm-12">
+          <div class="col-12 col-md-12 col-sm-12 table-responsive btn-export-sinistre">
+              <a href="{% url 'export_sinistres_police' police.id %}" class="btn btn-sm btn-info pull-right mb-2"><i class="fa fa-file-excel-o"></i> {{_("Exporter vers Excel")}}</a>
               <table class="table table-bordered table-striped dataTable__ customDataTable__ dtr-inline" id="table_sinistres_police" style="width: 100%;" data-orderby="0">
                     <thead>
                       <tr>
                         <th scope="col" style="display:none;">{{_('ID')}}</th>
-                        <th scope="col">{{_('Numero_sinistre')}}</th>
-                        <th scope="col">{{_('Numero_feuille_de_soins')}}</th>
-                        <th scope="col">{{_('Nom_du_beneficiaire')}}</th>
+                        <th scope="col">{{_("Num sinistre")}}</th>
+                        <th scope="col">{{_("Num feuille de soins")}}</th>
+                        <th scope="col">{{_("Nom du bénéficiaire")}}</th>
                         <th scope="col">{{_('Prestataire')}}</th>
                         <th scope="col">{{_('Acte')}}</th>
-                        <th scope="col">{{_('Frais_reel')}}</th>
-                        <th scope="col">{{_('Part_assureur')}}</th>
-                        <th scope="col">{{_('Part_beneficiaire')}}</th>
-                        <th scope="col">{{_('Date_de_soins')}}</th>
+                        <th scope="col">{{_("Frais réel")}}</th>
+                        <th scope="col">{{_("Part assureur")}}</th>
+                        <th scope="col">{{_("Part bénéficiaire")}}</th>
+                        <th scope="col">{{_("Date de soins")}}</th>
                         <!--th scope="col">Date saisie</th-->
                         <th scope="col">{{_('Statut')}}</th>
                         <th scope="col">{{_('Actions')}}</th>
@@ -131,6 +136,7 @@
                     data.num_assure = $('#num_assure').val();
                     data.date_prestation = $('#date_prestation').val();
                     data.type_remboursement = $('#type_remboursement').val();
+                    data.type_remboursement = $('#type_remboursement').val();
                     data.prestataire = $('#prestataire_id').val();
                     data.adherent_principal = $('#adherent_principal').val();
                     if(data.length > 0){
@@ -150,6 +156,7 @@
                 {"data": "total_frais_reel", "orderable": false},
                 {"data": "total_part_compagnie", "orderable": false},
                 {"data": "total_part_assure", "orderable": false},
+                {"data": "date_survenance", "orderable": false},
                 {"data": "date_survenance", "orderable": false},
                 {"data": "statut", "orderable": false},
                 {"data": "actions", "orderable": false, "searchable": false},

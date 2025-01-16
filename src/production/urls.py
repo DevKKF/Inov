@@ -3,7 +3,7 @@ from django.urls import path
 
 from . import views
 from .views import ClientsView, ExcelFileView, FormulesUniversellesView, FormulesView, DetailsFormuleView, \
-    DetailsClientView, PoliceClientView, ContactClientView, FilialeClientView, AcompteClientView, GEDClientView, \
+    DetailsClientView, PoliceClientView, ContactClientView, FilialeClientView, AcompteClientView, GEDClientView, QuittancesClientView, \
     PoliceBeneficiairesView, PoliceGedView, PoliceAvenantsView, PoliceTarifsSpecifiquesView, PoliceQuittancesView, \
     PoliceSinistresView, PhotosBeneficiairesView, AnnulerQuittanceView, CourrierView
 
@@ -30,11 +30,15 @@ urlpatterns = [
     path("client/<int:client_id>/liste-police", PoliceClientView.as_view(), name='client_polices'),
     path("client/<int:client_id>/polices", views.list_polices, name='client_list_polices'),
     path("client/<int:client_id>/add_police", views.add_police, name='add_police'),
-    path('import-aliments/', views.import_aliments, name='import_aliments'),
+    path('import-excel-aliments/', views.import_excel_aliments, name='import_excel_aliments'),
+    path('import-formulaire-aliments/', views.import_formulaire_aliments, name='import_formulaire_aliments'),
     path('get_garanties_by_produit/', views.get_garanties_by_produit, name='get_garanties_by_produit'),
     path('get_garanties_by_formule/', views.get_garanties_by_formule, name='get_garanties_by_formule'),
+    path('get_garanties_by_formule_modification/', views.get_garanties_by_formule_modification, name='get_garanties_by_formule_modification'),
     path('supprimer_aliment/<int:index>/', views.supprimer_aliment, name='supprimer_aliment'),
     path('clear_session/', views.clear_session, name='clear_session'),
+    path('get_compagnies/', views.get_compagnies, name='get_compagnies'),
+    path('branche/<int:branche_id>/produits',views.produits_by_branche, name='branche_produits'),
 
     path("client/<int:client_id>/liste-contact", ContactClientView.as_view(), name='client_contacts'),
     path("client/<int:client_id>/contact/add", views.add_contact, name='client_add_contact'),
@@ -57,6 +61,9 @@ urlpatterns = [
     path("acompte/delete", views.supprimer_acompte, name='supprimer_acompte'),
     path('mouvement/<int:mouvement_id>/motifs',views.motifs_by_mouvement, name='mouvement_motifs'),
 
+    path("client/<int:client_id>/quittance", QuittancesClientView.as_view(), name='client_quittances'),
+    path("client/<int:client_id>/exporter-quittance", views.exporter_quittance, name='exporter_quittance'),
+
     path('client/<int:client_id>/changement_compagnie',views.changement_compagnie, name='changement_compagnie'),
     path('client/<int:client_id>/transfert_beneficiaires_datatable', views.transfert_beneficiaires_datatable, name='transfert_beneficiaires_datatable'),
     path('client/<int:client_id>/transfert_beneficiaires', views.transfert_beneficiaires, name='transfert_beneficiaires'),
@@ -68,6 +75,7 @@ urlpatterns = [
     path('quittance/<int:quittance_id>/police/<int:police_id>/add_document', views.add_document_to_quittance, name='add_document_to_quittance'),
     #
     path('police/<int:police_id>/add_reglement', views.add_reglement, name='add_reglement'),
+    path('police/<int:police_id>/add_lettrage', views.add_lettrage, name='add_lettrage'),
     path('quittance/<int:quittance_id>', views.details_quittance, name='details_quittance'),
     path('police/<int:police_id>/avenants', PoliceAvenantsView.as_view(), name='police_avenants'),
     path('police/<int:police_id>/add_avenant', views.add_avenant, name='add_avenant'),
@@ -98,10 +106,16 @@ urlpatterns = [
     path('police/<int:police_id>/details_beneficiaire/<int:aliment_id>', views.details_beneficiaire, name='details_beneficiaire'),
     path('police/<int:police_id>/vehicules', views.police_vehicules, name='police_vehicules'),
     path('police/<int:police_id>/add_vehicule', views.add_vehicule, name='add_vehicule'),
-    path('police/<int:police_id>/update_vehicule/<int:vehicule_id>', views.update_vehicule, name='update_vehicule'),
-    path('police/<int:police_id>/details_vehicule/<int:vehicule_id>', views.details_vehicule, name='details_vehicule'),
+    path('police/<int:police_id>/update_vehicule/<int:aliment_police_id>', views.update_vehicule, name='update_vehicule'),
+    path('police/<int:police_id>/details_vehicule/<int:aliment_police_id>', views.details_vehicule, name='details_vehicule'),
+    path('police/<int:vehicule_id>/details_historique_vehicule/<int:historique_id>', views.details_historique_vehicule, name='details_historique_vehicule'),
     path('police/<int:police_id>/import_vehicules', views.import_vehicules, name='import_vehicules'),
     path("police/<int:police_id>/supprimer_vehicule/<int:vehicule_id>", views.supprimer_vehicule, name='supprimer_vehicule'),
+    path('police/<int:police_id>/marchandises', views.police_marchandises, name='police_marchandises'),
+    path('police/<int:police_id>/add_marchandise', views.add_marchandise, name='add_marchandise'),
+    path('police/<int:police_id>/details_marchandise/<int:marchandise_id>', views.details_marchandise, name='details_marchandise'),
+    path('police/<int:police_id>/update_marchandise/<int:marchandise_id>', views.update_marchandise, name='update_marchandise'),
+    path("police/<int:police_id>/supprimer_marchandise/<int:marchandise_id>", views.supprimer_marchandise, name='supprimer_marchandise'),
     path('police/<int:police_id>/prime_famille', views.prime_famille, name='prime_famille'),
     path('police/<int:police_id>/modifier', views.modifier_police, name='modifier_police'),
     path('police/<int:police_id>/beneficiaires/photos', PhotosBeneficiairesView.as_view(), name='photos_beneficiaires'),
@@ -127,7 +141,6 @@ urlpatterns = [
     path('formule/<int:formule_id>/add_bareme', views.add_bareme, name='add_bareme'),
     path('formule/del_bareme', views.del_bareme, name='del_bareme'),
     path('formule/detail_bareme/<int:bareme_id>', views.detail_bareme, name='detail_bareme'),
-
 
 
     path('aliment/<int:police_id>/change_formule/<int:aliment_id>', views.change_formule, name='change_formule'),
@@ -164,8 +177,7 @@ urlpatterns = [
 
     #
     path('annuler_quittance/', AnnulerQuittanceView.as_view(), name='annuler_quittance'),
-
-    # path('generate-pdf/', views.generate_user_list_pdf, name='generate_user_list_pdf'),
+    path('add_annuler_quittance/', views.add_annuler_quittance, name='add_annuler_quittance'),
 ]
 
 

@@ -5,10 +5,13 @@ from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import Group
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils.timezone import now
+from datetime import timedelta
 
 from api.serializers import BureauSerializer
 from configurations.models import Affection, Rubrique, Prescripteur, Prestataire, User, Bureau, TypeRemboursement, \
     AdminGroupeBureau
+from production.models import Police
 from shared.enum import StatutSinistre, Statut, StatutValidite
 # Register your models here.
 from sinistre.models import DossierSinistre
@@ -35,6 +38,19 @@ class CustomAdminSite(admin.AdminSite):
         else:
             bureaux_serializer = []
 
+        # Calculs pour les polices
+        today = now()
+        in_90_days = today + timedelta(days=90)
+        print('Date du jour :', today)
+        print('Dans 90 jours :', in_90_days)
+        count_polices_en_cours = Police.objects.filter(date_fin_effet__gt=today).count()
+        count_polices_a_echeance = Police.objects.filter(date_fin_effet__lte=in_90_days, date_fin_effet__gt=today).count()
+        count_polices_non_renouvelees_resilies = Police.objects.filter(date_fin_effet__lt=today).count()
+
+        # Ajout au contexte
+        extra_context['count_polices_en_cours'] = count_polices_en_cours
+        extra_context['count_polices_a_echeance'] = count_polices_a_echeance
+        extra_context['count_polices_non_renouvelees_resilies'] = count_polices_non_renouvelees_resilies
 
         sinistres = []
         prestataires = Prestataire.objects.filter(bureau=user.bureau, status=True)
