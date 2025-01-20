@@ -177,6 +177,12 @@ class ApporteurAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+class GroupeAdmin(admin.ModelAdmin):
+    list_filter = ('nom', 'statut', 'created_at')
+    list_display = ('nom', 'statut', 'created_at')
+    search_field = ('nom', 'statut', 'created_at')
+    list_per_page = 10
+
 
 admin.site.register(Client, )
 admin.site.register(Apporteur, ApporteurAdmin)

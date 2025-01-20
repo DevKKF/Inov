@@ -23,16 +23,16 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                {% for bureau_taxe in bureau_taxes %}
-                                    <tr>
-                                    <td style="vertical-align:middle;">
-                                        {{ bureau_taxe.taxe.libelle }} ({{ bureau_taxe.taxe.code|default_if_none:"" }})
-                                    </td>
-                                    <td style="padding:5px;">
-                                        <input data-taxe_id="{{ bureau_taxe.taxe.id }}" type="text" class="form-control money_field montant_taxe" name="montant_taxe_{{bureau_taxe.taxe.id}}" id="montant_taxe_{{bureau_taxe.taxe.id}}" value="" required/>
-                                    </td>
-                                    </tr>
-                                {% endfor %}
+                                    {% for bureau_taxe in bureau_taxes %}
+                                        <tr>
+                                            <td style="vertical-align:middle;">
+                                                {{ bureau_taxe.taxe.libelle }} ({{ bureau_taxe.taxe.code|default_if_none:"" }})
+                                            </td>
+                                            <td style="padding:5px;">
+                                                <input data-taxe_id="{{ bureau_taxe.taxe.id }}" type="text" class="form-control money_field montant_taxe" name="montant_taxe_{{bureau_taxe.taxe.id}}" id="montant_taxe_{{bureau_taxe.taxe.id}}" value="" required/>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -41,7 +41,7 @@
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Fermer')}}</button>
                     <span>{{_("Montant Total")}}: <span class="badge badge-warning total_autres_taxes" style="padding:5px 10px;">0</span> {{police.devise}}</span>
-                    <button type="button" id="btn_save_taxe" class="btn btn-info o-bg-primary" data-dismiss="modal"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
+                    <button type="button" id="btn_save_taxe" class="btn btn-info o-bg-primary" data-dismiss="modal"><i class="fa fa-check-circle"></i> {{_('Valider')}}</button>
                 </div>
             </form>
 		</div>

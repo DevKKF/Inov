@@ -1,10 +1,10 @@
-<div  class="modal fade"  id="modal-apporteur" data-backdrop="static" data-keyboard="false" aria-hidden="true"  style="display: none">
+<div  class="modal fade"  id="modal-modification_apporteur" data-backdrop="static" data-keyboard="false" aria-hidden="true"  style="display: none">
 	<div class="modal-dialog modal-xl">
 		<div class="modal-content">
-			<form enctype="multipart/form-data" id="form_add_apporteur" action="{% url 'add_apporteur' %}" method="post">
+			<form enctype="multipart/form-data" id="form_update_apporteur" action="{% url 'modifier_apporteur' apporteur.id %}" method="post">
 				{% csrf_token %}
 				<div class="modal-header">
-					<h4 class="modal-title f-bold">{{_("AJOUT D'UN APPORTEUR")}}</h4>
+					<h4 class="modal-title f-bold">{{_("MODIFICATION D'UN APPORTEUR")}}</h4>
 					<button type="button" class="close"data-dismiss="modal"aria-label="Close">
 						<span aria-hidden="true">×</span>
 					</button>
@@ -26,7 +26,7 @@
 											<select class="form-control" name="type_personne_id" id="type_personne_id" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for type_personne in types_personnes %}
-													<option value="{{ type_personne.id }}">{{ type_personne.libelle }}</option>
+													<option value="{{ type_personne.id }}" {% if type_personne.id == apporteur.type_personne_id %} selected {% endif %}>{{ type_personne.libelle }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -38,7 +38,7 @@
 											<select class="form-control" name="type_apporteur_id" id="type_apporteur_id" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for type_apporteur in types_apporteur %}
-													<option value="{{ type_apporteur.id }}">{{ type_apporteur.libelle }}</option>
+													<option value="{{ type_apporteur.id }}" {% if type_apporteur.id == apporteur.type_apporteur_id %} selected {% endif %}>{{ type_apporteur.libelle }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -46,13 +46,13 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Nom')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="nom" id="nom" value="" autocomplete="off" required/>
+											<input type="text" class="form-control" name="nom" id="nom" value="{{ apporteur.nom|default_if_none:'' }}" autocomplete="off" required/>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Prénoms')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="prenoms" id="prenoms" autocomplete="off" value="" required/>
+											<input type="text" class="form-control" name="prenoms" id="prenoms" autocomplete="off" value="{{ apporteur.prenoms|default_if_none:'' }}" required/>
 										</div>
 									</div>
 									<div class="form-group row">
@@ -61,7 +61,7 @@
 											<select class="form-control tags-multiple" name="pays_id" id="pays_id" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for p in pays %}
-													<option value="{{ p.id }}" {% if p.code == "CI" %} selected {% endif %}>{{ p.nom }}</option>
+													<option value="{{ p.id }}" {% if p.id == apporteur.pays_id %} selected {% endif %}>{{ p.nom }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -72,21 +72,21 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Téléphone")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="telephone" autocomplete="off" value="" onkeypress="isInputNumber(event)">
+											<input type="text" class="form-control" name="telephone" autocomplete="off" value="{{ apporteur.telephone|default_if_none:"" }}" onkeypress="isInputNumber(event)">
 										</div>
 									</div>
 
 									<div class="form-group row  ">
 										<label class="col-sm-5 col-form-label">{{_('E-mail')}} <span class="required"></span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" id="email" name="email"/>
+											<input type="text" class="form-control" id="email" name="email" value="{{ apporteur.email|default_if_none:'' }}"/>
 										</div>
 									</div>
 
                                     <div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Adresse')}} </label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="adresse" autocomplete="off" value="" />
+											<input type="text" class="form-control" name="adresse" autocomplete="off" value="{{ apporteur.adresse|default_if_none:'' }}"/>
 										</div>
 									</div>
 
@@ -95,8 +95,8 @@
 										<div class="col-sm-7">
 											<select class="form-control" name="status" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
-												<option value="1" >ACTIF</option>
-            									<option value="0">INACTIF</option>
+												<option value="1" {% if apporteur.status == 1 %} selected {% endif %}>ACTIF</option>
+            									<option value="0" {% if apporteur.status == 0 %} selected {% endif %}>INACTIF</option>
 											</select>
 										</div>
 									</div>
@@ -108,7 +108,7 @@
 				</div>
 				<div class="modal-footer justify-content-between">
 					<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
-					<button type="button" id="btn_save_apporteur" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
+					<button type="button" id="btn_save_modification_apporteur" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
 				</div>
 			</div>
 			</form>

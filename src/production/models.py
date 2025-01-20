@@ -16,7 +16,7 @@ from configurations.models import Banque, Bureau, Civilite, Compagnie, Fractionn
     QualiteBeneficiaire, TypeAssurance, Devise, Profession, ModeCalcul, Taxe, Apporteur, BaseCalcul, TypeQuittance, \
     NatureQuittance, TypeCarosserie, CategorieVehicule, MarqueVehicule, NatureOperation, Prestataire, TypeTarif, Acte, \
     Rubrique, Periodicite, RegroupementActe, SousRubrique, TypePrefinancement, ReseauSoin, CompteTresorerie, \
-    SousRegroupementActe, Secteur, GroupeInter, Carosserie, Formule, Usage, Carburant, BusinessUnit, Garantie, ConditionsAssurance, MoyensTransport, TypeCourrier
+    SousRegroupementActe, Secteur, GroupeInter, Carosserie, Formule, Usage, Carburant, BusinessUnit, Garantie, ConditionsAssurance, MoyensTransport, TypeCourrier, Groupe
 from shared.enum import Genre, Statut, StatutRelation, StatutFamilial, OptionYesNo, PlacementEtGestion, \
     ModeRenouvellement, TypeEncaissementCommission, TypeMajorationContrat, CalculTM, StatutContrat, StatutPolice, \
     StatutQuittance, \
@@ -65,6 +65,7 @@ class Client(models.Model):
     type_personne = models.ForeignKey(TypePersonne, blank=False, null=True, on_delete=models.RESTRICT)
     business_unit = models.ForeignKey(BusinessUnit, blank=False, null=True, on_delete=models.RESTRICT)
     type_client = models.ForeignKey(TypeClient, blank=False, null=True, on_delete=models.RESTRICT)
+    groupe = models.ForeignKey(Groupe, blank=False, null=True, on_delete=models.RESTRICT)
     pays = models.ForeignKey(Pays, blank=True, null=True, on_delete=models.RESTRICT)
     code = models.CharField(max_length=25, blank=False, null=True)
     code_provisoire = models.CharField(max_length=25, blank=False, null=True)
@@ -112,7 +113,7 @@ class Police(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     updated_by = models.ForeignKey(User, related_name="police_updated_by", null=True, on_delete=models.RESTRICT)
     produit = models.ForeignKey(Produit, null=True, on_delete=models.RESTRICT)
-    type_assurance = models.ForeignKey(TypeAssurance, null=True, on_delete=models.RESTRICT)
+    #type_assurance = models.ForeignKey(TypeAssurance, null=True, on_delete=models.RESTRICT)
     #
     bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
     client = models.ForeignKey(Client, related_name='polices', on_delete=models.RESTRICT)
@@ -149,10 +150,12 @@ class Police(models.Model):
     def __str__(self):
         return f'{self.numero}'
 
+    """
     def save(self, *args, **kwargs):
         type_assurance_olea_sante = TypeAssurance.objects.get(id=1)
         self.type_assurance = type_assurance_olea_sante
-        super(Police, self).save(*args, **kwargs)
+        super(HistoriquePolice, self).save(*args, **kwargs)
+    """
 
     class Meta:
         db_table = 'polices'
@@ -395,7 +398,7 @@ class HistoriquePolice(models.Model):
     updated_by = models.ForeignKey(User, related_name="historique_police_updated_by", null=True,
                                    on_delete=models.RESTRICT)
     produit = models.ForeignKey(Produit, null=True, on_delete=models.RESTRICT)
-    type_assurance = models.ForeignKey(TypeAssurance, on_delete=models.RESTRICT)
+    #type_assurance = models.ForeignKey(TypeAssurance, on_delete=models.RESTRICT)
     #
     bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
     client = models.ForeignKey(Client, on_delete=models.RESTRICT)
@@ -408,7 +411,7 @@ class HistoriquePolice(models.Model):
 
     date_souscription = models.DateField(null=True)
     date_debut_effet = models.DateField()
-    date_fin_effet = models.DateField()
+    date_fin_effet = models.DateField(null=True)
     date_fin_police = models.DateField(null=True)
     preavis_de_resiliation = models.CharField(max_length=50, null=True)  # False
     mode_renouvellement = models.CharField(choices=ModeRenouvellement.choices, max_length=50, null=True)  # False
@@ -454,10 +457,12 @@ class HistoriquePolice(models.Model):
     def __str__(self):
         return f'{self.numero}'
 
+    """
     def save(self, *args, **kwargs):
         type_assurance_olea_sante = TypeAssurance.objects.get(id=1)
         self.type_assurance = type_assurance_olea_sante
         super(HistoriquePolice, self).save(*args, **kwargs)
+    """
 
     class Meta:
         db_table = 'historique_polices'

@@ -5,6 +5,7 @@ from ast import literal_eval
 from decimal import Decimal
 from pprint import pprint
 from sqlite3 import Date
+from datetime import date
 
 import pandas as pd
 from django.contrib import admin
@@ -31,17 +32,20 @@ from django.views.generic import TemplateView
 from django_dump_die.middleware import dd
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
+from datetime import datetime, timezone
+from django.db.models import Sum, Q, ExpressionWrapper, F, DurationField, Max
+from django.utils.timezone import now
 
 from configurations.helper_config import verify_sql_query
 from configurations.models import ActionLog, Prescripteur, PrescripteurPrestataire, Prestataire, Specialite, Secteur, \
     Bureau,TypeActe,BusinessUnit,Branche,Banque,Affection,Apporteur,ApporteurInternational,CategorieAffection,Devise,\
     TypePrestataire, User, AuthGroup, TypeEtablissement,Tarif, Rubrique, RegroupementActe, Acte, ReseauSoin, \
     PrestataireReseauSoin, WsBoby, ParamWsBoby, Affection, BackgroundQueryTask, ParamProduitCompagnie, Compagnie, \
-    AlimentMatricule, ParamActe
+    AlimentMatricule, ParamActe, TypeApporteur, TypePersonne, Pays, TypeCompagnie, TypeGarant, RisqueProduit
 from inov import settings
 # Create your views here.
 from production.models import TarifPrestataireClient, Client, Aliment, AlimentFormule, Mouvement, MouvementAliment, \
-    Carte, Quittance, Reglement, Courrier
+    Carte, Quittance, Reglement, Courrier, Produit
 from production.templatetags.my_filters import money_field
 from shared.enum import PasswordType, Statut, StatutValidite, BaseCalculTM, StatutPaiementSinistre, \
     SatutBordereauDossierSinistres, StatutSinistre
@@ -399,7 +403,6 @@ def correction_affections(request):
         }
 
     return JsonResponse(response)
-
 
 
 def disponibilite_upd(request):
@@ -2855,8 +2858,6 @@ def popup_modifier_acte(request, acte_id):
     })
 
 
-
-
 def update_acte(request, acte_id):
 
     if request.method == 'POST':
@@ -3278,6 +3279,7 @@ def generate_modele_tarifs_bureau(request):
     df.to_excel(response, index=False, engine='openpyxl')
 
     return response
+
 
 from django.core.exceptions import ObjectDoesNotExist
 ## IMPORTER LES TARIFS AU BUREAU
@@ -3817,18 +3819,16 @@ class DbSuperAdminQueryView(TemplateView):
 #---------------------BRANCHE---------------------------------------------
 
 class brancheView(PermissionRequiredMixin,TemplateView):
-    template_name = 'Branches/branche.html'
+    template_name = 'branches/branche.html'
     permission_required = "configurations.view_branches"
     model = Branche
 
     def get(self, request, *args, **kwargs):
         context_original = self.get_context_data(**kwargs)
 
-        branche = Branche.objects.all()
-        utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
-                                           is_active=True).order_by('last_name')
+        branche = Branche.objects.all().order_by('-id')
 
-        context_perso = {'branches': branche, 'utilisateurs': utilisateurs}
+        context_perso = {'branches': branche}
 
         context = {**context_original, **context_perso}
 
@@ -3845,6 +3845,95 @@ class brancheView(PermissionRequiredMixin,TemplateView):
             "opts": self.model._meta,
         }
 
+
+@login_required
+def add_branche(request):
+
+    if request.method == 'POST':
+        # Récupérer le dernier code dans la base de données
+        dernier_branche = Branche.objects.order_by('-pk').first()
+        dernier_code = int(dernier_branche.code) if dernier_branche and dernier_branche.code.isdigit() else 0
+
+        # Ajouter 10 au dernier code
+        nouveau_code = dernier_code + 10
+
+        # Créer une nouvelle branche
+        branche_created = Branche.objects.create(
+            nom=request.POST.get('nom'),
+            status=request.POST.get('statut'),
+            created_at=datetime.now(),
+            code=str(nouveau_code).zfill(2)  # Remplir avec des zéros si nécessaire
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': branche_created.pk,
+                'libelle': branche_created.nom,
+                'status': branche_created.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_branche(request, branche_id):
+
+    branche = Branche.objects.get(id=branche_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Branche.objects.filter(id=branche_id).update(nom=request.POST.get('nom'),
+                                                    status=request.POST.get('statut'),
+                                                    updated_at=datetime.now(),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectué avec succès !",
+            'data': {
+                'id': branche.pk,
+                'nom': branche.nom,
+                'status': branche.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'branches/modal_modifier_branche.html', {'branche': branche})
+
+
+@login_required
+def supprimer_branche(request, branche_id):
+    if request.method == "POST":
+
+        branche_id = request.POST.get('branche_id')
+        print("branche id : ", branche_id)
+        branche = Branche.objects.get(id=branche_id)
+        if branche.pk is not None:
+
+            branche.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Branche supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Apporteur non trouvé !",
+            }
+
+        return JsonResponse(response)
+
+#---------------------FIN BRANCHE---------------------------------------------
 
 #------------------------------BUSINESS_UNIT---------------------------------------
 
@@ -3878,7 +3967,6 @@ class businessView(PermissionRequiredMixin,TemplateView):
         }
 
 
-
 @login_required
 def add_business(request):
     if request.method == 'POST':
@@ -3901,8 +3989,6 @@ def add_business(request):
         }
 
         return JsonResponse(response)
-
-
 
 
 def modifier_businessunit(request, business_id):
@@ -3946,8 +4032,6 @@ def modifier_businessunit(request, business_id):
         })
 
 
-
-
 @login_required()
 def supprimer_business(request):
     if request.method == "POST":
@@ -3971,11 +4055,6 @@ def supprimer_business(request):
         return JsonResponse(response)
 
     return JsonResponse({'statut': 0, 'message': "Requête invalide !"}, status=400)
-
-
-
-
-
 
 
 #------------------------------BANQUE--------------------------------------
@@ -4010,6 +4089,95 @@ class banquesView(PermissionRequiredMixin,TemplateView):
             "opts": self.model._meta,
         }
 
+
+@login_required
+def add_banque(request):
+
+    if request.method == 'POST':
+
+        banque_created = Banque.objects.create(bureau_id=request.user.bureau_id,
+                                       libelle=request.POST.get('libelle'),
+                                       nom_complet=request.POST.get('nom_complet'),
+                                       status=request.POST.get('statut'),
+                                       created_by_id=request.user.id,
+                                       created_at=datetime.now(),
+                                       )
+
+        #TODO : nomenclature du code banque a trouver
+        banque_created.code = 'BQ-' + str(Date.today().year)[-2:] + '-' + str(banque_created.pk).zfill(7)
+        banque_created.save()
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': banque_created.pk,
+                'libelle': banque_created.libelle,
+                'status': banque_created.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_banque(request, banque_id):
+
+    banque = Banque.objects.get(id=banque_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Banque.objects.filter(id=banque_id).update(
+                                                    libelle=request.POST.get('libelle'),
+                                                    nom_complet=request.POST.get('nom_complet'),
+                                                    status=request.POST.get('statut'),
+                                                    updated_at=datetime.now(),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectué avec succès !",
+            'data': {
+                'id': banque.pk,
+                'nom': banque.libelle,
+                'status': banque.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'banques/modal_modifier_banque.html', {'banque': banque})
+
+
+@login_required
+def supprimer_banque(request, banque_id):
+    if request.method == "POST":
+
+        banque_id = request.POST.get('banque_id')
+        print("banque id : ", banque_id)
+        banque = Banque.objects.get(id=banque_id)
+        if banque.pk is not None:
+
+            banque.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Banque supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Apporteur non trouvé !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------------FIN BANQUE--------------------------------------
 
 #-------------------------AFFECTION---------------------------------------
 
@@ -4049,11 +4217,13 @@ class ApporteurView(PermissionRequiredMixin, TemplateView):
         def get(self, request, *args, **kwargs):
             context_original = self.get_context_data(**kwargs)
 
-            apporteur = Apporteur.objects.all()
-            utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
-                                               is_active=True).order_by('last_name')
+            types_apporteur = TypeApporteur.objects.all()
+            types_personnes = TypePersonne.objects.all()
+            pays = Pays.objects.order_by('-nom')
 
-            context_perso = {'apporteurs': apporteur, 'utilisateurs': utilisateurs}
+            apporteur = Apporteur.objects.order_by('-id')
+
+            context_perso = {'apporteurs': apporteur, 'types_apporteur': types_apporteur, 'types_personnes': types_personnes, 'pays': pays}
 
             context = {**context_original, **context_perso}
 
@@ -4067,6 +4237,280 @@ class ApporteurView(PermissionRequiredMixin, TemplateView):
                 "opts": self.model._meta,
             }
 
+
+@login_required
+def add_apporteur(request):
+
+    if request.method == 'POST':
+
+        apporteur_created = Apporteur.objects.create(bureau_id=request.user.bureau_id,
+                                       nom=request.POST.get('nom'),
+                                       prenoms=request.POST.get('prenoms'),
+                                       type_personne_id=request.POST.get('type_personne_id'),
+                                       type_apporteur_id=request.POST.get('type_apporteur_id'),
+                                       pays_id=request.POST.get('pays_id'),
+                                       telephone=request.POST.get('telephone'),
+                                       email=request.POST.get('email'),
+                                       adresse=request.POST.get('adresse'),
+                                       status=request.POST.get('status'),
+                                       created_by_id=request.user.id,
+                                       created_at=datetime.now(),
+                                       )
+
+        #TODO : nomenclature du code apporteur a trouver
+        apporteur_created.code = 'AP-' + str(Date.today().year)[-2:] + '-' + str(apporteur_created.pk).zfill(7)
+        apporteur_created.save()
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectuée avec succès !",
+            'data': {
+                'id': apporteur_created.pk,
+                'nom': apporteur_created.nom,
+                'prenoms': apporteur_created.prenoms,
+                'type_personne': apporteur_created.type_personne.libelle if apporteur_created.type_personne else "",
+                'status': apporteur_created.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_apporteur(request, apporteur_id):
+
+    apporteur = Apporteur.objects.get(id=apporteur_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Apporteur.objects.filter(id=apporteur_id).update(
+                                                    nom=request.POST.get('nom'),
+                                                    prenoms=request.POST.get('prenoms'),
+                                                    type_personne_id=request.POST.get('type_personne_id'),
+                                                    type_apporteur_id=request.POST.get('type_apporteur_id'),
+                                                    pays_id=request.POST.get('pays_id'),
+                                                    telephone=request.POST.get('telephone'),
+                                                    email=request.POST.get('email'),
+                                                    adresse=request.POST.get('adresse'),
+                                                    status=request.POST.get('status'),
+                                                    updated_at=datetime.now(),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': apporteur.pk,
+                'nom': apporteur.nom,
+                'prenoms': apporteur.prenoms,
+                'type_personne': apporteur.type_personne.libelle if apporteur.type_personne else "",
+                'status': apporteur.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        types_apporteur = TypeApporteur.objects.all()
+        types_personnes = TypePersonne.objects.all()
+        pays = Pays.objects.order_by('-nom')
+
+        return render(request, 'apporteur/modal_modifier_apporteur.html',
+                      {'apporteur': apporteur, 'types_apporteur': types_apporteur, 'types_personnes': types_personnes, 'pays': pays})
+
+
+@login_required
+def supprimer_apporteur(request, apporteur_id):
+    if request.method == "POST":
+
+        apporteur_id = request.POST.get('apporteur_id')
+        print("apporteur id : ", apporteur_id)
+        apporteur = Apporteur.objects.get(id=apporteur_id)
+        if apporteur.pk is not None:
+
+            apporteur.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Apporteur supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Apporteur non trouvé !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN APPORTEUR----------------------------------
+
+
+#------------------------COMPAGNIE----------------------------------
+
+class CompagnieView(PermissionRequiredMixin, TemplateView):
+        template_name = 'compagnies/compagnie.html'
+        permission_required = "configurations.view_compagnie"
+        model = Compagnie
+
+        def get(self, request, *args, **kwargs):
+            context_original = self.get_context_data(**kwargs)
+
+            types_garants = TypeGarant.objects.all()
+
+            produits = Produit.objects.all().order_by('-nom')
+
+            compagnies = Compagnie.objects.all().order_by('-id')
+
+            context_perso = {'compagnies': compagnies, 'types_garants': types_garants}
+
+            context = {**context_original, **context_perso}
+
+            return self.render_to_response(context)
+
+        def get_context_data(self, **kwargs):
+            pprint(kwargs)
+            return {
+                **super().get_context_data(**kwargs),
+                **admin.site.each_context(self.request),
+                "opts": self.model._meta,
+            }
+
+
+# Générer le code pour l'assureur
+def generate_assureur_code():
+    current_year = str(date.today().year)[-2:]
+
+    # Trouver le dernier code créé dans la base de données
+    last_code = Compagnie.objects.aggregate(Max('code'))['code__max']
+
+    # Extraire le numéro incrémental du dernier code
+    if last_code:
+        last_number = int(last_code.split('-')[0])  # Ex: "0001-CP24" -> 0001
+        new_number = last_number + 1
+    else:
+        new_number = 1  # Si aucun code n'existe encore
+
+    # Formatage du nouveau numéro pour garder 4 chiffres
+    new_code = f"{str(new_number).zfill(4)}-CP{current_year}"
+
+    return new_code
+
+
+@login_required
+def add_compagnie(request):
+    if request.method == "POST":
+        compagnie_created = Compagnie.objects.create(bureau_id=request.user.bureau_id,
+                                                        type_garant_id = request.POST.get('type_garant_id'),
+                                                        nom = request.POST.get('nom'),
+                                                        code_courtier = request.POST.get('code_courtier'),
+                                                        telephone = request.POST.get('telephone'),
+                                                        fax = request.POST.get('fax'),
+                                                        email = request.POST.get('email'),
+                                                        adresse = request.POST.get('adresse'),
+                                                        status = request.POST.get('statut'),
+                                                        code = generate_assureur_code(),
+                                                        created_at = datetime.now(),
+                                                    )
+
+        compagnie = Compagnie.objects.get(id=compagnie_created.pk)
+
+        risqueproduit = RisqueProduit.objects.all()
+
+        for risque in risqueproduit:
+            produits = Produit.objects.filter(risque_produit_id=risque.id)
+            for produit in produits:
+                ParamProduitCompagnie.objects.create(
+                    compagnie_id=compagnie.id, produit_id=produit.id,
+                    taux_com_courtage=risque.taux,
+                    taux_com_courtage_terme=risque.taux,
+                ).save()
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': compagnie.pk,
+                'nom': compagnie.nom,
+                'status': compagnie.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_compagnie(request, compagnie_id):
+    compagnie = Compagnie.objects.get(id=compagnie_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Compagnie.objects.filter(id=compagnie_id).update(
+            type_garant_id=request.POST.get('type_garant_id'),
+            nom=request.POST.get('nom'),
+            code_courtier=request.POST.get('code_courtier'),
+            telephone=request.POST.get('telephone'),
+            fax=request.POST.get('fax'),
+            email=request.POST.get('email'),
+            adresse=request.POST.get('adresse'),
+            status=request.POST.get('statut'),
+            updated_at=datetime.now(),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': compagnie.pk,
+                'nom': compagnie.nom,
+                'status': compagnie.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        types_garants = TypeGarant.objects.all()
+
+        return render(request, 'compagnies/modal_modifier_compagnie.html',
+                      {'compagnie': compagnie, 'types_garants': types_garants})
+
+
+@login_required
+def supprimer_compagnie(request, compagnie_id):
+    if request.method == "POST":
+
+        compagnie_id = request.POST.get('compagnie_id')
+        print("compagnie id : ", compagnie_id)
+        compagnie = Compagnie.objects.get(id=compagnie_id)
+        if compagnie.pk is not None:
+
+            paramproduitcompagnie = ParamProduitCompagnie.objects.filter(compagnie_id=compagnie.id)
+            for param in paramproduitcompagnie:
+                param.delete()
+
+            compagnie.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Compagnie supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Compagnie non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN COMPAGNIE----------------------------------
 
 
 #--------------------------------------APPORTEUR INTERNAL----------------------------------------------------------
@@ -4157,9 +4601,6 @@ class CategorieView(PermissionRequiredMixin, TemplateView):
 #             "opts": self.model._meta,
 
 
-
-
-
 class ViewCourrier(PermissionRequiredMixin, TemplateView):
     template_name = 'courriers.html'
     permission_required = "configurations.view_courrier"
@@ -4185,8 +4626,6 @@ class ViewCourrier(PermissionRequiredMixin, TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
-
-
 
 
 @login_required()
@@ -4224,9 +4663,6 @@ def add_courrier(request):
         }
 
     return JsonResponse(response)
-
-
-
 
 
 def modifier_courrier(request, courrier_id):

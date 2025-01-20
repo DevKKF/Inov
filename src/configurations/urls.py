@@ -6,7 +6,7 @@ from shared.helpers import openai_complete
 from . import views
 from .views import PrestatairesView, DetailsPrestatairesView, GroupePermissionsView, TarifsView, ReseauxSoinsView, \
     DetailsReseauSoinView, WsBobyView, WsBobyCreateView, WsBobyEditeView, ActesView, ConnectedUsersView, businessView, \
-    brancheView, banquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView,ViewCourrier
+    brancheView, banquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView,ViewCourrier, CompagnieView
 
 
 
@@ -50,6 +50,9 @@ urlpatterns = [
     path('affection/', affectionsView.as_view(), name='affections'),
     #
     path('apporteur/', ApporteurView.as_view(), name='apporteurs'),
+    path('apporteur/ajouter', views.add_apporteur, name='add_apporteur'),
+    path('apporteur/<int:apporteur_id>/modifier', views.modifier_apporteur, name='modifier_apporteur'),
+    path('apporteur/delete/<int:apporteur_id>/', views.supprimer_apporteur, name='supprimer_apporteur'),
     #
     path('apporteurinternational/', ApporteurinternationalView.as_view(), name='apporteurinternational'),
     #
@@ -61,8 +64,14 @@ urlpatterns = [
     path('businessunit/<int:business_id>', views.modifier_businessunit, name='modifier_business'),
     #
     path('branche/',brancheView.as_view(), name='branche'),
+    path('branche/ajouter', views.add_branche, name='add_branche'),
+    path('branche/<int:branche_id>/modifier', views.modifier_branche, name='modifier_branche'),
+    path('branche/delete/<int:branche_id>/', views.supprimer_branche, name='supprimer_branche'),
     #
     path('banque/',banquesView.as_view(),name='banques'),
+    path('banque/ajouter', views.add_banque, name='add_banque'),
+    path('banque/<int:banque_id>/modifier', views.modifier_banque, name='modifier_banque'),
+    path('banque/delete/<int:banque_id>/', views.supprimer_banque, name='supprimer_banque'),
     #
     # path('devise/', DeviseView.as_view(), name='devises'),
     #
@@ -71,6 +80,11 @@ urlpatterns = [
     path('courrier/<int:courrier_id>/modifier_courrier', views.modifier_courrier, name='modifier_courrier'),
     path("courrier/delete", views.supprimer_courrier, name='supprimer_courrier'),
     #
+
+    path('compagnie/', CompagnieView.as_view(), name='compagnie'),
+    path('compagnie/add_compagnie', views.add_compagnie, name='add_compagnie'),
+    path('compagnie/<int:compagnie_id>/modifier', views.modifier_compagnie, name='modifier_compagnie'),
+    path('compagnie/delete/<int:compagnie_id>/', views.supprimer_compagnie, name='supprimer_compagnie'),
 
     path('acte/', ActesView.as_view(), name='acte'),
     path('actes_datatable/', views.actes_datatable, name='actes_datatable'),

@@ -118,8 +118,10 @@
 <div class="col-md-12">
     <div class="card">
       <div class="button-link mb-2">
-          <span style="cursor:pointer;" class="btn btn-sm btn-warning btn_modifier_client pull-right ml-2" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit"></i> {{_("Modifier client")}}</span>
-          <span id="btnOpenDialogExporterQuittance" class="btn btn-sm btn-primary pull-right ml-2 d-none" data-toggle="modal" data-href=""><i class="fa fa-cloud-upload"></i> {{_("Exporter quittance")}}</span>
+          {% if request.user.is_production %}
+            <span style="cursor:pointer;" class="btn btn-sm btn-warning btn_modifier_client pull-right ml-2" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit"></i> {{_("Modifier client")}}</span>
+          {% endif %}
+          <span id="btnOpenDialogExporterQuittance" class="btn btn-sm btn-primary pull-right ml-2" data-toggle="modal" data-href=""><i class="fa fa-cloud-upload"></i> {{_("Exporter quittance")}}</span>
       </div>
   </div>
 </div>

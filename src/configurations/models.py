@@ -15,6 +15,20 @@ from shared.enum import StatutReversementCompagnie, StatutEncaissementCommission
     StatutValidite, TypeAlerte, TypeBonConsultation
 
 
+class FloatRangeField(models.FloatField):
+    def __init__(self, verbose_name=None, name=None, min_value=None, max_value=None, **kwargs):
+        self.min_value, self.max_value = min_value, max_value
+        validators = kwargs.pop('validators', [])
+        if min_value is not None:
+            validators.append(MinValueValidator(min_value))
+        super().__init__(verbose_name, name, validators=validators, **kwargs)
+
+    def formfield(self, **kwargs):
+        defaults = {'min_value': self.min_value, 'max_value': self.max_value}
+        defaults.update(kwargs)
+        return super().formfield(**defaults)
+
+
 class TypeApporteur(models.Model):
     code = models.CharField(max_length=10, blank=True, null=True)
     libelle = models.CharField(max_length=50, blank=True, null=True)
@@ -64,17 +78,6 @@ class TypeRemboursement(models.Model):
         verbose_name_plural = 'Types de remboursement'
 
 
-class Product(models.Model):
-    name = models.CharField(max_length=255, null=True)
-    description = models.CharField(max_length=255, null=True)
-    price = models.IntegerField(null=True)
-    category = models.CharField(max_length=100, null=True)
-    image_url = models.CharField(max_length=255, null=True)
-
-    class Meta:
-        db_table = 'product'
-
-
 class CompagnieVeos(models.Model):
     ID_PER = models.CharField(max_length=100, null=True)
     CODE = models.CharField(max_length=100, null=True)
@@ -92,7 +95,6 @@ class CompagnieVeos(models.Model):
         db_table = 'compagnie_veos'
         verbose_name = 'Compagnie VEOS'
         verbose_name_plural = 'Compagnies VEOS'
-
 
 
 class ClientVeos(models.Model):
@@ -490,7 +492,6 @@ class Pays(models.Model):
         verbose_name_plural = 'Pays'
 
 
-
 def upload_location_bureau(instance, filename):
     filebase, extension = filename.rsplit('.', 1)
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
@@ -622,7 +623,6 @@ class GroupeCompagnie(models.Model):
 
 class Compagnie(models.Model):
     type_garant = models.ForeignKey(TypeGarant, on_delete=models.RESTRICT, null=True)
-    groupe_compagnie = models.ForeignKey(GroupeCompagnie, on_delete=models.RESTRICT, null=True)
     nom = models.CharField(max_length=255)
     code = models.CharField(max_length=255, unique=True)
     code_courtier = models.CharField(max_length=25, blank=True, null=True)
@@ -757,7 +757,7 @@ class Compagnie(models.Model):
     class Meta:
         db_table = 'compagnies'
         verbose_name = 'Compagnie'
-        verbose_name_plural = 'Compagnies'
+        verbose_name_plural = 'Assureurs'
 
 
 class TypePrestataire(models.Model):
@@ -1370,6 +1370,22 @@ class TypeProduit(models.Model):
         verbose_name_plural = 'Type Produit'
 
 
+class RisqueProduit(models.Model):
+    libelle = models.CharField(max_length=50, blank=True, null=True)
+    code = models.CharField(max_length=50, blank=True, null=True)
+    taux= FloatRangeField(blank=True, default=None, null=True, min_value=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'risque_produit'
+        verbose_name = 'Risques du produit'
+        verbose_name_plural = "Risques du produit"
+
+
 class Branche(models.Model):
     code = models.CharField(max_length=10, blank=True, null=True)
     nom = models.CharField(max_length=100, blank=True, null=True)
@@ -1389,6 +1405,7 @@ class Branche(models.Model):
 class Produit(models.Model):
     branche = models.ForeignKey(Branche, null=True, on_delete=models.RESTRICT)
     type_produit = models.ForeignKey(TypeProduit, null=True, on_delete=models.RESTRICT)
+    risque_produit = models.ForeignKey(RisqueProduit, null=True, on_delete=models.RESTRICT)
     code = models.CharField(max_length=10, blank=True, null=True)
     nom = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1403,20 +1420,6 @@ class Produit(models.Model):
         verbose_name_plural = 'Produits'
 
 
-class FloatRangeField(models.FloatField):
-    def __init__(self, verbose_name=None, name=None, min_value=None, max_value=None, **kwargs):
-        self.min_value, self.max_value = min_value, max_value
-        validators = kwargs.pop('validators', [])
-        if min_value is not None:
-            validators.append(MinValueValidator(min_value))
-        super().__init__(verbose_name, name, validators=validators, **kwargs)
-
-    def formfield(self, **kwargs):
-        defaults = {'min_value': self.min_value, 'max_value': self.max_value}
-        defaults.update(kwargs)
-        return super().formfield(**defaults)
-
-
 class ParamProduitCompagnie(models.Model):
     compagnie = models.ForeignKey(Compagnie, related_name="taux_com", on_delete=models.RESTRICT)
     produit = models.ForeignKey(Produit, null=True, on_delete=models.RESTRICT)
@@ -1427,7 +1430,7 @@ class ParamProduitCompagnie(models.Model):
     status = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'{self.compagnie} - {self.produit}'
+        return f'{self.compagnie} - {self.produit} {self.taux_com_courtage} - {self.taux_com_courtage_terme}'
 
     class Meta:
         db_table = 'param_produit_compagnie'
@@ -1594,100 +1597,16 @@ class TypeUtilisateur(models.Model):
 class User(AbstractUser):
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     type_utilisateur = models.ForeignKey(TypeUtilisateur, null=True, on_delete=models.RESTRICT)
-    prestataire = models.ForeignKey(Prestataire, null=True, blank=True, on_delete=models.RESTRICT)
-    veos_code = models.CharField(max_length=100, blank=True, null=True)
-    veos_code_prestataire = models.CharField(max_length=100, blank=True, null=True)
     password_type = models.fields.CharField(choices=PasswordType.choices, default=PasswordType.DEFAULT, null=True, max_length=20)
-    # Utilisateur GRH
-    client_grh = models.ManyToManyField('production.Client', verbose_name="Client (GRH)", blank=True,related_name='client_grh')
-    utilisateur_grh = models.ForeignKey('production.Client', verbose_name="Client (GRH)", blank=True, null=True, on_delete=models.RESTRICT)
     is_admin_group = models.BooleanField(verbose_name='Statut admin groupe', default=False)
 
     @property
-    def is_prestataire(self):
-        return self.is_pres or self.is_imag or self.is_labo or self.is_optic or self.is_pharm or self.is_dentaire
-
-
-    @property
-    def is_med(self):
-
-        if self.groups.filter(name__contains='MED01').first() is not None:
-            pprint("is med")
-            return True
-
-        pprint("not is med")
-        return False
-
-
-    @property
-    def is_pres(self):
-        #if self.prestataire is not None and self.prestataire.type_prestataire.code == 'CSOIN':
-        #    return True
-        #return False
-
-        if self.groups.filter(name__contains='PRES01').first() is not None:
+    def is_production(self):
+        if self.groups.filter(name__contains='PRODUCTION').first() is not None:
             return True
         return False
 
-    @property
-    def is_pharm(self):
-        #if self.prestataire is not None and self.prestataire.type_prestataire.code == 'PHARM':
-        #    return True
-        #return False
-        if self.groups.filter(name__contains='PRES02').first() is not None:
-            return True
-        return False
-
-    @property
-    def is_labo(self):
-        #if self.prestataire is not None and self.prestataire.type_prestataire.code == 'LABOR':
-        #    return True
-        #return False
-        if self.groups.filter(name__contains='PRES03').first() is not None:
-            return True
-        return False
-
-    @property
-    def is_imag(self):
-        #if self.prestataire is not None and self.prestataire.type_prestataire.code == 'IMAGE':
-        #    return True
-        #return False
-        #
-        if self.groups.filter(name__contains='PRES04').first() is not None:
-            return True
-        return False
-
-    @property
-    def is_optic(self):
-        #if self.prestataire is not None and self.prestataire.type_prestataire.code == 'OPTIQ':
-        #    return True
-        #return False
-        if self.groups.filter(name__contains='PRES05').first() is not None:
-            return True
-        return False
-
-    @property
-    def is_dentaire(self):
-        #if self.prestataire is not None and self.prestataire.type_prestataire.code == 'DENTA':
-        #    return True
-        #return False
-        if self.groups.filter(name__contains='PRES06').first() is not None:
-            return True
-        return False
-
-    @property
-    def is_ges(self):
-        if self.groups.filter(name__contains='GES01').first() is not None:
-            return True
-        return False
-
-    @property
-    def is_prod(self):
-        if self.groups.filter(name__contains='PROD01').first() is not None:
-            return True
-        return False
-
-    def is_compta(self):
+    def is_comptable(self):
         if self.groups.filter(name__contains='COMPTABLE').first() is not None:
             return True
         return False
@@ -1695,6 +1614,11 @@ class User(AbstractUser):
 
     def is_manager(self):
         if self.groups.filter(name__contains='MANAGER').first() is not None:
+            return True
+        return False
+
+    def is_commercial(self):
+        if self.groups.filter(name__contains='COMMERCIAL').first() is not None:
             return True
         return False
 
@@ -2079,7 +2003,7 @@ class Carburant(models.Model):
     class Meta:
         db_table = 'carburant'
         verbose_name = 'Carburants'
-        verbose_name_plural = "Carburants"
+        verbose_name_plural = "Energies"
 
 
 class Usage(models.Model):
@@ -2672,3 +2596,18 @@ class TypeFichier(models.Model):
         db_table = 'type_fichier'
         verbose_name = 'Type de fichier'
         verbose_name_plural = 'Type de fichier'
+
+
+class Groupe(models.Model):
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    statut = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'groupes'
+        verbose_name = 'Groupes'
+        verbose_name_plural = 'Groupes'

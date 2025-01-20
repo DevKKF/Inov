@@ -20,18 +20,12 @@
   <div class="card">
     <div class="card-header">
         <h3 class="card-title"><b>{% trans 'LISTE DES CLIENTS' %}</b></h3>
-        <!--div-- class="card-tools">
-          <a class="btn btn-sm btn-default" data-toggle="modal"  data-target="#"><i class="fas fa-plus"></i> {{_('Nouveau client')}}</a>
-        </div-->
     </div>
 
     <div style="display:none__;background:#CCCCCC;padding:10px;border-bottom:1px solid #eee;padding-bottom:10px;margin-bottom:10px;">
     <form method="get"><label style="font-weight:normal;font-size:12px;display:none;"><i>{% trans 'Formulaire de recherche' %}</i></label>
         <div class="row">
             <div class="col-12 col-md-12 col-sm-12 row">
-                <!--div class="col-md-2 row">
-                    <span class="col-sm-12 text-left" style="margin-top:5px;font-weight:bold;">Rechercher par</span>
-                </div-->
                 <div class="col-md-4">
                     <span class="text-right" style="margin-top:5px;">{% trans 'Client' %} : </span>
                     <input id="search_nom" class="form-control" type="text" name="nb" style="border-radius:3px;border:1px solid rgba(0, 0, 0, 0.3);text-transform:uppercase;" placeholder="{% trans 'Nom du client' %}">
@@ -58,7 +52,9 @@
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
         <div class="row">
           <div class="col-12 col-md-12 col-sm-12 table-responsive">
-              <a class="btn btn-sm btn-info pull-right mb-2" data-toggle="modal"  data-target="#modal-client"><i class="fas fa-plus-circle"></i> {{_('Nouveau client')}}</a>
+              {% if request.user.is_production %}
+                <a class="btn btn-sm btn-info pull-right mb-2" data-toggle="modal" data-target="#modal-client"><i class="fas fa-plus-circle"></i> {{_('Nouveau client')}}</a>
+              {% endif %}
               <table class="table table-bordered table-striped dataTable__ customDataTable0 dtr-inline" id="table_clients">
                   <thead>
                     <tr>

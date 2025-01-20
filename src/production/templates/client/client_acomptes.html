@@ -103,14 +103,16 @@
     </div>
 {% endblock %}
 {% block content %}
-<div class="col-md-12">
-    <div class="card">
-      <div class="button-link mb-2">
-          <span style="cursor:pointer;" class="btn btn-sm btn-warning btn_modifier_client pull-right ml-2" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit"></i> {{_("Modifier client")}}</span>
-          <a class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#modal-acompte"><i class="fas fa-plus"></i> {{_("Ajouter un acompte")}}</a>
+{% if request.user.is_production %}
+    <div class="col-md-12">
+        <div class="card">
+          <div class="button-link mb-2">
+              <span style="cursor:pointer;" class="btn btn-sm btn-warning btn_modifier_client pull-right ml-2" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit"></i> {{_("Modifier client")}}</span>
+              <a class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#modal-acompte"><i class="fas fa-plus"></i> {{_("Ajouter un acompte")}}</a>
+          </div>
       </div>
-  </div>
-</div>
+    </div>
+{% endif %}
 <div class="col-md-12 accordion" id="accordionClient_removed">
   <div class="card offset" style="padding:0px;margin:0px;border:none;">
     <div class="card-header">

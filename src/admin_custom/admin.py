@@ -24,10 +24,6 @@ class CustomAdminSite(admin.AdminSite):
 
         user = User.objects.get(id=request.user.id)
 
-        #if user.is_prestataire: return redirect('liste_bordereau')
-
-        if request.user.is_med: return redirect('dossiersinistre')
-
         if request.user.is_superuser:
             bureaux = Bureau.objects.filter(status=True)
             bureaux_serializer = BureauSerializer(bureaux, many=True).data

@@ -45,6 +45,13 @@ class FonctionAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
+class BureauTaxeAdmin(admin.ModelAdmin):
+    list_display = ('bureau_id', 'taxe_id', 'taux', 'montant')
+    list_filter = ('bureau_id', 'taxe_id', 'taux', 'montant')
+    search_fields = ('bureau_id', 'taxe_id', 'taux', 'montant')
+    list_per_page = 10
+
+
 #@admin.register(SinistreVeos)
 class SinistreVeosAdmin(ImportExportModelAdmin):
     list_display = ('ID_SIN', 'NUMERO_DOSSIER', 'FRAIS_REEL', 'TICKET_MODERATEUR', 'DEPASSEMENT_EXCLUSION',
@@ -260,9 +267,9 @@ class ParamProduitCompagnieInline(admin.TabularInline):
 
 class CompagnieAdmin(admin.ModelAdmin):
     inlines = [ParamProduitCompagnieInline]  # , Pres
-    list_display = ('nom', 'code', 'groupe_compagnie', 'type_garant', 'telephone', )
-    list_filter = ('nom', 'code', 'groupe_compagnie', 'type_garant', 'telephone', 'email')
-    search_field = ('nom', 'code', 'groupe_compagnie','type_garant', 'telephone', 'email')
+    list_display = ('nom', 'code', 'type_garant', 'telephone', )
+    list_filter = ('nom', 'code', 'type_garant', 'telephone', 'email')
+    search_field = ('nom', 'code','type_garant', 'telephone', 'email')
     list_per_page = 10
     form = CompagnieAdminForm
 
@@ -608,7 +615,6 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ('username', 'last_name', 'first_name', 'is_active', 'is_superuser')
     #search_fields = ('username', 'last_name', 'first_name', 'email', 'is_active', 'is_superuser')
     list_per_page = 10
-    readonly_fields = ('utilisateur_grh',)
 
     inlines = [
         AdminGroupeBureauAdmInLine,
@@ -668,8 +674,7 @@ class CustomUserAdmin(UserAdmin):
 
     staff_add_fieldsets = (
         (None, {"fields": (
-        "username", "password1", "password2", "first_name", "last_name", "email",
-        "client_grh")}),
+        "username", "password1", "password2", "first_name", "last_name", "email")}),
         (
             "Permissions",
             {
@@ -684,13 +689,6 @@ class CustomUserAdmin(UserAdmin):
             },
         ),
     )
-
-    """def type_prestataire(self, obj):
-        return obj.prestataire.type_prestataire if obj.prestataire else None
-
-    type_prestataire.admin_order_field = 'prestataire__type_prestataire'
-    type_prestataire.short_description = 'Type Prestataire' """
-
 
     def get_fieldsets(self, request, obj=None):
         if not obj:
@@ -723,23 +721,8 @@ class CustomUserAdmin(UserAdmin):
         if not change:
             obj.bureau = request.user.bureau
 
-        client_grh_ids = form.cleaned_data.get('client_grh')
-        if client_grh_ids:
-            first_client_grh_id = client_grh_ids[0].id
-            obj.utilisateur_grh_id = first_client_grh_id
-
         # Save the user first to get the primary key
         super().save_model(request, obj, form, change)
-
-    # Fetch user GRH
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "client_grh":
-            kwargs["queryset"] = Client.objects.filter(bureau=request.user.bureau, statut=Statut.ACTIF).order_by('nom','prenoms')
-        if db_field.name == "prestataire":
-            kwargs["queryset"] = Prestataire.objects.filter(bureau=request.user.bureau, status=True).order_by('name')
-
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
 
 
 @admin.register(ActionLog)
@@ -1069,11 +1052,12 @@ class ComptePrestataireVeosAdmin(ImportExportModelAdmin):
     list_per_page = 10
 
 
-class BusinessUnitAdmin(ImportExportModelAdmin):
+class BusinessUnitAdmin(admin.ModelAdmin):
     list_filter = ('libelle', 'status', 'created_at')
     list_display = ('libelle', 'status', 'created_at')
     search_field = ('libelle', 'status', 'created_at')
     list_per_page = 10
+
 
 class GarantieBrancheAdmin(admin.ModelAdmin):
     form = GarantieBrancheForm
@@ -1113,7 +1097,6 @@ class GarantieBrancheAdmin(admin.ModelAdmin):
         return ', '.join(garanties)
 
     get_garanties.short_description = "Garanties"
-
 
 
 class GarantieFormuleAdmin(admin.ModelAdmin):
@@ -1170,6 +1153,20 @@ class MoyensTransportAdmin(admin.ModelAdmin):
     list_per_page = 20
 
 
+class GroupeAdmin(admin.ModelAdmin):
+    list_filter = ('libelle', 'statut', 'created_at')
+    list_display = ('libelle', 'statut', 'created_at')
+    search_field = ('libelle', 'statut', 'created_at')
+    list_per_page = 10
+
+
+class RisqueProduitAdmin(admin.ModelAdmin):
+    list_filter = ('libelle', 'code', 'created_at')
+    list_display = ('libelle', 'code', 'taux', 'created_at')
+    search_field = ('libelle', 'code', 'created_at')
+    list_per_page = 10
+
+
 admin.site.register(Compagnie, CompagnieAdmin)
 admin.site.register(Civilite)
 admin.site.register(TypeClient)
@@ -1201,6 +1198,9 @@ admin.site.register(Formule)
 admin.site.register(GarantieFormule, GarantieFormuleAdmin)
 admin.site.register(ConditionsAssurance, ConditionsAssuranceAdmin)
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(Groupe, GroupeAdmin)
+admin.site.register(BureauTaxe, BureauTaxeAdmin)
+admin.site.register(RisqueProduit, RisqueProduitAdmin)
 #admin.site.register(Bureau, BureausAdmin)
 #admin.site.register(Profession, ProfessionAdmin)
 #admin.site.register(MoyensTransport, MoyensTransportAdmin)

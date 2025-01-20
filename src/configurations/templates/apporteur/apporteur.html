@@ -10,7 +10,7 @@
                 <ol class="breadcrumb float-sm-right">
                       <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
                       <li class="breadcrumb-item">Paramétrage</li>
-                      <li class="breadcrumb-item"><a href="{% url 'apporteurs' %}">Affection</a></li>
+                      <li class="breadcrumb-item"><a href="{% url 'apporteurs' %}">Apporteurs</a></li>
                 </ol>
           </div>
     </div>
@@ -23,7 +23,7 @@
     </div>
     <div class="card-body">
         <div class="button-link pull-right mb-2">
-          <a class="btn btn-sm btn-primary mb-1" data-toggle="modal"  data-target="#modal-apporteur"><i class="fas fa-plus"></i> {{_('Ajouter un apporteur')}}</a>
+          <a class="btn btn-sm btn-primary mb-1" data-toggle="modal"  data-target="#modal-apporteur"><i class="fas fa-plus-circle"></i> {{_("Ajouter un apporteur")}}</a>
         </div>
 
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
@@ -33,20 +33,20 @@
               <table class="table table-bordered table-striped dataTable dtr-inline" id="table_formules">
                   <thead>
                     <tr>
-                      <th scope="col">{{_('Nom')}}</th>
                       <th scope="col">{{_('Code')}}</th>
-                      <th scope="col">{{_('telephone')}}</th>
-                      <th scope="col">{{_('adresse')}}</th>
-                      <th scope="col">{{_("status")}}</th>
-                      <th scope="col">{{_('pays')}}</th>
-                      <th scope="col">{{_('Actions')}}</th>
+                      <th scope="col">{{_('Nom & Prénoms')}}</th>
+                      <th scope="col">{{_('Téléphone')}}</th>
+                      <th scope="col">{{_('Adresse')}}</th>
+                      <th scope="col">{{_("Statut")}}</th>
+                      <th scope="col">{{_('Pays')}}</th>
+                      <th scope="col" class="text-center">{{_('Actions')}}</th>
                     </tr>
                   </thead>
                   <tbody>
                   {% for apporteur in apporteurs %}
                     <tr>
-                        <td>{{ apporteur.nom|default_if_none:"" }}</td>
                         <td>{{ apporteur.code|default_if_none:"" }}</td>
+                        <td>{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</td>
                         <td>{{ apporteur.telephone|default_if_none:"" }}</td>
                         <td>{{ apporteur.adresse|default_if_none:"" }}</td>
                         <td>
@@ -57,11 +57,10 @@
                             {% endif %}
                         </td>
                       <td>{{ apporteur.pays|default_if_none:"" }}</td>
-                         <td>
-                             <span class="btn badge btn-sm btn-complement-rouge rounded-pill btn-modal-modifier_apporteur" title="Modifier" data-href="#" style="color:white;font-weight:normal;"><i class="fa fa-pencil"></i> {{_('Modifier')}}</span>&nbsp;&nbsp;&nbsp;
-                             <span class="badge badge-danger btn_supprimer_apporteur" data-affection_id="#" style="cursor:pointer;"><i class="fa fa-trash"></i> </span>&nbsp;
-
-                        </td>
+                      <td class="text-center">
+                         <span style="cursor:pointer;" class="btn_modifier_apporteur badge btn-sm btn-modifier rounded-pill text-center" data-apporteur_id="{apporteur.id}" data-model_name="apporteur" data-modal_title="MODIFICATION D'UN APPORTEUR" data-href="{% url 'modifier_apporteur' apporteur.id %}"><i class="fas fa-edit"></i> {{_('Modifier')}}</span>
+                         <span class="badge badge-danger btn_supprimer_apporteur" data-apporteur_id="{{ apporteur.id }}" data-href="{% url 'supprimer_apporteur' apporteur.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;
+                      </td>
                     </tr>
                   {% endfor %}
                   </tbody>

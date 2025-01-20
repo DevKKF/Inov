@@ -76,7 +76,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from configurations.models import Compagnie, MarqueVehicule, Pays, Civilite, QualiteBeneficiaire, Profession, \
     Produit, Formule, GarantieBranche, GarantieFormule, ConditionsAssurance, MoyensTransport, \
     Territorialite, ModeCalcul, Duree, TicketModerateur, TypeCarosserie, User, Fractionnement, ModeReglement, \
-    Regularisation, Bureau, BusinessUnit, TypeCompagnie, \
+    Regularisation, Bureau, BusinessUnit, TypeCompagnie, Groupe, \
     Devise, Taxe, BureauTaxe, Apporteur, BaseCalcul, TypeQuittance, NatureQuittance, TypeClient, TypePersonne, Langue, \
     Branche, ParamProduitCompagnie, CategorieVehicule, Banque, Carburant, Usage, Carosserie, \
     NatureOperation, TypeTarif, Prestataire, Acte, Rubrique, ReseauSoin, Periodicite, PrescripteurPrestataire, \
@@ -101,6 +101,7 @@ from shared.helpers import generer_qrcode_carte, generate_numero_famille, genera
 from shared.veos import get_taux_euro_by_devise, get_taux_usd_by_devise, send_client_to_veos
 from sinistre.models import Sinistre, DossierSinistre
 from comptabilite.models import EncaissementCommission
+from django.contrib.auth.models import Group
 import traceback
 from django.core.files.base import File
 from xhtml2pdf import pisa
@@ -109,28 +110,9 @@ from xhtml2pdf import pisa
 
 ## INOV API MOBILE
 from django.views.decorators.csrf import csrf_exempt
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from rest_framework import status, generics
-# from .models import CarteDigitalDematerialisee
-# from rest_framework.permissions import AllowAny, IsAuthenticated
-
-
-def is_in_group(user, groupe_name):
-    return user.groups.filter(name=groupe_name).exists()
-
-
-def is_in_commercial(user):
-    return user.groups.filter(name='COMMERCIAL').exists()
-
-
-def is_in_production(user):
-    return user.groups.filter(name='PRODUCTION').exists()
 
 
 def todo_manuel(request):
-    # IMPORT ADHERENT PRINCIPAUX
-    # IMPORT ADHERENT PRINCIPAUX
     adherents_principaux = Aliment.objects.filter(adherent_principal__isnull=True)
     for a in adherents_principaux:
         adp = Aliment.objects.filter(
@@ -816,8 +798,9 @@ def add_police(request, client_id):
             if prime_ht == "": prime_ht = 0
             prime_ttc = request.POST.get('prime_ttc').replace(' ', '')
             if prime_ttc == "": prime_ttc = 0
-            taxe = request.POST.get('taxe').replace(' ', '')
-            if taxe == "": taxe = 0
+            taxe_a_encaisse = request.POST.get('taxe').replace(' ', '')
+            print('Code taxe : ', taxe_a_encaisse)
+            if taxe_a_encaisse == "": taxe_a_encaisse = 0
             autres_taxes = request.POST.get('autres_taxes').replace(' ', '')
             if autres_taxes == "": autres_taxes = 0
             taux_com_courtage = request.POST.get('taux_com_courtage').replace(' ', '')
@@ -894,9 +877,9 @@ def add_police(request, client_id):
                 numero=numero,
                 date_souscription=datetime.now(),
                 date_debut_effet=date_debut_effet,
-                date_fin_effet=date_fin_effet,
+                date_fin_effet=date_fin_effet if date_fin_effet else None,
                 preavis_de_resiliation=preavis_de_resiliation,
-                date_prochaine_facture=date_prochaine_facture,
+                date_prochaine_facture=date_prochaine_facture if date_prochaine_facture else None,
                 participation=participation,
                 taux_participation=taux_participation,
                 statut_contrat = statut_contrat,
@@ -952,6 +935,7 @@ def add_police(request, client_id):
 
             # enregistrer les autres taxes
             taxes = request.COOKIES.get('taxes')
+            print('Cookies : ', taxes)
             if taxes:
                 taxes = json.loads(taxes)
 
@@ -961,13 +945,13 @@ def add_police(request, client_id):
                     taxe_montant = taxe[1]
 
                     # Insérer la ligne
-                    # TaxePolice.objects.create(police_id=police.id, taxe_id=taxe_id, montant=taxe_montant).save()
+                    TaxePolice.objects.create(police_id=police.id, taxe_id=taxe_id, montant=taxe_montant).save()
 
             # créer une ligne dans période de couverture
             periode_couverture = PeriodeCouverture(
                 police_id=police.id,
                 date_debut_effet=date_debut_effet,
-                date_fin_effet=date_fin_effet,
+                date_fin_effet=date_fin_effet if date_fin_effet else None,
             )
             periode_couverture.save()
 
@@ -981,18 +965,18 @@ def add_police(request, client_id):
                 garantie=garantie,
                 date_souscription=datetime.now(),
                 date_debut_effet=date_debut_effet,
-                date_fin_effet=date_fin_effet,
+                date_fin_effet=date_fin_effet if date_fin_effet else None,
                 preavis_de_resiliation=preavis_de_resiliation,
                 mode_renouvellement=mode_renouvellement,
                 fractionnement_id=fractionnement_id,
                 mode_reglement_id=mode_reglement_id,
                 regularisation_id=regularisation_id,
-                date_prochaine_facture=date_prochaine_facture,
+                date_prochaine_facture=date_prochaine_facture if date_prochaine_facture else None,
                 participation=participation,
                 taux_participation=taux_participation,
                 prime_ht=prime_ht,
                 prime_ttc=prime_ttc,
-                taxe=taxe,
+                #taxe=taxe_a_encaisse,
                 autres_taxes=autres_taxes,
                 taux_com_courtage=taux_com_courtage,
                 taux_com_courtage_terme=taux_com_courtage_terme,
@@ -1078,7 +1062,7 @@ def add_police(request, client_id):
             mp.mouvement = Mouvement.objects.get(code='AN')
             mp.motif = Motif.objects.get(code='AN')
             mp.date_effet = dernier_historique.date_debut_effet
-            mp.date_fin_periode_garantie = dernier_historique.date_fin_effet
+            mp.date_fin_periode_garantie = dernier_historique.date_fin_effet if dernier_historique.date_fin_effet else None
             mp.save()
 
             # TODO MISE EN PLACE DE LA PARTIE ALIMENT DE LA POLICE
@@ -1088,10 +1072,10 @@ def add_police(request, client_id):
                 vehicule_existant = Vehicule.objects.filter(numero_immatriculation=request.POST.get('immatriculation')).first()
 
                 if vehicule_existant:
+                    if date_entree:
+                        date_entree_conversion = datetime.strptime(date_entree, '%Y-%m-%d').date()
 
-                    date_entree_conversion = datetime.strptime(date_entree, '%Y-%m-%d').date()
-
-                    if vehicule_existant.date_sortie and date_entree_conversion > vehicule_existant.date_sortie:
+                    if (vehicule_existant.date_sortie and date_entree_conversion) and date_entree_conversion > vehicule_existant.date_sortie:
 
                         aliment_police = AlimentPolice(
                             vehicule_id = vehicule_existant.id,
@@ -1254,7 +1238,8 @@ def add_police(request, client_id):
 
                 print("Aliment transmis :", aliments)
 
-            elif produit_code.code in [50001, 50002]:
+            elif produit_code.code in ["50001", "50002"]:
+                print("Création police avec marchandise")
                 marchandise_created = Marchandise(
                     moyens_transport_id = moyens_transport_id,
                     conditions_assurance_id = conditions_assurance_id,
@@ -1262,7 +1247,7 @@ def add_police(request, client_id):
                     num_certificat = num_certificat,
                     num_fact_fournisseur = num_fact_fournisseur,
                     ref_dai = ref_dai,
-                    date_commande = date_commande,
+                    date_commande = date_commande if date_commande else None,
                     nombre_colis = nombre_colis,
                     poids_brut = poids_brut,
                     plein_souscription = plein_souscription,
@@ -1270,34 +1255,34 @@ def add_police(request, client_id):
                     pavillon_cie_prest = pavillon_cie_prest,
                     destination = destination,
                     lieu_transit_transbordement = lieu_transit_transbordement,
-                    date_emmision_certificat = date_emmision_certificat,
-                    date_sortie = date_sortie_march,
+                    date_emmision_certificat = date_emmision_certificat if date_emmision_certificat else None,
+                    date_sortie = date_sortie_march if date_sortie_march else None,
                     num_commande = num_commande,
                     marchandises_description = marchandises_description,
                     poids_net = poids_net,
                     valeur_assuree = valeur_assuree,
                     marque_modele_type = marque_modele_type,
-                    debut_voyage = debut_voyage,
+                    debut_voyage = debut_voyage if debut_voyage else None,
                     lieu_depart = lieu_depart,
                     nom_commissaire = nom_commissaire,
                     telephone_commissaire = telephone_commissaire,
                     code_commissaire = code_commissaire,
                     adresse_commissaire = adresse_commissaire,
                     courriel_commissaire = courriel_commissaire,
-                    taux_risque_ordinaire = taux_risque_ordinaire,
-                    taux_risque_guerre = taux_risque_guerre,
-                    taux_supprime = taux_supprime,
-                    taux_taxe = taux_taxe,
-                    taux_reduction_commerciale = taux_reduction_commerciale,
-                    accessoires = accessoires,
-                    autres_frais = autres_frais,
-                    prime_risque_ordinaire = prime_risque_ordinaire,
-                    prime_risque_guerre = prime_risque_guerre,
-                    prime_supprime = prime_supprime,
-                    prime_brut = prime_brut,
-                    prime_reduction=prime_reduction,
-                    total_taxe = total_taxe,
-                    prime_ttc_mar = prime_ttc_mar,
+                    taux_risque_ordinaire = taux_risque_ordinaire if taux_risque_ordinaire else None,
+                    taux_risque_guerre = taux_risque_guerre if taux_risque_guerre else None,
+                    taux_supprime = taux_supprime if taux_supprime else None,
+                    taux_taxe = taux_taxe if taux_taxe else None,
+                    taux_reduction_commerciale = taux_reduction_commerciale if taux_reduction_commerciale else None,
+                    accessoires = accessoires if accessoires else None,
+                    autres_frais = autres_frais if autres_frais else None,
+                    prime_risque_ordinaire = prime_risque_ordinaire if prime_risque_ordinaire else None,
+                    prime_risque_guerre = prime_risque_guerre if prime_risque_guerre else None,
+                    prime_supprime = prime_supprime if prime_supprime else None,
+                    prime_brut = prime_brut if prime_brut else None,
+                    prime_reduction=prime_reduction if prime_reduction else None,
+                    total_taxe = total_taxe if total_taxe else None,
+                    prime_ttc_mar = prime_ttc_mar if prime_ttc_mar else None,
                     date_liaison=datetime.now(),
                     created_by=request.user,
                     statut=Statut.ACTIF
@@ -2574,7 +2559,6 @@ def polices_restantes(request, police_id):
     return HttpResponse(polices_restantes_serialize, content_type='application/json')
 
 
-
 @login_required
 # récupère le taux paramétré sur le produit en fonction de la compagnie
 def ajax_infos_compagnie(request, compagnie_id, produit_id):
@@ -2598,7 +2582,6 @@ def ajax_infos_compagnie(request, compagnie_id, produit_id):
         }
 
     return JsonResponse(response)
-
 
 
 def motifs_by_mouvement(request, mouvement_id):
@@ -2628,6 +2611,7 @@ class DetailsPoliceView(TemplateView):
             # duree_police = dernier_historique.date_fin_effet - dernier_historique.date_debut_effet
             # duree_police_en_jours = duree_police.days
 
+            duree = 0
             if dernier_historique.date_debut_effet and dernier_historique.date_fin_effet:
 
                 # Calculer la différence en mois
@@ -2683,7 +2667,6 @@ class DetailsPoliceView(TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
-
 
 
 @method_decorator(login_required, name='dispatch')
@@ -5349,15 +5332,18 @@ def add_vehicule(request, police_id):
     if request.method == 'POST':
 
         immatriculation = request.POST.get('immatriculation')
-        date_entree = convertir_date_multiformat(request.POST.get('date_entree'))
-        date_sortie = convertir_date_multiformat(request.POST.get('date_sortie'))
+        date_entree = request.POST.get('date_entree')
+        date_sortie = request.POST.get('date_sortie')
         mis_en_circulation = convertir_date_multiformat(request.POST.get('date_mise_circulation'))
 
         immatriculation_existante = Vehicule.objects.filter(numero_immatriculation=immatriculation).first()
 
-        date_entree_conversion = date_entree
+        if date_entree:
+            date_entree_conversion = convertir_date_multiformat(date_entree)
+        else:
+            date_entree_conversion = None
         if date_sortie:
-            date_sortie_conversion = date_sortie
+            date_sortie_conversion = convertir_date_multiformat(date_sortie)
         else:
             date_sortie_conversion = None
 
@@ -5410,7 +5396,6 @@ def add_vehicule(request, police_id):
                         numero_parc=request.POST.get('num_parc'),
                         valeur_actuelle=supprimer_espaces(request.POST.get('valeur_actuelle', '')),
                         commentaire=request.POST.get('commentaire'),
-                        date_sortie=date_sortie if date_sortie else None,
                         date_liaison=datetime.now(),
                     )
 
@@ -5463,7 +5448,6 @@ def add_vehicule(request, police_id):
                     numero_parc=request.POST.get('num_parc'),
                     valeur_actuelle=supprimer_espaces(request.POST.get('valeur_actuelle', '')),
                     commentaire=request.POST.get('commentaire'),
-                    date_sortie=date_sortie if date_sortie else None,
                     date_liaison=datetime.now(),
                 )
 
@@ -5728,10 +5712,7 @@ def details_historique_vehicule(request, vehicule_id, historique_id):
 
 
 # Supprimer un vehicule mais c'est resté en cours
-def supprimer_vehicule(request, police_id, vehicule_id):
-    vehicule_police = VehiculePolice.objects.get(id=police_id)
-    police = Police.objects.get(id=police_id)
-    vehicule = Vehicule.objects.get(id=vehicule_id)
+def supprimer_vehicule(request, vehicule_id):
 
     if request.method == "POST":
 
@@ -5739,9 +5720,10 @@ def supprimer_vehicule(request, police_id, vehicule_id):
 
         vehicule = Vehicule.objects.get(id=vehicule_id)
         if vehicule.pk is not None:
-            # vehicule.delete()
+            alimentpolice = AlimentPolice.objects.filter(vehicule_id=vehicule.id).first()
 
-            #Vehicule.objects.filter(id=vehicule_id).update(statut=Statut.INACTIF)
+            alimentpolice.delete()
+            vehicule.delete()
 
             response = {
                 'statut': 1,
@@ -5886,15 +5868,13 @@ def import_vehicules(request, police_id):
 @never_cache
 def police_marchandises(request, police_id):
     police = Police.objects.get(id=police_id)
-
+    
     marchandises = AlimentPolice.objects.filter(police_id=police.id)
     print("marchandises", marchandises)
 
     conditions_assurances = ConditionsAssurance.objects.filter(status=True).order_by('libelle')
     moyens_transports = MoyensTransport.objects.filter(status=True).order_by('libelle')
     today = datetime.now(tz=timezone.utc)
-
-    pprint(marchandises)
 
     return render(request, 'police/marchandises.html',
                   {'police': police, 'marchandises': marchandises, 'conditions_assurances': conditions_assurances,
@@ -6117,48 +6097,48 @@ def update_marchandise(request, police_id, marchandise_id):
         #Créer sa ligne d'historique
         marchandise_historique_created = HistoriqueAliment(
             marchandise_id=marchandise.id,
-            moyens_transport_id=marchandise.moyens_transport_id,
-            conditions_assurance_id=marchandise.conditions_assurance_id,
-            devise_id=marchandise.devise_id,
-            num_certificat=marchandise.num_certificat,
-            num_fact_fournisseur=marchandise.num_fact_fournisseur,
-            ref_dai=marchandise.ref_dai,
-            date_commande=marchandise.date_commande,
-            nombre_colis=marchandise.nombre_colis,
-            poids_brut=marchandise.poids_brut,
-            plein_souscription=marchandise.plein_souscription,
-            immatriculation=marchandise.immatriculation,
-            pavillon_cie_prest=marchandise.pavillon_cie_prest,
-            destination=marchandise.destination,
-            lieu_transit_transbordement=marchandise.lieu_transit_transbordement,
-            date_emmision_certificat=marchandise.date_emmision_certificat,
-            date_sortie=marchandise.date_sortie,
-            num_commande=marchandise.num_commande,
-            marchandises_description=marchandise.marchandises_description,
-            poids_net=marchandise.poids_net,
-            valeur_assuree=marchandise.valeur_assuree,
-            marque_modele_type=marchandise.marque_modele_type,
-            debut_voyage=marchandise.debut_voyage,
-            lieu_depart=marchandise.lieu_depart,
-            nom_commissaire=marchandise.nom_commissaire,
-            telephone_commissaire=marchandise.telephone_commissaire,
-            code_commissaire=marchandise.code_commissaire,
-            adresse_commissaire=marchandise.adresse_commissaire,
-            courriel_commissaire=marchandise.courriel_commissaire,
-            taux_risque_ordinaire=marchandise.taux_risque_ordinaire,
-            taux_risque_guerre=marchandise.taux_risque_guerre,
-            taux_reduction_commerciale=marchandise.taux_reduction_commerciale,
-            taux_supprime=marchandise.taux_supprime,
-            taux_taxe=marchandise.taux_taxe,
-            accessoires=marchandise.accessoires,
-            autres_frais=marchandise.autres_frais,
-            prime_risque_ordinaire=marchandise.prime_risque_ordinaire,
-            prime_risque_guerre=marchandise.prime_risque_guerre,
-            prime_supprime=marchandise.prime_supprime,
-            prime_brut=marchandise.prime_brut,
-            prime_reduction=marchandise.prime_reduction,
-            total_taxe=marchandise.total_taxe,
-            prime_ttc_mar=marchandise.prime_ttc_mar,
+            moyens_transport_id=moyens_transport_id,
+            conditions_assurance_id=conditions_assurance_id,
+            devise_id=devise_id,
+            num_certificat=num_certificat,
+            num_fact_fournisseur=num_fact_fournisseur,
+            ref_dai=ref_dai,
+            date_commande=date_commande if date_commande else None,
+            nombre_colis=nombre_colis,
+            poids_brut=poids_brut,
+            plein_souscription=plein_souscription,
+            immatriculation=immatriculation_march,
+            pavillon_cie_prest=pavillon_cie_prest,
+            destination=destination,
+            lieu_transit_transbordement=lieu_transit_transbordement,
+            date_emmision_certificat=date_emmision_certificat if date_emmision_certificat else None,
+            date_sortie=date_sortie_march if date_sortie_march else None,
+            num_commande=num_commande,
+            marchandises_description=marchandises_description,
+            poids_net=poids_net,
+            valeur_assuree=valeur_assuree,
+            marque_modele_type=marque_modele_type,
+            debut_voyage=debut_voyage if debut_voyage else None,
+            lieu_depart=lieu_depart,
+            nom_commissaire=nom_commissaire,
+            telephone_commissaire=telephone_commissaire,
+            code_commissaire=code_commissaire,
+            adresse_commissaire=adresse_commissaire,
+            courriel_commissaire=courriel_commissaire,
+            taux_risque_ordinaire=taux_risque_ordinaire if taux_risque_ordinaire else None,
+            taux_risque_guerre=taux_risque_guerre if taux_risque_guerre else None,
+            taux_supprime=taux_supprime if taux_supprime else None,
+            taux_taxe=taux_taxe if taux_taxe else None,
+            taux_reduction_commerciale=taux_reduction_commerciale if taux_reduction_commerciale else None,
+            accessoires=accessoires if accessoires else None,
+            autres_frais=autres_frais if autres_frais else None,
+            prime_risque_ordinaire=prime_risque_ordinaire if prime_risque_ordinaire else None,
+            prime_risque_guerre=prime_risque_guerre if prime_risque_guerre else None,
+            prime_supprime=prime_supprime if prime_supprime else None,
+            prime_brut=prime_brut if prime_brut else None,
+            prime_reduction=prime_reduction if prime_reduction else None,
+            total_taxe=total_taxe if total_taxe else None,
+            prime_ttc_mar=prime_ttc_mar if prime_ttc_mar else None,
             date_liaison=datetime.now(),
             created_by=marchandise.created_by,
             updated_by=marchandise.updated_by,
@@ -6173,7 +6153,7 @@ def update_marchandise(request, police_id, marchandise_id):
         marchandise.num_certificat=num_certificat
         marchandise.num_fact_fournisseur=num_fact_fournisseur
         marchandise.ref_dai=ref_dai
-        marchandise.date_commande=date_commande
+        marchandise.date_commande=date_commande if date_commande else None
         marchandise.nombre_colis=nombre_colis
         marchandise.poids_brut=poids_brut
         marchandise.plein_souscription=plein_souscription
@@ -6181,34 +6161,34 @@ def update_marchandise(request, police_id, marchandise_id):
         marchandise.pavillon_cie_prest=pavillon_cie_prest
         marchandise.destination=destination
         marchandise.lieu_transit_transbordement=lieu_transit_transbordement
-        marchandise.date_emmision_certificat=date_emmision_certificat
-        marchandise.date_sortie=date_sortie_march
+        marchandise.date_emmision_certificat=date_emmision_certificat if date_emmision_certificat else None
+        marchandise.date_sortie=date_sortie_march if date_sortie_march else None
         marchandise.num_commande=num_commande
         marchandise.marchandises_description=marchandises_description
         marchandise.poids_net=poids_net
         marchandise.valeur_assuree=valeur_assuree
         marchandise.marque_modele_type=marque_modele_type
-        marchandise.debut_voyage=debut_voyage
+        marchandise.debut_voyage=debut_voyage if debut_voyage else None
         marchandise.lieu_depart=lieu_depart
         marchandise.nom_commissaire=nom_commissaire
         marchandise.telephone_commissaire=telephone_commissaire
         marchandise.code_commissaire=code_commissaire
         marchandise.adresse_commissaire=adresse_commissaire
         marchandise.courriel_commissaire=courriel_commissaire
-        marchandise.taux_risque_ordinaire=taux_risque_ordinaire
-        marchandise.taux_risque_guerre=taux_risque_guerre
-        marchandise.taux_supprime=taux_supprime
-        marchandise.taux_reduction_commerciale=taux_reduction_commerciale
-        marchandise.taux_taxe=taux_taxe
-        marchandise.accessoires=accessoires
-        marchandise.autres_frais=autres_frais
-        marchandise.prime_risque_ordinaire=prime_risque_ordinaire
-        marchandise.prime_risque_guerre=prime_risque_guerre
-        marchandise.prime_supprime=prime_supprime
-        marchandise.prime_brut=prime_brut
-        marchandise.total_taxe=total_taxe
-        marchandise.prime_reduction=prime_reduction
-        marchandise.prime_ttc_mar=prime_ttc_mar
+        marchandise.taux_risque_ordinaire=taux_risque_ordinaire if taux_risque_ordinaire else None
+        marchandise.taux_risque_guerre=taux_risque_guerre if taux_risque_guerre else None
+        marchandise.taux_supprime=taux_supprime if taux_supprime else None
+        marchandise.taux_reduction_commerciale=taux_reduction_commerciale if taux_reduction_commerciale else None
+        marchandise.taux_taxe=taux_taxe if taux_taxe else None
+        marchandise.accessoires=accessoires if accessoires else None
+        marchandise.autres_frais=autres_frais if autres_frais else None
+        marchandise.prime_risque_ordinaire=prime_risque_ordinaire if prime_risque_ordinaire else None
+        marchandise.prime_risque_guerre=prime_risque_guerre if prime_risque_guerre else None
+        marchandise.prime_supprime=prime_supprime if prime_supprime else None
+        marchandise.prime_brut=prime_brut if prime_brut else None
+        marchandise.total_taxe=total_taxe if total_taxe else None
+        marchandise.prime_reduction=prime_reduction if prime_reduction else None
+        marchandise.prime_ttc_mar=prime_ttc_mar if prime_ttc_mar else None
         marchandise.updated_at=datetime.now()
         marchandise.updated_by=request.user
         marchandise.save()
@@ -6241,7 +6221,6 @@ def update_marchandise(request, police_id, marchandise_id):
 # Supprimer une marchandise mais c'est resté en cours
 def supprimer_marchandise(request, police_id, marchandise_id):
     police = Police.objects.get(id=police_id)
-    marchandise = Marchandise.objects.get(id=marchandise_id)
 
     if request.method == "POST":
 
@@ -6249,9 +6228,10 @@ def supprimer_marchandise(request, police_id, marchandise_id):
 
         marchandise = Marchandise.objects.get(id=marchandise_id)
         if marchandise.pk is not None:
-            # marchandise.delete()
+            alimentpolice = AlimentPolice.objects.filter(marchandise_id=marchandise.id).first()
 
-            #Marchandise.objects.filter(id=marchandise_id).update(statut=Statut.INACTIF)
+            alimentpolice.delete()
+            marchandise.delete()
 
             response = {
                 'statut': 1,
@@ -7297,12 +7277,13 @@ class ClientsView(TemplateView):
         business_units = BusinessUnit.objects.all().order_by('libelle')
         utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE", is_active=True).order_by('last_name')
         secteurs_activite = SecteurActivite.objects.filter(status=True).order_by('libelle')
+        groupes = Groupe.objects.filter(statut=True)
 
-        comptables = User.objects.filter().order_by('-first_name')
+        commercials = User.objects.all().order_by('-first_name').exclude(is_admin_group=1)
 
         context_perso = {'types_clients': types_clients, 'types_personnes': types_personnes, 'secteurs_activite': secteurs_activite,
-                         'civilites': civilites, 'bureaux': bureaux, 'pays': pays, 'business_units': business_units, 'comptables':comptables,
-                         'utilisateurs': utilisateurs}
+                         'civilites': civilites, 'bureaux': bureaux, 'pays': pays, 'business_units': business_units, 'commercials':commercials,
+                         'utilisateurs': utilisateurs, 'groupes': groupes}
 
         context = {**context_original, **context_perso}
 
@@ -7332,11 +7313,19 @@ def clients_datatable(request):
     search_numero_police = request.GET.get('search_numero_police', '').strip()
     search_type_personne = request.GET.get('search_type_personne', '').strip()
 
-    aliment_trouve = False
-    id_aliment_trouve = 0
-
     user = request.user
-    queryset = Client.objects.filter(statut=Statut.ACTIF, bureau_id=user.bureau_id)
+
+    # Gestion des rôles : Commercial et/ou Agent de production
+    if user.is_production:
+        # L'utilisateur est agent de production, afficher tous les clients
+        queryset = Client.objects.filter(statut=Statut.ACTIF, bureau_id=user.bureau_id)
+    elif user.is_commercial:
+        # L'utilisateur est uniquement commercial, filtrer par commercial_id
+        queryset = Client.objects.filter(statut=Statut.ACTIF, bureau_id=user.bureau_id, commercial_id=user.id)
+        print('commercial id :', user.id)
+    else:
+        # Par défaut, aucun client (si d'autres rôles existent sans droit de vue)
+        queryset = Client.objects.none()
 
     if search_nom:
         queryset = queryset.filter(
@@ -7370,18 +7359,18 @@ def clients_datatable(request):
 
         detail_url = reverse('client_details', args=[c.id])  # URL to the detail view
         modifier_client_url = reverse('modifier_client', args=[c.id])  # URL to the detail view
-        actions_html = f'<a href="{detail_url}" class="text-center"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {_("Détails")}</span></a>&nbsp;&nbsp;' \
-                       f'<span style="cursor:pointer;" class="btn_modifier_client badge btn-sm btn-modifier rounded-pill text-center" data-client_id="{c.id}" data-model_name="client" data-modal_title="MODIFICATION D\'UN CLIENT" data-href="{modifier_client_url}"><i class="fas fa-edit"></i> {_("Modifier")}</span></a>&nbsp;&nbsp;'
+
+        # Bouton "Détails"
+        actions_html = f'<a href="{detail_url}" class="text-center"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {_("Détails")}</span></a>&nbsp;&nbsp;'
+
+        # Ajout conditionnel du bouton "Modifier"
+        if request.user.is_production:
+            actions_html += f'<span style="cursor:pointer;" class="btn_modifier_client badge btn-sm btn-modifier rounded-pill text-center" data-client_id="{c.id}" data-model_name="client" data-modal_title="MODIFICATION D\'UN CLIENT" data-href="{modifier_client_url}"><i class="fas fa-edit"></i> {_("Modifier")}</span>&nbsp;&nbsp;'
 
         liste_numeros_polices = ''
         for p in c.polices.filter(statut_validite=StatutValidite.VALIDE):
             detail_police_url = reverse('police.details', args=[p.id])  #
             liste_numeros_polices += f'<a target="_blank" href="{detail_police_url}"><span class="bold">{p.numero}</span></a>, '
-
-        info_beneficiaire_html = ''
-        if id_aliment_trouve:
-            detail_infos_beneficiaire_url = reverse('auto_open_beneficiaire', args=[p.id, id_aliment_trouve])  #
-            info_beneficiaire_html = f'<a target="_blank" href="{detail_infos_beneficiaire_url}"><span class="badge btn-sm">{nom_aliment_trouve}</span></a>'
 
         if not c.nom: c.nom = ''
         if not c.prenoms: c.prenoms = ''
@@ -7391,7 +7380,6 @@ def clients_datatable(request):
             "nom": c.nom + ' ' + c.prenoms,
             "numero_police": liste_numeros_polices[:-2],
             "code": c.code,
-            "info_beneficiaire": info_beneficiaire_html,
             "type_personne": c.type_personne.libelle if c.type_personne else "",
             "type_client": c.type_client.libelle if c.type_client else "",
             "business_unit": c.business_unit.libelle if c.business_unit else "",
@@ -7408,7 +7396,7 @@ def clients_datatable(request):
     })
 
 
-# ajout d'avenant
+# ajout d'un client
 @login_required
 def add_client(request):
 
@@ -7420,12 +7408,16 @@ def add_client(request):
         else:
             date_naissance = None
 
+        print("Commercial ID : ", request.POST.get('commercial'))
+
         client_created = Client.objects.create(bureau_id=67,
                                        nom=request.POST.get('nom'),
                                        prenoms=request.POST.get('prenoms'),
                                        secteur_activite_id=request.POST.get('secteur_activite_id'),
                                        type_client_id=request.POST.get('type_client_id'),
                                        business_unit_id=request.POST.get('business_unit_id'),
+                                       commercial_id=request.POST.get('commercial'),
+                                       groupe_id=request.POST.get('groupe_id'),
                                        date_naissance=date_naissance,
                                        telephone_mobile=request.POST.get('telephone_mobile'),
                                        telephone_fixe=request.POST.get('telephone_fixe'),
@@ -7433,7 +7425,6 @@ def add_client(request):
                                        ville=request.POST.get('ville'),
                                        adresse_postale=request.POST.get('adresse_postale'),
                                        adresse=request.POST.get('adresse'),
-                                       gestionnaire_id=request.user.id,
                                        site_web=request.POST.get('site_web'),
                                        twitter=request.POST.get('twitter'),
                                        instagram=request.POST.get('instagram'),
@@ -7499,11 +7490,15 @@ def modifier_client(request, client_id):
         else:
             date_naissance = None
 
+        print('commercial_id : ', request.POST.get('commercial_id'))
+
         Client.objects.filter(id=client_id).update(nom=request.POST.get('nom'),
                                                    prenoms=request.POST.get('prenoms'),
                                                    secteur_activite_id=request.POST.get('secteur_activite_id'),
                                                    type_client_id=request.POST.get('type_client_id'),
                                                    business_unit_id=request.POST.get('business_unit_id'),
+                                                   commercial_id=request.POST.get('commercial_id'),
+                                                   groupe_id=request.POST.get('groupe_id'),
                                                    date_naissance=date_naissance,
                                                    telephone_mobile=request.POST.get('telephone_mobile'),
                                                    telephone_fixe=request.POST.get('telephone_fixe'),
@@ -7558,15 +7553,15 @@ def modifier_client(request, client_id):
         bureaux = Bureau.objects.all().order_by('nom')
         pays = Pays.objects.all().order_by('nom')
         utilisateurs = User.objects.all().order_by('last_name')
-        gestionnaires = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE").order_by('last_name')
         genre = Genre
-        groupes_internationaux = GroupeInter.objects.filter(status=True).order_by('nom')
         secteurs_activite = SecteurActivite.objects.filter(status=True).order_by('libelle')
+        commercials = User.objects.all().order_by('-first_name').exclude(is_admin_group=1)
+        groupes = Groupe.objects.filter(statut=True)
 
         return render(request, 'client/modal_client_modification.html',
                       {'client': client, 'types_clients': types_clients, 'types_personnes': types_personnes, 'secteurs_activite': secteurs_activite,
                        'civilites': civilites, 'business_units': business_units, 'bureaux': bureaux, 'pays': pays,
-                       'utilisateurs': utilisateurs, 'gestionnaires': gestionnaires, 'genre': genre, 'groupes_internationaux': groupes_internationaux, })
+                       'utilisateurs': utilisateurs, 'genre': genre, 'commercials': commercials, 'groupes': groupes})
 
 
 @login_required
@@ -8418,123 +8413,6 @@ class CourrierView(TemplateView):
         context.update(admin.site.each_context(self.request))  # Contexte admin
         context['opts'] = self.model._meta  # Options du modèle Courrier
         return context
-
-
-#
-# @login_required()
-# def add_courrier(request, police_id):
-#     police = Police.objects.get(id=police_id)
-#     if police and request.method == 'POST':
-#
-#         produit_id = request.POST.get('produit')
-#         produit = get_object_or_404(Produit, id=produit_id)
-#
-#         courrier_created = Courrier.objects.create(
-#             designation = request.POST.get('designation'),
-#             lien_fichier = request.POST.get('lien_fichier'),
-#             service = request.POST.get('service'),
-#             produit = produit,
-#             status = request.POST.get('status')
-#         )
-#
-#     response = {
-#         'statut': 1,
-#         'message': "Enregistrement effectuée avec succès !",
-#         'data': {
-#             'designation': courrier_created.designation,
-#             'service':courrier_created.service,
-#             'lien_fhichier': courrier_created.lien_fichier,
-#             'status': courrier_created.status,
-#             'created_at': courrier_created.created_at,
-#         }
-#     }
-#
-#     return JsonResponse(response)
-
-
-
-
-# def modifier_courrier(request, courrier_id):
-#     courrier = get_object_or_404(Courrier, id=courrier_id)
-#
-#     if request.method == 'POST':
-#
-#         courrier_before = courrier
-#         pprint(courrier_before)
-#
-#         # Récupérer les champs envoyés par le formulaire
-#         produit_id = request.POST.get('produit')
-#         designation = request.POST.get('designation')
-#         lien_fichier = escape(request.POST.get('lien_fichier'))
-#         service = escape(request.POST.get('service'))
-#         status = request.POST.get('statut')
-#
-#
-#         if produit_id:
-#             produit_id = int(produit_id)
-#             produit = get_object_or_404(Produit, id=produit_id)
-#         else:
-#             produit = None
-#
-#         # Mettre à jour les champs
-#         courrier.produit = produit
-#         courrier.designation = designation
-#         courrier.lien_fichier = lien_fichier
-#         courrier.service = service
-#         courrier.status = status
-#
-#         # Sauvegarder les modifications
-#         courrier.save()
-#
-#         # Log d'action (si nécessaire)
-#         ActionLog.objects.create(
-#             done_by=request.user,
-#             action="update",
-#             description="Modification d'un courrier",
-#             table="courrier",
-#             row=courrier.pk,
-#         )
-#
-#         # Retourner une réponse JSON pour AJAX
-#         return JsonResponse({
-#             'statut': 1,
-#             'message': "Courrier modifié avec succès !"
-#         })
-#
-#     else:
-#         courriers = Courrier.objects.all()  # Options pour les services et statuts
-#         produits = Produit.objects.all()
-#         return render(request, 'police/modal_courrier_update.html', {
-#             'courrier': courrier,
-#             'produits': produits,
-#         })
-#
-#
-# @login_required()
-# def supprimer_courrier(request):
-#     if request.method == "POST":
-#         courrier_id = request.POST.get('courrier_id')
-#
-#         try:
-#             courrier = Courrier.objects.get(id=courrier_id)
-#             courrier.delete()
-#
-#             response = {
-#                 'statut': 1,
-#                 'message': "Courrier supprimé avec succès !",
-#             }
-#
-#         except Courrier.DoesNotExist:
-#             response = {
-#                 'statut': 0,
-#                 'message': "Courrier introuvable !",
-#             }
-#
-#         return JsonResponse(response)
-#
-#     return JsonResponse({'statut': 0, 'message': "Requête invalide !"}, status=400)
-#
-#
 
 
 @method_decorator(login_required, name='dispatch')
@@ -10158,68 +10036,52 @@ def add_annuler_quittance(request):
     return redirect(reverse('annuler_quittance'))
 
 
-# Génération de fichier PDF ne repond pas encore convenablement à la demande
-def generer_courrier(request, police_id, courrier_id):
-    # Vérifie que la police existe
+# generation de fichier pdf
+def generer_courrier(request , police_id, courrier_id):
+    users = User.objects.all()
     police = get_object_or_404(Police, id=police_id)
     courrier = get_object_or_404(Courrier, id=courrier_id)
+
+    # Récupérer le dernier historique de la police
     historique_police = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
 
-    assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id, type_compagnie_id=1).first() if historique_police else []
-    autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id).exclude(type_compagnie_id=1).first()
+    # Récupérer l'assureur associé à l'historique
+    assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id,
+                                                    type_compagnie_id=1).first()
 
-    date_du_jour = datetime.now().strftime('%d/%m/%Y')
+    date_fin_effet_plus_un = historique_police.date_fin_effet + timedelta(days=1)
+    date_renouvellement = date_fin_effet_plus_un.strftime('%d/%m/%Y')
 
-    # Vérifier si le type de courrier a un template associé
-    if not courrier.type_courrier:
-        return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
-
-    # recuperqtion du logo
     site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
     print("Logo : ", site_logo_url)
+    print("Client : ", police.client)
+    print('date_renouvellement', date_renouvellement)
 
     # Configuration du locale pour le formatage
     locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
-    # formatage de la prime
-    prime_ttc = historique_police.prime_ttc
-    prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)}"
-
-    # Conversion du montant en texte
-    prime_ttc_en_lettres = num2words(prime_ttc, lang='fr').capitalize() + " F CFA"
-
-    # Utilisation du système de templates Django pour charger un fichier HTML
+    template_content =  {
+        'nom_client': police.client.nom,
+        'code_client': police.client.code,
+        'adress_client': police.client.adresse,
+        'numero_police': police.numero,
+        'nom_produit': police.produit.nom,
+        'nom_courrier': courrier.designation,
+        'date_debut_effet': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
+        'date_fin_effet': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
+        'montant_renouvellement': f"{locale.format_string('%.0f', historique_police.prime_ttc, grouping=True)}",
+        'montant_renouvellement_en_lettres': num2words(historique_police.prime_ttc, lang='fr').capitalize() + " F CFA",
+        'date_jour': datetime.now().strftime('%d/%m/%Y'),
+        'compagnie':assureur_police.compagnie,
+        'date_renouvellement': date_renouvellement,
+        'site_logo_url': site_logo_url
+    }
     template_name = f"police/generation/{courrier.type_courrier.nom.lower().replace(' ', '_')}.html"
-    try:
-        template_content = render_to_string(template_name, {
-            'nom_client': historique_police.client,
-            'numero_police': historique_police.numero,
-            'nom_produit': historique_police.produit,
-            'numero_quittance': '',
-            'date_debut_effet': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
-            'date_fin_effet': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
-            'montant_renouvellement': prime_formatee,
-            'montant_renouvellement_en_lettres': prime_ttc_en_lettres,
-            'date_jour': date_du_jour,
-            'compagnie': assureur_police.compagnie,
-            'logo': site_logo_url
-        })
-    except FileNotFoundError:
-        return HttpResponse(f"Erreur : Le template '{template_name}' est introuvable.", status=404)
 
-    pdfkit_config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
-
-    # Générer le PDF depuis le contenu HTML
-    try:
-        pdf = pdfkit.from_string(template_content, False, configuration=pdfkit_config)
-
-    except Exception as e:
-        return HttpResponse(f"Erreur lors de la génération du PDF : {e}", status=500)
-
-    # Retourner le PDF comme réponse HTTP
-    response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.pdf"'
-    return response
+    pdf = render_pdf( template_name, template_content)
+    # response = HttpResponse(File(pdf), content_type='application/pdf')
+    # response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.pdf"'
+    return HttpResponse(File(pdf), content_type='application/pdf')
 
 
 # generation de fichier word
@@ -10227,10 +10089,7 @@ def generer_word(request, police_id, courrier_id):
     # Vérifie que la police existe
     police = get_object_or_404(Police, id=police_id)
     courrier = get_object_or_404(Courrier, id=courrier_id)
-    historique_police = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
-
-    assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id, type_compagnie_id=1).first() if historique_police else []
-    autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id).exclude(type_compagnie_id=1).first()
+    historique_police = get_object_or_404(HistoriquePolice, id=police_id)
 
     # Date actuelle
     date_du_jour = datetime.now().strftime('%d/%m/%Y')
@@ -10248,28 +10107,25 @@ def generer_word(request, police_id, courrier_id):
 
     # Formatage de la prime
     prime_ttc = historique_police.prime_ttc
-    prime_formatee = money_field(prime_ttc)
+    prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)} F CFA"
+
 
     # Charger le modèle Word existant
     doc_path = os.path.join(settings.BASE_DIR, 'production', 'templates', 'police', 'courriers', "Appel de prime.docx")
     document = docx.Document(doc_path)
 
-    montant_en_lettre = num2words(historique_police.prime_ttc, lang='fr').capitalize()
-    print('montant_en_lettre : ', montant_en_lettre)
-    print('prime_formatee : ', prime_formatee)
-
     # Dictionnaire des remplacements pour le texte
     base_replacements = {
         'NOM_CLIENT': historique_police.client.nom,
         'NUMERO_POLICE': historique_police.numero,
-        'NOM_PRODUIT': historique_police.produit.nom,
+        'NOM_PRODUIT': historique_police.produit,
         # 'numero_quittance': quittance,
         'DATE_DEBUT_EFFET': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
         'DATE_FIN_EFFET': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
         'MONTANT_RENOUVELLEMENT': prime_formatee,
-        'EN_LETTRES': montant_en_lettre,
+        'MONTANT_RENOUVELLEMENT_EN_LETTRES':  f"{num2words(historique_police.prime_ttc, lang='fr').capitalize()} F CFA",
         'DATE_JOUR': date_du_jour,
-        'COMPAGNIE': assureur_police.compagnie.nom,
+        'COMPAGNIE': historique_police.compagnie,
     }
 
     replacements = {}
@@ -10279,6 +10135,7 @@ def generer_word(request, police_id, courrier_id):
         ]
         for fmt in formats:
             replacements[fmt] = str(value) if value else ""
+
 
     # Fonction pour remplacer les placeholders dans les paragraphes
     def replace_placeholders_in_paragraph(paragraph):
@@ -10317,6 +10174,7 @@ def generer_word(request, police_id, courrier_id):
 
     # Remplacement des placeholders dans le document
     replace_placeholders_in_document(document)
+
 
     # Sauvegarder le document Word dans une réponse HTTP
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')

@@ -709,3 +709,7 @@ label:not(.form-check-label):not(.custom-file-label) {
     color:#F16623 !important;
 }
 
+.select2-container{
+  min-width: 253px !important;
+}
+

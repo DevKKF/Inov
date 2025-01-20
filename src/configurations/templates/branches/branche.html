@@ -23,7 +23,7 @@
     </div>
     <div class="card-body">
         <div class="button-link pull-right mb-2">
-          <a class="btn btn-sm btn-primary mb-1" data-toggle="modal"  data-target="#modal-branche"><i class="fas fa-plus"></i> {{_('Ajouter branche')}}</a>
+          <a class="btn btn-sm btn-primary mb-1" data-toggle="modal"  data-target="#modal-branche"><i class="fas fa-plus-circle"></i> {{_("Ajouter une branche")}}</a>
         </div>
 
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
@@ -35,7 +35,8 @@
                     <tr>
                       <th scope="col">{{_('Code')}}</th>
                       <th scope="col">{{_('Nom')}}</th>
-                        <th scope="col">{{_("Status")}}</th>
+                        <th scope="col">{{_("Date d'ajout et heure")}}</th>
+                        <th scope="col">{{_("Statut")}}</th>
                       <th scope="col">{{_('Actions')}}</th>
                     </tr>
                   </thead>
@@ -44,6 +45,7 @@
                     <tr>
                         <td>{{ branche.code|default_if_none:"" }}</td>
                          <td>{{ branche.nom|default_if_none:"" }}</td>
+                         <td>{{ branche.created_at|date:"d/m/Y H:i" }}</td>
                         <td>
                             {% if branche.status %}
                                 <span class="badge badge-success">Actif</span>
@@ -51,10 +53,9 @@
                                 <span class="badge badge-danger">Inactif</span>
                             {% endif %}
                         </td>
-                         <td>
-                             <span class="btn badge btn-sm btn-complement-rouge rounded-pill btn-modal-modifier_branche" title="Modifier" data-href="#" style="color:white;font-weight:normal;"><i class="fa fa-pencil"></i> {{_('Modifier')}}</span>&nbsp;&nbsp;&nbsp;
-                             <span class="badge badge-danger btn_supprimer_branche" data-courrier_id="#" style="cursor:pointer;"><i class="fa fa-trash"></i> </span>&nbsp;
-
+                        <td>
+                             <span style="cursor:pointer;" class="btn_modifier_branche badge btn-sm btn-modifier rounded-pill text-center" data-branche_id="{branche.id}" data-model_name="branche" data-modal_title="MODIFICATION D'UNE branche" data-href="{% url 'modifier_branche' branche.id %}"><i class="fas fa-edit"></i> {{_('Modifier')}}</span>
+                             <span class="badge badge-danger btn_supprimer_branche" data-branche_id="{{branche.id}}" data-href="{% url 'supprimer_branche' branche.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;
                         </td>
                     </tr>
                   {% endfor %}

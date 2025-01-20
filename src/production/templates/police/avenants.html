@@ -24,9 +24,11 @@
         <h3 class="card-title text-white">{{_('MOUVEMENTS')}}</h3>
     </div>
     <div class="card-body">
-      <div class="button-link pull-right mb-2">
-        <a class="btn btn-sm btn-primary mb-1" data-toggle="modal"  data-target="#modal-avenant"><i class="fas fa-plus-circle"></i> {{_("Faire un mouvement")}}</a>
-      </div>
+        {% if request.user.is_production %}
+          <div class="button-link pull-right mb-2">
+            <a class="btn btn-sm btn-primary mb-1" data-toggle="modal"  data-target="#modal-avenant"><i class="fas fa-plus-circle"></i> {{_("Faire un mouvement")}}</a>
+          </div>
+        {% endif %}
 
 
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4 ">

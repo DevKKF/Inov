@@ -334,9 +334,9 @@
         </div>
         <div class="info">
             {% if perms|can_view_self %}
-                <a style="color:white !important" href="{% jazzy_admin_url request.user request.current_app|default:"admin" %}" class="d-block">{{ request.user }}</a>
+                <a style="color:white !important" href="{% jazzy_admin_url request.user request.current_app|default:'admin' %}" class="d-block">{{ request.user.first_name }} {{ request.user.last_name }}</a>
             {% else %}
-                <span class="d-block" style="color:white !important">{{ request.user }}</span>
+                <span class="d-block" style="color:white !important">{{ request.user.first_name }} {{ request.user.last_name }}</span>
             {% endif %}
         </div>
       </div>
@@ -364,7 +364,7 @@
             </li>
 
 
-             <li class="nav-item d-none">
+             <li class="nav-item">
                 <a href="{% url 'police_courrier' police.id %}" class="nav-link">
                   <i class="nav-icon fas fa-comments"></i>
                   <p>Courriers</p>

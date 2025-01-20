@@ -265,6 +265,8 @@ $(document).ready(function () {
                 $('.if_personne_physique').show();
                 $('.if_personne_physique input').attr('required', 'required');
                 $('.if_personne_physique select').attr('required', 'required');
+                $('#commercial_id').closest('.form-group').hide();
+                $('#groupe_id').closest('.form-group').hide();
                 $('#date_naissance').closest('.form-group').show();
                 $('#date_creation').closest('.form-group').hide();
                 break;
@@ -272,6 +274,8 @@ $(document).ready(function () {
                 $('.if_personne_morale').show();
                 $('.if_personne_morale input').attr('required', 'required');
                 $('.if_personne_morale select').attr('required', 'required');
+                $('#commercial_id').closest('.form-group').show();
+                $('#groupe_id').closest('.form-group').show();
                 $('#date_naissance').closest('.form-group').hide();
                 $('#date_creation').closest('.form-group').show();
                 break;
@@ -298,13 +302,19 @@ $(document).ready(function () {
                 $('.if_personne_physique').show();
                 $('.if_personne_physique input').attr('required', 'required');
                 $('.if_personne_physique select').attr('required', 'required');
+                $('#commercial_id').closest('.form-group').hide();
+                $('#groupe_id').closest('.form-group').hide();
                 $('#date_naissance').closest('.form-group').show();
+                $('#date_creation').closest('.form-group').hide();
                 break;
             case 2://personne morale
                 $('.if_personne_morale').show();
                 $('.if_personne_morale input').attr('required', 'required');
                 $('.if_personne_morale select').attr('required', 'required');
+                $('#commercial_id').closest('.form-group').show();
+                $('#groupe_id').closest('.form-group').show();
                 $('#date_naissance').closest('.form-group').hide();
+                $('#date_creation').closest('.form-group').show();
                 break;
         }
     }
@@ -2187,29 +2197,6 @@ $(document).ready(function () {
 
                     if (response.statut == 1) {
 
-                        let vehicule = response.data;
-
-                        let t = $('#table_vehicules').DataTable();
-
-                        t.row.add([
-                            vehicule.numero_immatriculation,
-                            vehicule.marque,
-                            vehicule.modele,
-                            vehicule.modele,
-                            vehicule.numero_serie,
-                            vehicule.conducteur,
-                            vehicule.valeur_neuve,
-                            vehicule.valeur_actuelle,
-                            vehicule.date_mis_en_circulation,
-                            vehicule.type_carosserie,
-                            vehicule.place,
-                            vehicule.poids_a_vide,
-                        ])
-                            .draw(false);
-
-                        //Vider le formulaire
-                        resetFields('#' + formulaire.attr('id'));
-
                         notifySuccess(response.message);
                         location.reload();
 
@@ -2353,20 +2340,18 @@ $(document).ready(function () {
                     notifyWarning('Veuillez renseigner tous les champs obligatoires');
                 }
 
-
             });
 
 
         });
 
-
     });
 
 
-    $(document).on('click', "#btn_supprimer_vehicule", function () {
+    $(document).on('click', ".btn_supprimer_vehicule", function () {
 
         let vehicule_id = $(this).data('vehicule_id');
-
+        let href = $(this).data('href');
         let n = noty({
             text: 'Voulez-vous vraiment supprimer ce vehicule ?',
             type: 'warning',
@@ -2380,7 +2365,7 @@ $(document).ready(function () {
 
                         //effectuer la suppression
                         $.ajax({
-                            url: '/production/police/delete',
+                            url: href,
                             type: 'post',
                             data: { vehicule_id: vehicule_id },
                             success: function (e) {
@@ -3554,7 +3539,251 @@ $(document).ready(function () {
     //fin modification de beneficiaire
 
 
+    //DETAILS de marchandise
+    $(document).on("click", ".btn_details_marchandise", function () {
 
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        //let dialog_box = $("<div>").addClass('olea_std_dialog_box').appendTo('body');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-details_marchandise .dataTable:not(.customDataTable_)').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+                },
+                order: [[0, 'desc']],
+                lengthMenu: [
+                    [100],
+                    [100],
+                ],
+                searching: false,
+                lengthChange: false,
+            });
+
+            let i = 0;
+            $('.dropzone_area').each(function (myElement) {
+                let zone_id = $(this).attr('id');
+                let href = $(this).attr('action');
+
+                let dropzone = new Dropzone("#" + zone_id, { url: href, dictDefaultMessage: "" });
+
+            });
+
+            $('#modal-details_marchandise').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-details_marchandise').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-details_marchandise').modal();
+
+        });
+    });
+
+
+    //Modification de marchandise
+    $(document).on('click', '.btn_modifier_marchandise', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_marchandise').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_marchandise').find('.modal-title').text(modal_title);
+            $('#modal-modification_marchandise').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_marchandise').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-modification_marchandise').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_marchandise").on('click', function () {
+
+                let formulaire = $('#form_update_marchandise');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+
+                    let data_serialized = formulaire.serialize();
+                    $.each(data_serialized.split('&'), function (index, elem) {
+                        let vals = elem.split('=');
+
+                        let key = vals[0];
+                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                        formData.append(key, valeur);
+
+                    });
+
+                    $.ajax({
+                        type: 'post',
+                        url: href,
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+
+                            if (response.statut == 1) {
+
+                                notifySuccess(response.message);
+                                location.reload();
+
+                            }
+                             if (response.statut == 2) {
+
+                                notifyWarning(response.message);
+
+                            } else {
+
+                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                let errors_list_to_display = '';
+                                for (field in errors) {
+                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                }
+
+                                $('#modal-vehicule .alert .message').html(errors_list_to_display);
+
+                                $('#modal-vehicule .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                    $(this).slideUp(500);
+                                }).removeClass('alert-success').addClass('alert-warning');
+
+                            }
+
+                        },
+                        error: function (request, status, error) {
+
+                            notifyWarning("Erreur lors de l'enregistrement");
+                        }
+
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+            });
+        });
+    });
+
+
+    //Suppression de marchandise
+    $(document).on('click', ".btn_supprimer_marchandise", function () {
+
+        let police_id = $(this).data('police_id');
+        let marchandise_id = $(this).data('marchandise_id');
+        let href = $(this).data('href');
+        //alert(href);
+        let n = noty({
+            text: 'Voulez-vous vraiment supprimer cette marchandise ?',
+            type: 'warning',
+            dismissQueue: true,
+            layout: 'center',
+            theme: 'defaultTheme',
+            buttons: [
+                {
+                    addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                        $noty.close();
+
+                        //effectuer la suppression
+                        $.ajax({
+                            url: href,
+                            type: 'post',
+                            data: { police_id: police_id, marchandise_id: marchandise_id },
+                            success: function (e) {
+                                notifySuccess("Marchandise non trouvée !");
+                                location.reload();
+                            },
+                            error: function () {
+                                notifyWarning('Erreur lors de la suppression de la marchandise');
+                            }
+                        });
+
+                    }
+                },
+                {
+                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                        //annuler la suppression
+                        $noty.close();
+                    }
+                }
+            ]
+        });
+
+
+
+    });
+
+
+    //DETAILS de l'historique de la marchandise
+    $(document).on("click", ".btn_details_histo_marchandise", function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        //let dialog_box = $("<div>").addClass('olea_std_dialog_box').appendTo('body');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-details_marchandise_histo .dataTable:not(.customDataTable_)').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+                },
+                order: [[0, 'desc']],
+                lengthMenu: [
+                    [100],
+                    [100],
+                ],
+                searching: false,
+                lengthChange: false,
+            });
+
+            let i = 0;
+            $('.dropzone_area').each(function (myElement) {
+                let zone_id = $(this).attr('id');
+                let href = $(this).attr('action');
+
+                let dropzone = new Dropzone("#" + zone_id, { url: href, dictDefaultMessage: "" });
+
+            });
+
+            $('#modal-details_marchandise_histo').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-details_marchandise_histo').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-details_marchandise_histo').modal();
+
+        });
+    });
 
 
     //ajout d'un avenant sur une police
@@ -14126,6 +14355,1166 @@ $(document).ready(function () {
     $(document).ready(function () {
         addInputAlphaNumValidation(".alpha_num_input", "error-message");
     });
+
+    function apporteur_manage_type_personne_change() {
+        let type_personne_id = parseInt($('#type_personne_id').val());
+
+        switch (type_personne_id) {
+            default:
+            case 1: // personne physique
+                $('#prenoms').closest('.form-group').show();
+                $('#prenoms').attr('required', true);
+                break;
+            case 2: // personne morale
+                $('#prenoms').closest('.form-group').hide();
+                $('#prenoms').removeAttr('required');
+                break;
+        }
+    }
+
+    // Initialiser la gestion au chargement
+    apporteur_manage_type_personne_change();
+
+    // Attacher l'événement `change` au bon élément
+    $(document).on('change', "#type_personne_id", function () {
+        apporteur_manage_type_personne_change();
+    });
+
+    //Création d'un apporteur
+    $(document).on('click', "#btn_save_apporteur", function () {
+
+        let formulaire = $('#form_add_apporteur');
+        let href = formulaire.attr('action');
+
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment enregistrer ce client ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
+
+                            //confirmation obtenu
+
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
+
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        notifySuccess(response.message, function () {
+                                            location.reload();
+                                        });
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-client .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
+                    }
+                ]
+            });
+            //fin demande confirmation
+
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
+        }
+
+    });
+
+    //Modification d'un apporteur
+    $(document).on('click', '.btn_modifier_apporteur', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            apporteur_manage_type_personne_change();
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_apporteur').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_apporteur').find('.modal-title').text(modal_title);
+            $('#modal-modification_apporteur').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_apporteur').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-modification_apporteur').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_apporteur").on('click', function () {
+
+                let formulaire = $('#form_update_apporteur');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+
+                    //demander confirmation
+                    let n = noty({
+                        text: 'Voulez-vous vraiment modifier cet apporteur ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+
+                                    //confirmation obtenu
+
+                                    let data_serialized = formulaire.serialize();
+                                    $.each(data_serialized.split('&'), function (index, elem) {
+                                        let vals = elem.split('=');
+
+                                        let key = vals[0];
+                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                        formData.append(key, valeur);
+
+                                    });
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                notifySuccess(response.message, function () {
+                                                    location.reload();
+                                                });
+
+                                            } else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-modification_apporteur .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-modification_apporteur .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
+
+                                }
+                            }
+                        ]
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+
+            });
+
+        });
+
+    });
+
+    //Suppression d'un apporteur
+    $(document).on('click', '.btn_supprimer_apporteur', function () {
+        let apporteur_id = $(this).data('apporteur_id');
+        let href = $(this).data('href');
+        let n = noty({
+            text: 'Voulez-vous vraiment supprimer cet apporteur ?',
+            type: 'warning',
+            dismissQueue: true,
+            layout: 'center',
+            theme: 'defaultTheme',
+            buttons: [
+                {
+                    addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                        $noty.close();
+
+                        //effectuer la suppression
+                        $.ajax({
+                            url: href,
+                            type: 'post',
+                            data: { apporteur_id: apporteur_id },
+                            success: function (response) {
+
+                                notifySuccess(response.message, function () {
+                                    location.reload();
+                                });
+
+                            },
+                            error: function () {
+                                notifyWarning('Erreur lors de la suppression');
+                            }
+                        });
+
+                    }
+                },
+                {
+                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                        //annuler la suppression
+                        $noty.close();
+                    }
+                }
+            ]
+        });
+
+    });
+
+    //Création d'une banque
+    $(document).on('click', "#btn_save_banque", function () {
+
+        let formulaire = $('#form_add_banque');
+        let href = formulaire.attr('action');
+
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment enregistrer cette banque ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
+
+                            //confirmation obtenu
+
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
+
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        notifySuccess(response.message, function () {
+                                            location.reload();
+                                        });
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-client .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
+                    }
+                ]
+            });
+            //fin demande confirmation
+
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
+        }
+
+    });
+
+    //Modification d'un banque
+    $(document).on('click', '.btn_modifier_banque', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_banque').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_banque').find('.modal-title').text(modal_title);
+            $('#modal-modification_banque').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_banque').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-modification_banque').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_banque").on('click', function () {
+
+                let formulaire = $('#form_update_banque');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+
+                    //demander confirmation
+                    let n = noty({
+                        text: 'Voulez-vous vraiment modifier cet banque ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+
+                                    //confirmation obtenu
+
+                                    let data_serialized = formulaire.serialize();
+                                    $.each(data_serialized.split('&'), function (index, elem) {
+                                        let vals = elem.split('=');
+
+                                        let key = vals[0];
+                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                        formData.append(key, valeur);
+
+                                    });
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                notifySuccess(response.message, function () {
+                                                    location.reload();
+                                                });
+
+                                            } else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-modification_banque .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-modification_banque .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
+
+                                }
+                            }
+                        ]
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+
+            });
+
+        });
+
+    });
+
+    //Suppression d'un banque
+    $(document).on('click', '.btn_supprimer_banque', function () {
+        let banque_id = $(this).data('banque_id');
+        let href = $(this).data('href');
+        let n = noty({
+            text: 'Voulez-vous vraiment supprimer cette banque ?',
+            type: 'warning',
+            dismissQueue: true,
+            layout: 'center',
+            theme: 'defaultTheme',
+            buttons: [
+                {
+                    addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                        $noty.close();
+
+                        //effectuer la suppression
+                        $.ajax({
+                            url: href,
+                            type: 'post',
+                            data: { banque_id: banque_id },
+                            success: function (response) {
+
+                                notifySuccess(response.message, function () {
+                                    location.reload();
+                                });
+
+                            },
+                            error: function () {
+                                notifyWarning('Erreur lors de la suppression');
+                            }
+                        });
+
+                    }
+                },
+                {
+                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                        //annuler la suppression
+                        $noty.close();
+                    }
+                }
+            ]
+        });
+    });
+
+    //Création d'une branche
+    $(document).on('click', "#btn_save_branche", function () {
+
+        let formulaire = $('#form_add_branche');
+        let href = formulaire.attr('action');
+
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment enregistrer cette branche ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
+
+                            //confirmation obtenu
+
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
+
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        notifySuccess(response.message, function () {
+                                            location.reload();
+                                        });
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-client .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
+                    }
+                ]
+            });
+            //fin demande confirmation
+
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
+        }
+
+    });
+
+    //Modification d'un branche
+    $(document).on('click', '.btn_modifier_branche', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_branche').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_branche').find('.modal-title').text(modal_title);
+            $('#modal-modification_branche').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_branche').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-modification_branche').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_branche").on('click', function () {
+
+                let formulaire = $('#form_update_branche');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+
+                    //demander confirmation
+                    let n = noty({
+                        text: 'Voulez-vous vraiment modifier cet branche ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+
+                                    //confirmation obtenu
+
+                                    let data_serialized = formulaire.serialize();
+                                    $.each(data_serialized.split('&'), function (index, elem) {
+                                        let vals = elem.split('=');
+
+                                        let key = vals[0];
+                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                        formData.append(key, valeur);
+
+                                    });
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                notifySuccess(response.message, function () {
+                                                    location.reload();
+                                                });
+
+                                            } else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-modification_branche .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-modification_branche .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
+
+                                }
+                            }
+                        ]
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+
+            });
+
+        });
+
+    });
+
+    //Suppression d'un branche
+    $(document).on('click', '.btn_supprimer_branche', function () {
+        let branche_id = $(this).data('branche_id');
+        let href = $(this).data('href');
+        let n = noty({
+            text: 'Voulez-vous vraiment supprimer cette branche ?',
+            type: 'warning',
+            dismissQueue: true,
+            layout: 'center',
+            theme: 'defaultTheme',
+            buttons: [
+                {
+                    addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                        $noty.close();
+
+                        //effectuer la suppression
+                        $.ajax({
+                            url: href,
+                            type: 'post',
+                            data: { branche_id: branche_id },
+                            success: function (response) {
+
+                                notifySuccess(response.message, function () {
+                                    location.reload();
+                                });
+
+                            },
+                            error: function () {
+                                notifyWarning('Erreur lors de la suppression');
+                            }
+                        });
+
+                    }
+                },
+                {
+                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                        //annuler la suppression
+                        $noty.close();
+                    }
+                }
+            ]
+        });
+    });
+
+    //Création d'une compagnie
+    $(document).on('click', "#btn_save_compagnie", function () {
+
+        let formulaire = $('#form_add_compagnie');
+        let href = formulaire.attr('action');
+
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment enregistrer cet compagnie ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
+
+                            //confirmation obtenu
+
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
+
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        notifySuccess(response.message, function () {
+                                            location.reload();
+                                        });
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-client .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
+                    }
+                ]
+            });
+            //fin demande confirmation
+
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
+        }
+
+    });
+
+    //Modification d'un compagnie
+    $(document).on('click', '.btn_modifier_compagnie', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_compagnie').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_compagnie').find('.modal-title').text(modal_title);
+            $('#modal-modification_compagnie').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_compagnie').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-modification_compagnie').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_compagnie").on('click', function () {
+
+                let formulaire = $('#form_update_compagnie');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+
+                    //demander confirmation
+                    let n = noty({
+                        text: 'Voulez-vous vraiment modifier cet compagnie ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+
+                                    //confirmation obtenu
+
+                                    let data_serialized = formulaire.serialize();
+                                    $.each(data_serialized.split('&'), function (index, elem) {
+                                        let vals = elem.split('=');
+
+                                        let key = vals[0];
+                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                        formData.append(key, valeur);
+
+                                    });
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                notifySuccess(response.message, function () {
+                                                    location.reload();
+                                                });
+
+                                            } else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-modification_compagnie .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-modification_compagnie .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
+
+                                }
+                            }
+                        ]
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+
+            });
+
+        });
+
+    });
+
+    //Suppression d'un compagnie
+    $(document).on('click', '.btn_supprimer_compagnie', function () {
+        let compagnie_id = $(this).data('compagnie_id');
+        let href = $(this).data('href');
+        let n = noty({
+            text: 'Voulez-vous vraiment supprimer cette compagnie ?',
+            type: 'warning',
+            dismissQueue: true,
+            layout: 'center',
+            theme: 'defaultTheme',
+            buttons: [
+                {
+                    addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                        $noty.close();
+
+                        //effectuer la suppression
+                        $.ajax({
+                            url: href,
+                            type: 'post',
+                            data: { compagnie_id: compagnie_id },
+                            success: function (response) {
+
+                                notifySuccess(response.message, function () {
+                                    location.reload();
+                                });
+
+                            },
+                            error: function () {
+                                notifyWarning('Erreur lors de la suppression');
+                            }
+                        });
+
+                    }
+                },
+                {
+                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                        //annuler la suppression
+                        $noty.close();
+                    }
+                }
+            ]
+        });
+    });
+
 });
 
 //Affichage du tableau si réponse apporteur est oui.
@@ -14504,11 +15893,23 @@ $(document).ready(function () {
         // Valider les champs obligatoires
         let valide = true;
         $('.mod_aliment_champ_obligatoire').each(function () {
-            if (!$(this).val().trim()) {
-                $(this).addClass('is-invalid'); // Ajouter classe invalide
-                valide = false;
+            let value = $(this).val().trim();
+            // Validation spécifique pour les <select>
+            if ($(this).is('select')) {
+                if (!value || value === "") {
+                    $(this).addClass('is-invalid'); // Ajouter classe invalide
+                    valide = false;
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid'); // Ajouter classe valide
+                }
             } else {
-                $(this).removeClass('is-invalid').addClass('is-valid'); // Ajouter classe valide
+                // Validation pour les autres types de champs
+                if (!value) {
+                    $(this).addClass('is-invalid'); // Ajouter classe invalide
+                    valide = false;
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid'); // Ajouter classe valide
+                }
             }
         });
 
@@ -15170,7 +16571,7 @@ $(document).ready(function () {
         if (!produit_id) {
             // Si aucun produit sélectionné, réinitialiser tout
             $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab, #marchandise-tab').addClass('d-none');
-            $('#modal-police_aliment .aliment_champ_obligatoire, #modal-police_aliment .marchandise_champ_obligatoire').removeAttr('required');
+            $('#modal-police .aliment_champ_obligatoire, #modal-police_aliment .marchandise_champ_obligatoire').removeAttr('required');
             $('#table_liste_aliment tbody').empty();
             return;
         }
@@ -15185,26 +16586,29 @@ $(document).ready(function () {
 
                 // Réinitialiser les onglets et champs
                 $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab, #marchandise-tab').addClass('d-none');
-                $('#modal-police_aliment .aliment_champ_obligatoire').removeAttr('required');
-                $('#modal-police_aliment .marchandise_champ_obligatoire').removeAttr('required');
+                $('#modal-police .aliment_champ_obligatoire').removeAttr('required');
+                $('#modal-police_aliment .mod_aliment_champ_obligatoire').removeAttr('required');
+                $('#modal-police .marchandise_champ_obligatoire').removeAttr('required');
 
                 // Effacer les lignes existantes du tableau
                 const tbody = $('#table_liste_aliment tbody');
                 tbody.empty();
 
                 // Traitement basé sur la réponse du serveur
-                if (produit_code == 10001) {
+                if (produit_code == 10001) { //Mono-Véhicule
                     $('#garantie-tab').removeClass('d-none');
                     $('#vehicule-tab').removeClass('d-none');
-                    $('#modal-police_aliment .vehicule_champ_obligatoire').attr('required', true);
-                } else if (produit_code == 10002) {
+                    $('#modal-police .aliment_champ_obligatoire').attr('required', true);
+                } else if (produit_code == 10002) { //Flotte-Auto
                     $('#garantie-tab').removeClass('d-none');
                     $('#aliment-tab').removeClass('d-none');
-                    $('#modal-police_aliment .aliment_champ_obligatoire').attr('required', true);
-                } else if (produit_code == 50001 || produit_code == 50002) {
+                    $('#modal-police_aliment .mod_aliment_champ_obligatoire').attr('required', true);
+                } else if (produit_code == 50001 || produit_code == 50002) { //
                     $('#garantie-tab').removeClass('d-none');
                     $('#marchandise-tab').removeClass('d-none');
-                    $('#modal-police_aliment .marchandise_champ_obligatoire').attr('required', true);
+                    $('#modal-police .marchandise_champ_obligatoire').attr('required', true);
+                }else{
+                    $('#risque-tab').removeClass('d-none');
                 }
             },
             error: function () {
@@ -15212,5 +16616,6 @@ $(document).ready(function () {
             }
         });
     });
+
 });
 

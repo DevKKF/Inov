@@ -30,9 +30,9 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("N° série")}} <span class="required">*</span></label>
+										<label class="col-sm-5 col-form-label">{{_("N° série")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="num_serie" value="" required/>
+											<input type="text" class="form-control" name="num_serie" value="">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -59,21 +59,9 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Date de sortie")}} </label>
-										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_sortie" value="" />
-										</div>
-									</div>
-									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Place')}}</label>
 										<div class="col-sm-7">
 											<input type="text" min="1" max="100" class="form-control money_field" name="places_assises"/>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Parc')}}</label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control" name="num_parc" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">
@@ -83,15 +71,21 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Poid T.A.C")}}</label>
+										<label class="col-sm-5 col-form-label">{{_("Valeur actuelle")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="poid_tac" value=""/>
+											<input type="text" class="form-control money_field" name="valeur_actuelle" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Conducteur')}}</label>
 										<div class="col-sm-7">
 											<input type="text" class="form-control" name="conducteur" value=""/>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Propriétaire")}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="proprietaire" value="" required>
 										</div>
 									</div>
 								</div>
@@ -137,9 +131,9 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Date d'entrée")}} <span class="required">*</span></label>
+										<label class="col-sm-5 col-form-label">{{_("Date d'entrée")}}</label>
 										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_entree" value="" required>
+											<input type="date" class="form-control" name="date_entree" value="">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -155,21 +149,15 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Valeur actuelle")}}</label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="valeur_actuelle" value=""/>
-										</div>
-									</div>
-									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Poids à vide")}}</label>
 										<div class="col-sm-7">
 											<input type="text" class="form-control money_field" name="poids_a_vide" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Propriétaire")}} <span class="required">*</span></label>
+										<label class="col-sm-5 col-form-label">{{_("Poid T.A.C")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="proprietaire" value="" required>
+											<input type="text" class="form-control money_field" name="poid_tac" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">

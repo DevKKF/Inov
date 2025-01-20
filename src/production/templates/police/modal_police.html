@@ -34,7 +34,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">Branche <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control tags-multiple branche" name="branche" id="branche">
+											<select class="form-control tags-multiple branche" name="branche" id="branche" required>
 												<option value="">Choisir</option>
 												{% for branche in branches %}
 													<option value="{{ branche.id }}" data-code="{{ branche.code }}">{{ branche.nom }}</option>
@@ -95,6 +95,7 @@
 												<option value="4">4 {{_('Mois')}}</option>
 												<option value="5">5 {{_('Mois')}}</option>
 												<option value="6">6 {{_('Mois')}}</option>
+												<option value="Aucun">{{_('Aucun')}}</option>
 											</select>
 										</div>
 									</div>
@@ -109,19 +110,6 @@
 											</select>
 										</div>
 									</div>
-
-									<!--div class="form-group row">
-										<label class="col-sm-5 col-form-label">Devise <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control" name="devise" required>
-												<option selected value="">Choisir</option>
-												{% for devise in devises %}
-												<option value="{{ devise.id }}">{{ devise.libelle }}</option>
-												{% endfor %}
-											</select>
-										</div>
-									</div-->
-
 									<div class="form-group row box_typecompagnie">
 										<label class="col-sm-5 col-form-label">{{_("Autre assureur")}}</label>
 										<div class="col-sm-7">
@@ -340,9 +328,9 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("N° série")}} <span class="required">*</span></label>
+										<label class="col-sm-5 col-form-label">{{_("N° série")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control aliment_champ_obligatoire" name="num_serie" value=""/>
+											<input type="text" class="form-control" name="num_serie" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">
@@ -369,21 +357,9 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Date de sortie")}} </label>
-										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_sortie" value="" />
-										</div>
-									</div>
-									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Place')}}</label>
 										<div class="col-sm-7">
 											<input type="text" class="form-control money_field" name="places_assises" value="">
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Parc')}}</label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control" name="num_parc" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">
@@ -393,15 +369,21 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Poid T.A.C")}}</label>
+										<label class="col-sm-5 col-form-label">{{_("Valeur actuelle")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="poid_tac" value=""/>
+											<input type="text" class="form-control money_field" name="valeur_actuelle" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Conducteur')}}</label>
 										<div class="col-sm-7">
 											<input type="text" class="form-control" name="conducteur" value=""/>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Propriétaire")}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control aliment_champ_obligatoire" name="proprietaire" value="" required>
 										</div>
 									</div>
 								</div>
@@ -435,18 +417,6 @@
 											</select>
 										</div>
 									</div>
-
-<!--									<div class="form-group row">-->
-<!--										<label class="col-sm-6 col-form-label">Type préfinancement <span class="required">*</span></label>-->
-<!--										<div class="col-sm-6">-->
-<!--											<select class="form-control" name="type_prefinancement" autocomplete="off" required>-->
-<!--												<option value="">Choisir</option>-->
-<!--												{% for type_prefinancement in types_prefinancements %}-->
-<!--												<option value="{{ type_prefinancement.id }}">{{ type_prefinancement.libelle }}</option>-->
-<!--												{% endfor %}-->
-<!--											</select>-->
-<!--										</div>-->
-<!--									</div>-->
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Carrosserie')}}</label>
 										<div class="col-sm-7">
@@ -459,9 +429,9 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Date d'entrée")}} <span class="required">*</span></label>
+										<label class="col-sm-5 col-form-label">{{_("Date d'entrée")}}</label>
 										<div class="col-sm-7">
-											<input type="date" class="form-control aliment_champ_obligatoire" name="date_entree" value="">
+											<input type="date" class="form-control" name="date_entree" value="">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -477,21 +447,15 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Valeur actuelle")}}</label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="valeur_actuelle" value=""/>
-										</div>
-									</div>
-									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Poid à vide")}}</label>
 										<div class="col-sm-7">
 											<input type="text" class="form-control money_field" name="poids_a_vide" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Propriétaire")}} <span class="required">*</span></label>
+										<label class="col-sm-5 col-form-label">{{_("Poid T.A.C")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control aliment_champ_obligatoire" name="proprietaire" value="">
+											<input type="text" class="form-control money_field" name="poid_tac" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">
@@ -798,7 +762,7 @@
 											<select class="form-control" name="fractionnement" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for fractionnement in fractionnements %}
-												<option value="{{ fractionnement.id }}">{{ fractionnement.libelle }}</option>
+													<option value="{{ fractionnement.id }}">{{ fractionnement.libelle }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -815,9 +779,9 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Date prochaine facture")}} <span class="required">*</span></label>
+										<label class="col-sm-5 col-form-label">{{_("Date prochaine facture")}}</label>
 										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_prochaine_facture" value="" required/>
+											<input type="date" class="form-control" name="date_prochaine_facture" value="">
 										</div>
 									</div>
 								</div>
@@ -892,13 +856,19 @@
 											<input type="text" class="form-control money_field calculs_handler_police" name="taxe" id="taxe" autocomplete="off" value="0" />
 										</div>
 									</div>
-									<div class="form-group row">
+									<!--div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Autres Taxes")}} <span class="required"></span></label>
 										<div class="col-sm-6" style="padding-right:0px;">
 											<input style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field calculs_handler_police" name="autres_taxes" id="autres_taxes" autocomplete="off" value="0" readonly/>
 										</div>
 										<div class="col-sm-1" style="padding-left:0px;">
 											<span class="btn " style="background:gray;color:white;border-top-left-radius:0px;border-bottom-left-radius:0px;" data-toggle="modal" data-target="#modal-autres_taxes">+</span>
+										</div>
+									</div-->
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Autres Taxes")}} <span class="required"></span></label>
+										<div class="col-sm-7">
+											<input style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field calculs_handler_police" name="autres_taxes" id="autres_taxes" autocomplete="off" value="0">
 										</div>
 									</div>
 								</div>

@@ -71,281 +71,178 @@
 {% endblock %}
 {% block content %}
 
-<!--div class="col-md-12" class="accordion" id="accordionClient_removed">
-  <div class="card offset" style="padding:0px;margin:0px;border:none;">
-    <div class="card-header">
-      <h3 class="card-title text-white">DÉTAILS D'UN CLIENT</h3>
-      <div class="card-tools">
-        <span style="cursor:pointer;" class="btn btn-tool btn_modifier_client" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit text-warning"></i></span>&nbsp;
-        <button
-          type="button"
-          class="btn btn-tool"
-          data-card-widget="collapse"
-          title="Collapse">
-          <i class="fas fa-minus"></i>
-        </button>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="row"-->
-        <div class="col-12 col-md-12 order-2 order-md-1" id="accordionClient">
-          <div class="row">
-
-            <!--<div class="col-12 col-sm-4 col-md-2">
-
-                  <div class="info-box collapsed active" data-toggle="collapse0" id="btnInfosClient" href="#collapseInfosClient" aria-expanded="true">
-                      <span class="info-box-icon text-white elevation-1"><i class="fas fa-user-tag"></i></span></span>
-                      <div class="info-box-content">
-                        <span class="info-box-text">{{_('FICHE_CLIENT')}}</span>
-                      </div>
-                  </div>
-
-            </div>
-
-            <div class="col-12 col-sm-4 col-md-2">
-
-                  <div class="info-box collapsed" data-toggle="collapse0" id="btnPolices" href="#collapsePolices">
-                      <span class="info-box-icon text-white elevation-1"><i class="fas fa-file-contract"></i></span></span>
-                      <div class="info-box-content">
-                        <span class="info-box-text">{{_('POLICES')}}</span>
-                      </div>
-                  </div>
-
-            </div>
-
-            <div class="col-12 col-sm-4 col-md-2">
-
-                  <div class="info-box collapsed" data-toggle="collapse0" id="btnContacts" href="#collapseContacts">
-                      <span class="info-box-icon text-white elevation-1"><i class="fas fa-phone-alt"></i></span></span>
-                      <div class="info-box-content">
-                        <span class="info-box-text">{{_('CONTACTS')}}</span>
-                      </div>
-                  </div>
-
-            </div>
-
-            <div class="col-12 col-sm-4 col-md-2">
-
-                <div class="info-box collapsed" data-toggle="collapse0" id="btnFiliales" href="#collapseFiliales" aria-expanded="true">
-                    <span class="info-box-icon text-white elevation-1"><i class="fas fa-users"></i
-                    ></span>
-                    <div class="info-box-content">
-                      <span class="info-box-text">{{_('FILIALES')}}</span>
-                    </div>
-                  </div>
-
-            </div>
-
-
-            <div class="col-12 col-sm-4 col-md-2">
-
-                <div class="info-box collapsed" data-toggle="collapse0" id="btnGed" href="#collapseGed" aria-expanded="true">
-                    <span class="info-box-icon text-white elevation-1"><i class="far fa-file-alt"></i></span></span>
-                    <div class="info-box-content">
-                      <span class="info-box-text">{{_('GED')}}</span>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="col-12 col-sm-4 col-md-2">
-
-                  <div class="info-box collapsed" data-toggle="collapse0" id="btnAcomptes" href="#collapseAcomptes" aria-expanded="true">
-                      <span class="info-box-icon text-white elevation-1"><i class="fas fa-funnel-dollar"></i></span></span>
-                      <div class="info-box-content">
-                        <span class="info-box-text">{{_('ACOMPTES')}}</span>
-                      </div>
-                  </div>
-
-            </div> -->
-
-            <div class="clearfix hidden-md-up"></div>
-
-
-          </div>
-
-          <!-- INFORMATIONS CLIENT  -->
-          <div class="row collapse show" id="collapseInfosClient">
-            <div class="col-12 col-sm-6 col-md-12">
-              <h4></h4>
-              <div class="card shadow_OLD">
-                <div class="card-header">
-                    <h3 class="card-title">{{_("FICHE DU CLIENT")}}</h3>
-                    <div class="card-tools">
-                        <!--span style="cursor:pointer;" class="btn btn-sm btn-primary btn_modifier_client" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit"></i> {{_("Modifier client")}}</span>&nbsp;
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse"><i class="fas fa-minus"></i></button>
-                        <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button-->
-                    </div>
-                </div>
-
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <div class="button-link pull-right mb-2">
-                              <span style="cursor:pointer;" class="btn btn-sm btn-warning btn_modifier_client mb-1" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit"></i> {{_("Modifier client")}}</span>&nbsp;
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_("Nom complet")}}</label>
-                                <div class="col-sm-7">
-                                <span class="form-control" title="{{ client.nom|default_if_none:'' }} {{ client.prenoms|default_if_none:'' }}">{{ client.nom|default_if_none:"" }} {{ client.prenoms|default_if_none:"" }}</span>
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_("Code client")}}</label>
-                                <div class="col-sm-7">
-                                <span class="form-control">{{ client.code|default:client.code_provisoire|default:"" }}</span>
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_("Type personne")}}</label>
-                                <div class="col-sm-7">
-                                <span class="form-control">{{ client.type_personne|default_if_none:"" }}</span>
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_("Type client")}}</label>
-                                <div class="col-sm-7">
-                                <span class="form-control">{{ client.type_client|default_if_none:"" }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="vl"></div>
-                        <div class="col-md-5">
-                            <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_("Date de nais./création")}}</label>
-                                <div class="col-sm-7">
-                                <span class="form-control">{{ client.date_naissance|default_if_none:""  }}</span>
-                                </div>
-                            </div>
-
-                            <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_("Secteur activité")}}</label>
-                                <div class="col-sm-7">
-                                <span class="form-control">{{ client.secteur_activite.libelle|default_if_none:""  }}</span>
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_("Business unit")}}</label>
-                                <div class="col-sm-7">
-                                <span class="form-control">{{ client.business_unit.libelle|default_if_none:"" }}</span>
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{_("Date d'enregistrement")}}</label>
-                                <div class="col-sm-7">
-                                <span class="form-control">{{ client.created_at|date:'d/m/Y à H:i:s'|default_if_none:""  }}</span>
-                                </div>
-                            </div>
-                        </div>
-                </div>
-                <hr>
-                <h6 class="o-primary">{{_("COORDONNEES & AUTRES")}}</h6>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Pays')}}</label>
-                            <div class="col-sm-7">
-                            <span class="form-control">{{ client.pays|default_if_none:"" }}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Ville')}}</label>
-                            <div class="col-sm-7">
-                            <span class="form-control">{{ client.ville|default_if_none:"" }}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Adresse')}}</label>
-                            <div class="col-sm-7">
-                            <span class="form-control" title="{{ client.adresse|default_if_none:'' }}">{{ client.adresse|default_if_none:""|slice:":37" }}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_("Code postal")}}</label>
-                            <div class="col-sm-7">
-                            <span class="form-control">{{ client.adresse_postale|default_if_none:""|slice:":120" }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="vl"></div>
-                    <div class="col-md-5">
-                        <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_("Tel fixe")}}</label>
-                            <div class="col-sm-7">
-                            <span class="form-control">{{ client.telephone_fixe|default_if_none:"" }}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_("Tel mobile")}}</label>
-                            <div class="col-sm-7">
-                            <span class="form-control">{{ client.telephone_mobile|default_if_none:"" }}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_("E-mail")}}</label>
-                            <div class="col-sm-7">
-                            <span class="form-control">{{ client.email|default_if_none:"" }}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-6 col-form-label">{{_("Logo")}}</label>
-                            <div class="col-sm-6">
-                                {% if client.logo %}
-                                    <a href="{{request.scheme}}://{{request.META.HTTP_HOST}}{{client.logo.url}}" target="_blank">
-                                        <img style="width:50px;" src="{{request.scheme}}://{{request.META.HTTP_HOST}}{{client.logo.url}}" alt="" srcset="" class="logo-partenaire">
-                                    </a>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <hr>
-                <h6 class="o-primary">{{_("RESEAUX SOCIAUX")}}</h6>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_("Site web")}} </label>
-                            <div class="col-sm-7">
-                            <span class="form-control"><a href="https://{{client.site_web}}" target="_blank"> {{ client.site_web|default_if_none:"" }}</a></span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Facebook')}}</label>
-                            <div class="col-sm-7">
-                            <span class="form-control"><a href="https://{{client.facebook}}" target="_blank">{{ client.facebook|default_if_none:"" }}</a></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="vl"></div>
-                    <div class="col-md-5">
-                        <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Twitter')}}</label>
-                            <div class="col-sm-7">
-                            <span class="form-control"><a href="https://{{client.twitter}}" target="_blank">{{ client.twitter|default_if_none:"" }}</a></span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-5 col-form-label">{{_('Instagram')}}</label>
-                            <div class="col-sm-7">
-                            <span class="form-control"><a href="https://{{client.instagram}}" target="_blank">{{ client.instagram|default_if_none:"" }}</a></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                </div>
-            </div>
-          </div>
+<div class="col-12 col-md-12 order-2 order-md-1" id="accordionClient">
+  <!-- INFORMATIONS CLIENT  -->
+  <div class="row collapse show" id="collapseInfosClient">
+    <div class="col-12 col-sm-6 col-md-12">
+      <h4></h4>
+      <div class="card shadow_OLD">
+        <div class="card-header">
+            <h3 class="card-title">{{_("FICHE DU CLIENT")}}</h3>
         </div>
-        <!-- FIN INFORMATIONS CLIENT  -->
-      </div>
-    <!--/div>
+
+        <div class="card-body">
+            <div class="row mb-3">
+                {% if request.user.is_production %}
+                    <div class="col-md-12">
+                        <div class="button-link pull-right mb-2">
+                          <span style="cursor:pointer;" class="btn btn-sm btn-warning btn_modifier_client mb-1" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit"></i> {{_("Modifier client")}}</span>&nbsp;
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="col-md-6">
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Nom complet")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control" title="{{ client.nom|default_if_none:'' }} {{ client.prenoms|default_if_none:'' }}">{{ client.nom|default_if_none:"" }} {{ client.prenoms|default_if_none:"" }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Code client")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.code|default:client.code_provisoire|default:"" }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Type personne")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.type_personne|default_if_none:"" }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Type client")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.type_client|default_if_none:"" }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="vl"></div>
+                <div class="col-md-5">
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Date de nais./création")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.date_naissance|default_if_none:""  }}</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Secteur activité")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.secteur_activite.libelle|default_if_none:""  }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Business unit")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.business_unit.libelle|default_if_none:"" }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Commercial")}}</label>
+                        <div class="col-sm-7">
+                            <span class="form-control" title="{%if client.commercial %} {{ client.commercial.last_name|default:client.commercial.first_name|default:''  }} {{ client.commercial.first_name|default:''  }}{% endif %}">{%if client.commercial %} {{ client.commercial.last_name|default:client.commercial.first_name|default:""  }} {{ client.commercial.first_name|default:""  }}{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        <hr>
+        <h6 class="o-primary">{{_("COORDONNEES & AUTRES")}}</h6>
+        <hr>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Pays')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control">{{ client.pays|default_if_none:"" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Ville')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control">{{ client.ville|default_if_none:"" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Adresse')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control" title="{{ client.adresse|default_if_none:'' }}">{{ client.adresse|default_if_none:""|slice:":37" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("Code postal")}}</label>
+                    <div class="col-sm-7">
+                        <span class="form-control">{{ client.adresse_postale|default_if_none:""|slice:":120" }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="vl"></div>
+            <div class="col-md-5">
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("Tel fixe")}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control">{{ client.telephone_fixe|default_if_none:"" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("Tel mobile")}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control">{{ client.telephone_mobile|default_if_none:"" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("E-mail")}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control">{{ client.email|default_if_none:"" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("Groupe")}}</label>
+                    <div class="col-sm-7">
+                        <span class="form-control" title="{{ client.groupe.libelle|default_if_none:''|slice:':120' }}">{{ client.groupe.libelle|default_if_none:''|slice:":120" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <h6 class="o-primary">{{_("RESEAUX SOCIAUX")}}</h6>
+        <hr>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("Site web")}} </label>
+                    <div class="col-sm-7">
+                    <span class="form-control"><a href="https://{{client.site_web}}" target="_blank"> {{ client.site_web|default_if_none:"" }}</a></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Facebook')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control"><a href="https://{{client.facebook}}" target="_blank">{{ client.facebook|default_if_none:"" }}</a></span>
+                    </div>
+                </div>
+            </div>
+            <div class="vl"></div>
+            <div class="col-md-5">
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Twitter')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control"><a href="https://{{client.twitter}}" target="_blank">{{ client.twitter|default_if_none:"" }}</a></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Instagram')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control"><a href="https://{{client.instagram}}" target="_blank">{{ client.instagram|default_if_none:"" }}</a></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
   </div>
 </div>
-</div-->
+    <!-- FIN INFORMATIONS CLIENT  -->
+</div>
 
 <div id="dialogBox"></div>
 

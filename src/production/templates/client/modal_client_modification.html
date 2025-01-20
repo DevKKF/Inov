@@ -79,6 +79,28 @@
 											</select>
 										</div>
 									</div>
+									<div class="form-group row" style="display:none">
+										<label class="col-sm-5 col-form-label">{{_("Commercial")}}</label>
+										<div class="col-sm-7">
+											<select class="form-control" name="commercial_id" id="commercial_id" required>
+												<option value="">{{_('Choisir')}}</option>
+												{% for commercial in commercials %}
+													<option value="{{commercial.id}}" {% if commercial.id == client.commercial_id %} selected {% endif %}>{{commercial.first_name}} {{commercial.last_name}}</option>
+												{% endfor %}
+											</select>
+										</div>
+									</div>
+									<div class="form-group row" style="display:none">
+										<label class="col-sm-5 col-form-label">Groupe</label>
+										<div class="col-sm-7">
+											<select name="groupe_id" id="groupe_id" class="form-control">
+												<option value="">{{_('Choisir')}}</option>
+												{% for groupe in groupes %}
+													<option value="{{groupe.id}}" {% if groupe.id == client.groupe_id %} selected {% endif %}>{{groupe.libelle}}</option>
+												{% endfor %}
+											</select>
+										</div>
+									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Date de naissance")}}</label>
 										<div class="col-sm-7">
@@ -86,7 +108,7 @@
 										</div>
 									</div>
 
-									<div class="form-group row">
+									<div class="form-group row" style="display:none">
 										<label class="col-sm-5 col-form-label">{{_("Date de création")}}</label>
 										<div class="col-sm-7">
 											<input type="date" class="form-control" name="date_naissance" id="date_creation" value="{{ client.date_naissance|date:'Y-m-d' }}" />
@@ -110,7 +132,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Pays')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control tags-multiple" name="pays_id" required>
+											<select class="form-control tags-multiple form-uniforme" name="pays_id" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for p in pays %}
 													<option {% if p.id == client.pays_id %} selected {% endif %} value="{{ p.id }}">{{ p.nom }}</option>
@@ -137,7 +159,7 @@
 											<input type="text" class="form-control" name="telephone_mobile" value="{{ client.telephone_mobile|default_if_none:'' }}" onkeypress="isInputNumber(event)">
 										</div>
 									</div>
-									<div class="form-group row  ">
+									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Logo')}} </label>
 										<div class="col-sm-7">
 											<input type="file" class="form-control"  name="logo" id="logo_client"/>
