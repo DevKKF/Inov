@@ -126,7 +126,11 @@ urlpatterns = [
 
     path('police/<int:police_id>/courriers', CourrierView.as_view(), name='police_courrier'),
     path('police/<int:police_id>/courrier/<int:courrier_id>/pdf/', views.generer_courrier, name='generer_pdf'),
+    path('police/<int:police_id>/courrier/<int:courrier_id>/quittance/<int:quittance_id>/pdf/', views.generer_courrier, name='generer_pdf'),
     path('police/<int:police_id>/courrier/<int:courrier_id>/word/', views.generer_word, name='generer_word'),
+    path('police/<int:police_id>/courrier/<int:courrier_id>/quittance/<int:quittance_id>/word/', views.generer_word, name='generer_word'),
+
+
 
     # path('generate-word/', generate_word, name='generate_word'),
 

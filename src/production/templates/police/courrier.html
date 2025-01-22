@@ -44,19 +44,17 @@
                   </thead>
                   <tbody>
                   {% for courrier in courriers %}
+                    {% if courrier.type_courrier.nom|lower != "appel de prime" %}
                     <tr>
                         <td>{{ courrier.designation|default_if_none:"" }} </td>
                         <td>{{ courrier.service|escape}}</td>
                         <td><span class="badge badge-green">{{ courrier.status|default_if_none:""}}</span></td>
                          <td>{{ courrier.created_at|date:"d/m/Y" }}</td>
-
                          <td>
                               <a class="badge badge-primary btn_pdf_courrier" style="cursor:pointer;" href="{% url 'generer_pdf' police.id courrier.id %}"><i class="fa fa-file-pdf-o"></i> Télécharger PDF</a>&nbsp;
-                             {% if courrier.type_courrier.nom|lower == "appel de prime" %}
-                                <a class="badge badge-primary btn_pdf_courrier" style="cursor:pointer;" href="{% url 'generer_word' police.id courrier.id %}"><i class="fa fa-file-pdf-o"></i> Télécharger WORD</a>&nbsp;
-                             {% endif %}
                         </td>
                     </tr>
+                   {% endif %}
                   {% endfor %}
                   </tbody>
                 </table>
