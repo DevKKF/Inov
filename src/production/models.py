@@ -1981,7 +1981,7 @@ class Filiale(models.Model):
     pays = models.ForeignKey(Pays, blank=True, null=True, on_delete=models.RESTRICT)
     nom = models.CharField(max_length=50, blank=True, null=True)
     ville = models.CharField(max_length=50, blank=True, null=True)
-    adresse = models.CharField(max_length=50, blank=True, null=True)
+    adresse = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

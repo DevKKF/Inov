@@ -492,12 +492,12 @@ article .shimmer{
 
 
 /*pour gérer les statuts*/
-.badge-actif, .badge-accorde, .badge-effectue, .badge-valide, .badge-paye, .badge-en-cours, .badge-reverse, .badge-soldee{
+.badge-actif, .badge-accorde, .badge-effectue, .badge-valide, .badge-paye, .badge-en-cours, .badge-reverse, .badge-soldee, .badge-encaissee{
   color: #fff;
   background-color: #28a745;
 }
 
-.badge-inactif, .badge-rejete, .badge-sorti, .badge-resilie{
+.badge-inactif, .badge-rejete, .badge-sorti, .badge-resilie, .badge-non-encaissee{
   color: #fff;
   background-color: #dc3545;
 }
@@ -707,9 +707,5 @@ label:not(.form-check-label):not(.custom-file-label) {
 .bouton_action:hover{
     cursor:pointer !important;
     color:#F16623 !important;
-}
-
-.select2-container{
-  min-width: 253px !important;
 }
 

@@ -37,7 +37,7 @@
                       <th scope="col">{{_('Nom')}}</th>
                         <th scope="col">{{_("Date d'ajout et heure")}}</th>
                         <th scope="col">{{_("Statut")}}</th>
-                      <th scope="col">{{_('Actions')}}</th>
+                      <th scope="col" class="text-center">{{_('Actions')}}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -53,7 +53,7 @@
                                 <span class="badge badge-danger">Inactif</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="text-center">
                              <span style="cursor:pointer;" class="btn_modifier_branche badge btn-sm btn-modifier rounded-pill text-center" data-branche_id="{branche.id}" data-model_name="branche" data-modal_title="MODIFICATION D'UNE branche" data-href="{% url 'modifier_branche' branche.id %}"><i class="fas fa-edit"></i> {{_('Modifier')}}</span>
                              <span class="badge badge-danger btn_supprimer_branche" data-branche_id="{{branche.id}}" data-href="{% url 'supprimer_branche' branche.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;
                         </td>

@@ -1,10 +1,10 @@
-<div  class="modal fade"  id="modal-modification_banque" data-backdrop="static" data-keyboard="false" aria-hidden="trued"  style="display: noned">
+<div  class="modal fade"  id="modal-modification_carosserie" data-backdrop="static" data-keyboard="false" aria-hidden="trued"  style="display: noned">
 	<div class="modal-dialog">
 		<div class="modal-content">
-			<form id="form_update_banque" action="{% url 'modifier_banque' banque.id %}" method="post">
+			<form id="form_update_carosserie" action="{% url 'modifier_carosserie' carosserie.id %}" method="post">
 				{% csrf_token %}
                 <div class="modal-header">
-                    <h4 class="modal-title f-bold" id="mbu-title">{{_("MODIFICATION D'UNE BANQUE")}}</h4>
+                    <h4 class="modal-title f-bold" id="mbu-title">{{_("MODIFICATION D'UNE CAROSSERIE")}}</h4>
                     <button type="button"class="close"data-dismiss="modal"aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -23,26 +23,20 @@
                                     <div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Libelle')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="libelle" id="libelle" value="{{ banque.libelle|default_if_none:'' }}" autocomplete="off" required/>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Statut')}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control" name="statut"  autocomplete="off" required>
-												<option value="">{{_('Choisir')}}</option>
-												<option value="1" {% if banque.status == 1 %} selected {% endif %}>ACTIF</option>
-												<option value="0" {% if banque.status == 0 %} selected {% endif %}>INACTIF</option>
-											</select>
+											<input type="text" class="form-control" name="libelle" id="libelle" value="{{ carosserie.libelle|default_if_none:'' }}" autocomplete="off" required/>
 										</div>
 									</div>
 								</div>
 								<div class="vl"></div>
 								<div class="col-md-5">
                                     <div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Nom complet")}}</label>
+										<label class="col-sm-5 col-form-label">{{_('Statut')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<textarea class="form-control" name="nom_complet" id="nom_complet" cols="30" rows="3">{{ banque.nom_complet|default_if_none:"" }}</textarea>
+											<select class="form-control" name="statut"  autocomplete="off" required>
+												<option value="">{{_('Choisir')}}</option>
+												<option value="1" {% if 1 == carosserie.status %} selected {% endif %}>ACTIF</option>
+												<option value="0" {% if 0 == carosserie.status %} selected {% endif %}>INACTIF</option>
+											</select>
 										</div>
 									</div>
 								</div>
@@ -52,7 +46,7 @@
 				</div>
                     <div class="modal-footer justify-content-between">
                         <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
-                        <button type="button" id="btn_save_modification_banque" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
+                        <button type="button" id="btn_save_modification_carosserie" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
                     </div>
                 </div>
             </form>

@@ -43,23 +43,23 @@ urlpatterns = [
 
     path("client/<int:client_id>/liste-contact", ContactClientView.as_view(), name='client_contacts'),
     path("client/<int:client_id>/contact/add", views.add_contact, name='client_add_contact'),
-    path("contact/<int:contact_id>/modifier", views.modifier_contact, name='modifier_contact'),
-    path("contact/delete", views.supprimer_contact, name='supprimer_contact'),
+    path("client/contact/<int:contact_id>/modifier", views.modifier_contact, name='modifier_contact'),
+    path("client/contact/<int:contact_id>/delete", views.supprimer_contact, name='supprimer_contact'),
 
     path("client/<int:client_id>/liste-filiale", FilialeClientView.as_view(), name='client_filiales'),
     path("client/<int:client_id>/filiale/add", views.add_filiale, name='client_add_filiale'),
-    path("filiale/<int:filiale_id>/modifier", views.modifier_filiale, name='modifier_filiale'),
-    path("filiale/delete", views.supprimer_filiale, name='supprimer_filiale'),
+    path("client/filiale/<int:filiale_id>/modifier", views.modifier_filiale, name='modifier_filiale'),
+    path("client/filiale/<int:filiale_id>/delete", views.supprimer_filiale, name='supprimer_filiale'),
 
     path("client/<int:client_id>/liste-documents", GEDClientView.as_view(), name='client_documents'),
     path("client/<int:client_id>/document/add", views.add_document, name='client_add_document'),
     path("document/<int:document_id>/modifier", views.modifier_document, name='modifier_document'),
-    path("document/delete", views.supprimer_document, name='supprimer_document'),
+    path("document/<int:document_id>/delete", views.supprimer_document, name='supprimer_document'),
 
     path("client/<int:client_id>/liste-acompte", AcompteClientView.as_view(), name='client_acomptes'),
     path("client/<int:client_id>/acompte/add", views.add_acompte, name='client_add_acompte'),
     path("acompte/<int:acompte_id>/modifier", views.modifier_acompte, name='modifier_acompte'),
-    path("acompte/delete", views.supprimer_acompte, name='supprimer_acompte'),
+    path("acompte/<int:acompte_id>/delete", views.supprimer_acompte, name='supprimer_acompte'),
     path('mouvement/<int:mouvement_id>/motifs',views.motifs_by_mouvement, name='mouvement_motifs'),
 
     path("client/<int:client_id>/quittance", QuittancesClientView.as_view(), name='client_quittances'),
@@ -88,6 +88,7 @@ urlpatterns = [
     path('police/<int:police_id>/add_reglement', views.add_reglement, name='add_reglement'),
     path('police/<int:police_id>/add_lettrage', views.add_lettrage, name='add_lettrage'),
     path('quittance/<int:quittance_id>', views.details_quittance, name='details_quittance'),
+    path('quittance/<int:quittance_id>/imprimer-recu-reglement/<int:reglement_id>', views.imprimer_recu_reglement, name='imprimer_recu_reglement'),
     path('police/<int:police_id>/mouvements', PoliceAvenantsView.as_view(), name='police_avenants'),
     path('police/<int:police_id>/add_avenant', views.add_avenant, name='add_avenant'),
     path('police/<int:police_id>/tarifs_specifiques', PoliceTarifsSpecifiquesView.as_view(), name='police_tarifs_specifiques'),

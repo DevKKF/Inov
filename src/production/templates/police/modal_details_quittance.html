@@ -18,7 +18,7 @@
 					<ul class="nav nav-tabs" id="myTab" role="tablist">
 						<li class="nav-item"><a class="nav-link active" id="infos_quittance-tab" data-toggle="tab" href="#infos_quittance" role="tab" aria-controls="infos_quittance" aria-selected="true">{{_("INFORMATIONS DE LA QUITTANCE")}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="reglements-tab" data-toggle="tab" href="#reglements" role="tab" aria-controls="reglements" aria-selected="false">{{_("LISTE DES REGLEMENTS")}}</a></li>
-						<!--li class="nav-item"><a class="nav-link" id="ged_beneficiaire-tab" data-toggle="tab" href="#ged_beneficiaire" role="tab" aria-controls="ged" aria-selected="false">{{_('GED')}}</a></li-->
+						<li class="nav-item"><a class="nav-link" id="ged_beneficiaire-tab" data-toggle="tab" href="#ged_beneficiaire" role="tab" aria-controls="ged" aria-selected="false">{{_('GED')}}</a></li>
 
 					</ul>
 					<div class="tab-content" id="myTabContent">
@@ -139,7 +139,7 @@
 											<th scope="col">{{_("Dévise")}}</th>
 											<th scope="col">{{_("Date règlement")}}</th>
 											<th scope="col">{{_("Revers Cie")}}</th>
-											<!--th scope="col">Enc com</th-->
+											<!--th scope="col">{{_("Enc com")}}</th-->
 											<th scope="col">{{_("Date saisie")}}</th>
 											<th scope="col">{{_("Enregistrer par")}}</th>
 											<th scope="col">{{_("Action")}}</th>
@@ -159,7 +159,11 @@
 												<!--td><span class="badge badge-{{ reglement.statut_commission|lower|replace_espace }}">{{ reglement.statut_commission|default_if_none:"" }}</span></td-->
 												<td>{{ reglement.created_at|date:'d/m/Y à H:i'|default_if_none:"" }}</td>
 												<td>{{ reglement.created_by|default_if_none:"" }}</td>
-												<td></td>
+												<td>
+													{% if reglement.statut_reversement_compagnie == "REVERSE" %}
+														<a href="{% url 'imprimer_recu_reglement' quittance.id reglement.id %}" class="badge badge-info" target="_blank"><i class="fa fa-print"></i> Imprimer reçu paiement</a>
+													{% endif %}
+												</td>
 											  </tr>
 											{% endfor %}
 										</tbody>
@@ -179,7 +183,8 @@
 										  Liste des documents
 										</div>
 										<div class="card-tools">
-										  <span class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-document_beneficiaire"><i class="fas fa-plus"></i> Nouveau document</span>
+										  <span class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-document_beneficiaire"><i class="fas fa-plus-circle"></i> Nouveau document</span>
+										  <span class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-imprimer_document"><i class="fas fa-print"></i> Imprimer un document</span>
 										</div>
 									</div>
 									<div class="">
@@ -277,7 +282,9 @@
 		</div>
 	</div>
 </div>
-<!-- new code -->
+<!-- fin modal interne des autres taxes -->
+
+<!-- modal interne du document -->
 <div class="modal fade modal_interne" id="modal-document_beneficiaire" data-backdrop="static" data-keyboard="false" aria-hidden="true" style="display: none">
 	<div class="modal-dialog modal-lg">
 	  <div class="modal-content">
@@ -339,4 +346,45 @@
 	  </div>
 	</div>
   </div>
-<!-- fin modal interne des autres taxes -->
+<!-- fin modal interne du document -->
+
+<!-- modal interne du document -->
+<div class="modal fade modal_interne" id="modal-imprimer_document" data-backdrop="static" data-keyboard="false" aria-hidden="true" style="display: none">
+	<div class="modal-dialog modal-lg">
+	  <div class="modal-content">
+		<form enctype="multipart/form-data" method="post" action="" id="modal_form_imprimer_document" validate>
+		{% csrf_token %}
+		<div class="modal-header">
+		  <h4 class="modal-title">CHOISIR UN MODELE</h4>
+		  <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span></button>
+		</div>
+		 <div class="modal-body">
+		 <div class="alert  alert-dismissible fade show hidden" role="alert">
+			<span class="message"> TRAITEMENT EN COURS</span>
+		  </div>
+		  <div class="row">
+			  <div class="col-md-12">
+				  <div class="form-group row">
+					  <label class="col-sm-5 col-form-label">Liste des modèles <span class="required">*</span></label>
+					  <div class="col-sm-7">
+					  <select class="form-control" name="type_courrier" id="type_courrier" required>
+						  <option value="">Choisir</option>
+						  {% for type_document in types_documents %}
+						  	<option value="{{ type_document.id }}">{{ type_document.libelle }}</option>
+						  {% endfor %}
+					  </select>
+					  </div>
+				  </div>
+			  </div>
+		  </div>
+		</div>
+		<div class="modal-footer justify-content-between">
+		  <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> Retour</button>
+		  <button type="button" id="btn_save_imprimer_document" data-option="aliment" class="btn bg-info"><i class="fa fa-print"></i> Imprimer</button>
+		</div>
+		  </form>
+	  </div>
+	</div>
+  </div>
+<!-- fin modal interne du document -->
+

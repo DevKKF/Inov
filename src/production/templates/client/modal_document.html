@@ -40,8 +40,11 @@
                 <div class="form-group row">
                     <label class="col-sm-5 col-form-label">{{_("Ce document est-il confidentiel")}} ? <span class="required">*</span></label>
                     <div class="col-sm-7">
-                        <input type="checkbox" value="OUI" name="confidentialite" id="confidentialite"> Oui
-                        <input type="checkbox" value="NON" name="confidentialite" id="confidentialite" class="ml-5" checked> Non
+                        <input type="radio" value="OUI" name="confidentialite" id="confidentialite_oui">
+                        <label class="form-check-label" for="confidentialite_oui">OUI</label>
+
+                        <input type="radio" value="NON" name="confidentialite" id="confidentialite_non" class="ml-3" checked>
+                        <label class="form-check-label" for="confidentialite_non">NON</label>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -55,7 +58,7 @@
       </div>
       <div class="modal-footer justify-content-between">
         <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
-        <button type="button" id="btn_enregistrer_document_client" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
+        <button type="button" id="btn_save_document_client" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
       </div>
       </form>
     </div>

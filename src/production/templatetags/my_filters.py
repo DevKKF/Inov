@@ -169,6 +169,14 @@ def money_format_mille(value):
         return value
 
 
+@register.filter
+def format_montant(value):
+    try:
+        return f"{int(value):,}".replace(",", " ")
+    except (ValueError, TypeError):
+        return value
+
+
 @register.simple_tag
 def date_du_jour():
     """

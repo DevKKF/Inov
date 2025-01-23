@@ -3,14 +3,13 @@
 {% block extrastyle %} {% endblock %}
 {% block content %}
 <div class="col-12 col-md-12 order-2 order-md-1">
-
-<div class="row ">
-    <div class="col-12 col-sm-6 col-md-12">
-      <h4></h4>
-      <div class="card shadow_OLD">
-        <div class="card-header">
-            <h3 class="card-title text-white">{{_('GESTION ELECTRONIQUE DE DOCUMENTS')}}</h3>
-        </div>
+    <div class="row ">
+        <div class="col-12 col-sm-6 col-md-12">
+          <h4></h4>
+          <div class="card shadow_OLD">
+            <div class="card-header">
+                <h3 class="card-title text-white">{{_('GESTION ELECTRONIQUE DE DOCUMENTS')}}</h3>
+            </div>
 
             <div class="card-tools">
                  <div class="button-link pull-right mb-2">
@@ -18,49 +17,47 @@
                         <a class="btn btn-sm btn-primary mb-1 " data-toggle="modal" data-target="#modal-document"><i class="fas fa-plus"></i> {{_('Ajouter un document')}}</a>
                     {% endif %}
                 </div>
-
-
-        <div class="card-body">
-            <div class="row table-responsive">
-                 <table id="table_documents" class="table table-bordered table-striped dataTable dtr-inline" role="grid" aria-describedby="example1_info" style="width:100%;">
-                    <thead>
-                        <tr role="row">
-                            <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                {{_('Nom_du_document')}}
-                            </th>
-                            <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                {{_('Type_de_document')}}
-                            </th>
-                            <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                {{_('Fichier')}}
-                            </th>
-                            <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                {{_('Action')}}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for document in documents %}
-                            {% if not document.quittance_id %}
-                                <tr class="odd">
-                                    <td class="dtr-control" tabindex="0">{{ document.nom }}</td>
-                                    <td class="">{{ document.type_document.libelle }}</td>
-                                    <td class="text-center"><a href="{{ document.fichier.url }}"><i class="fa fa-file" title="Aperçu"></i> {{_('Afficher')}}</a></td>
-                                    <td class="">
-                                        <span class="btn_supprimer_document" data-document_id="{{ document.id }}" onclick="supprimer_document({{ document.id }})" style="cursor:pointer;"><i class="fa fa-times text-danger"></i> </span>&nbsp;&nbsp;&nbsp;
-                                        <span class="btn_modifier_on_modal" data-model_name="document" data-href="{% url 'modifier_document' document.id %}" data-modal_title="Modification d'un document" title="Modifier" style="cursor:pointer;"><i class="fas fa-edit text-warning"></i></span>
-                                    </td>
+                <div class="card-body">
+                    <div class="row table-responsive">
+                         <table id="table_documents" class="table table-bordered table-striped dataTable dtr-inline" role="grid" aria-describedby="example1_info" style="width:100%;">
+                            <thead>
+                                <tr role="row">
+                                    <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
+                                        {{_('Nom_du_document')}}
+                                    </th>
+                                    <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
+                                        {{_('Type_de_document')}}
+                                    </th>
+                                    <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
+                                        {{_('Fichier')}}
+                                    </th>
+                                    <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
+                                        {{_('Action')}}
+                                    </th>
                                 </tr>
-                            {% endif %}
-                        {% endfor %}
-                    </tbody>
-                 </table>
+                            </thead>
+                            <tbody>
+                                {% for document in documents %}
+                                    {% if not document.quittance_id %}
+                                        <tr class="odd">
+                                            <td class="dtr-control" tabindex="0">{{ document.nom }}</td>
+                                            <td class="">{{ document.type_document.libelle }}</td>
+                                            <td class="text-center"><a href="{{ document.fichier.url }}"><i class="fa fa-file" title="Aperçu"></i> {{_('Afficher')}}</a></td>
+                                            <td class="">
+                                                <span class="btn_supprimer_document" data-document_id="{{ document.id }}" onclick="supprimer_document({{ document.id }})" style="cursor:pointer;"><i class="fa fa-times text-danger"></i> </span>&nbsp;&nbsp;&nbsp;
+                                                <span class="btn_modifier_on_modal" data-model_name="document" data-href="{% url 'modifier_document' document.id %}" data-modal_title="Modification d'un document" title="Modifier" style="cursor:pointer;"><i class="fas fa-edit text-warning"></i></span>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                         </table>
+                    </div>
+                </div>
             </div>
+          </div>
         </div>
     </div>
-  </div>
-</div>
-</div>
 </div>
 {% endblock %}
 

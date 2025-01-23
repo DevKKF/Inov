@@ -52,7 +52,7 @@
         overflow-x: hidden;
     }
 
-    .couleur_default,  .couleur_secondaire, .couleur_success{
+    .couleur_default,  .couleur_secondaire, .couleur_success, .couleur_danger{
       display: block;
       width: 100%;
       height: 30px !important;
@@ -108,7 +108,7 @@
         <div class="card">
           <div class="button-link mb-2">
               <span style="cursor:pointer;" class="btn btn-sm btn-warning btn_modifier_client pull-right ml-2" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit"></i> {{_("Modifier client")}}</span>
-              <a class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#modal-acompte"><i class="fas fa-plus"></i> {{_("Ajouter un acompte")}}</a>
+              <a class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#modal-acompte"><i class="fas fa-plus-circle"></i> {{_("Ajouter un acompte")}}</a>
           </div>
       </div>
     </div>
@@ -152,36 +152,38 @@
           <h3 class="card-title text-white">Liste des quittances impayées</h3>
         </div>
         <div class="card-body">
-            <table class="table table-bordered table-striped dataTable dtr-inline" id="table_quittances_impayees">
-              <thead>
-                <tr>
-                  <th scope="col">{{_("N° Quittance")}}</th>
-                  <th scope="col">{{_("Nature")}}</th>
-                  <th scope="col">{{_("Type")}}</th>
-                  <th scope="col">{{_("Date d'émission")}}</th>
-                  <th scope="col">{{_("Début période")}}</th>
-                  <th scope="col">{{_("Montant HT")}}</th>
-                  <th scope="col">{{_("Montant TTC")}}</th>
-                  <th scope="col">{{_("Solde")}}</th>
-                  <th scope="col">{{_("Devise")}}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for quittance in quittances %}
-                  <tr>
-                    <td>{{ quittance.numero|default_if_none:"" }}</td>
-                    <td>{{ quittance.nature_quittance|default_if_none:"" }}</td>
-                    <td>{{ quittance.type_quittance|default_if_none:"" }}</td>
-                    <td>{{ quittance.date_emission|date:'d/m/Y'|default_if_none:"" }}</td>
-                    <td>{{ quittance.date_debut|date:'d/m/Y'|default_if_none:"" }}</td>
-                    <td class="text-right">{{ quittance.prime_ht|money_field }}</td>
-                    <td class="text-right">{{ quittance.prime_ttc|money_field }}</td>
-                    <td class="text-right">{{ quittance.solde|money_field }}</td>
-                    <td>{{ quittance.police.client.pays.devise.code|default_if_none:"" }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+            <div class="col-12 col-md-12 col-sm-12 table-responsive">
+                <table class="table table-bordered table-striped dataTable dtr-inline" id="table_quittances_impayees">
+                  <thead>
+                    <tr>
+                      <th scope="col">{{_("N° Quittance")}}</th>
+                      <th scope="col">{{_("Nature")}}</th>
+                      <th scope="col">{{_("Type")}}</th>
+                      <th scope="col">{{_("Date d'émission")}}</th>
+                      <th scope="col">{{_("Début période")}}</th>
+                      <th scope="col">{{_("Montant HT")}}</th>
+                      <th scope="col">{{_("Montant TTC")}}</th>
+                      <th scope="col">{{_("Solde")}}</th>
+                      <th scope="col">{{_("Devise")}}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for quittance in quittances %}
+                      <tr>
+                        <td>{{ quittance.numero|default_if_none:"" }}</td>
+                        <td>{{ quittance.nature_quittance|default_if_none:"" }}</td>
+                        <td>{{ quittance.type_quittance|default_if_none:"" }}</td>
+                        <td>{{ quittance.date_emission|date:'d/m/Y'|default_if_none:"" }}</td>
+                        <td>{{ quittance.date_debut|date:'d/m/Y'|default_if_none:"" }}</td>
+                        <td class="text-right">{{ quittance.prime_ht|money_field }}</td>
+                        <td class="text-right">{{ quittance.prime_ttc|money_field }}</td>
+                        <td class="text-right">{{ quittance.solde|money_field }}</td>
+                        <td>{{ quittance.police.client.pays.devise.code|default_if_none:"" }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+            </div>
         </div>
       </div>
       <br>
@@ -190,39 +192,45 @@
           <h3 class="card-title text-white">Liste des avoirs du client</h3>
         </div>
         <div class="card-body">
-          <table id="table_acomptes" class="table table-bordered table-striped dataTable dtr-inline" role="grid" aria-describedby="example1_info" style="width:100%;">
-            <thead>
-                <tr>
-                    <th>{{_("Date création")}}</th>
-                    <th>{{_("N° Quittance")}}</th>
-                    <th>{{_("Période début")}}</th>
-                    <th>{{_("Période fin")}}</th>
-                    <th>{{_("Débit")}}</th>
-                    <th>{{_("Crédit")}}</th>
-                    <th>{{_("Solde")}}</th>
-                    <th>{{_("Action")}}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for acompte in acomptes %}
-                    <tr class="odd">
-                        <td class="dtr-control" tabindex="0">{{ acompte.date_versement|date:'d/m/Y'|default_if_none:"" }}</td>
-                        <td class="">{{ acompte.quittance.numero|default_if_none:"" }}</td>
-                        <td class="">{{ acompte.periode_debut|date:'d/m/Y'|default_if_none:"" }}</td>
-                        <td class="">{{ acompte.periode_fin|date:'d/m/Y'|default_if_none:"" }}</td>
-                        <td class="text-right">{{ acompte.debit|default_if_none:"0"|money_field }}</td>
-                        <td class="text-right">{{ acompte.credit|default_if_none:"0"|money_field }}</td>
-                        <td class="text-right">{{ acompte.solde|default_if_none:"0"|money_field }}</td>
-                        <td class="text-center">
-                            {% if not acompte.quittance_id %}
-                                <span class="badge badge-danger text-white btn_supprimer_acompte" data-acompte_id="{{ acompte.id }}" onclick="supprimer_acompte({{ acompte.id }})" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;&nbsp;&nbsp;
-                                <span class="badge badge-warning text-white btn_modifier_on_modal" data-model_name="acompte" data-href="{% url 'modifier_acompte' acompte.id %}" data-modal_title="MODIFICATION D'UN ACOMPTE" title="Modifier" style="cursor:pointer;"><i class="fas fa-edit"></i></span>
-                            {% endif %}
-                        </td>
+            <div class="col-12 col-md-12 col-sm-12 table-responsive">
+              <table id="table_acomptes" class="table table-bordered table-striped dataTable dtr-inline" role="grid" aria-describedby="example1_info" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th>{{_("Date versement")}}</th>
+                        <th>{{_("N° Quittance")}}</th>
+                        <th>{{_("Période début")}}</th>
+                        <th>{{_("Période fin")}}</th>
+                        <th>{{_("Débit")}}</th>
+                        <th>{{_("Crédit")}}</th>
+                        <th>{{_("Solde")}}</th>
+                        <th class="text-center">{{_("Actions")}}</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-         </table>
+                </thead>
+                <tbody>
+                    {% for acompte in acomptes %}
+                        <tr class="odd">
+                            <td class="dtr-control" tabindex="0">{{ acompte.date_versement|date:'d/m/Y'|default_if_none:"" }}</td>
+                            <td class="">{{ acompte.quittance.numero|default_if_none:"" }}</td>
+                            <td class="">{{ acompte.periode_debut|date:'d/m/Y'|default_if_none:"" }}</td>
+                            <td class="">{{ acompte.periode_fin|date:'d/m/Y'|default_if_none:"" }}</td>
+                            <td class="text-right">{{ acompte.debit|default_if_none:"0"|money_field }}</td>
+                            <td class="text-right">{{ acompte.credit|default_if_none:"0"|money_field }}</td>
+                            <td class="text-right">{{ acompte.solde|default_if_none:"0"|money_field }}</td>
+                            <td class="text-center">
+                                {% if request.user.is_production %}
+                                    {% if not acompte.quittance_id %}
+                                        {% if acompte.credit <= acompte.solde %}
+                                            <span style="cursor:pointer;" class="btn_modifier_acompte badge badge-warning text-white rounded-pill text-center" data-acompte_id="{acompte.id}" data-model_name="acompte" data-modal_title="MODIFICATION D'UN ACOMPTE" data-href="{% url 'modifier_acompte' acompte.id %}"><i class="fas fa-edit"></i></span>
+                                        {% endif %}
+                                        <span class="badge badge-danger text-white btn_supprimer_acompte" data-acompte_id="{{ acompte.id }}" data-href="{% url 'supprimer_acompte' acompte.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;&nbsp;&nbsp;
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+             </table>
+            </div>
         </div>
       </div>
     </div>
@@ -235,303 +243,5 @@
 
 
 {% block extrajs %}
-
-<script>
-// GESTION TRANSFERT BENEFICIAIRES
-
-  $(document).ready(function() {
-      dataTable = $('#datatable_transfert_beneficiaires').DataTable({
-            "language": {
-                "url": "https://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-            },
-            "serverSide": true,
-            "ajax": {
-                "url": "{% url 'transfert_beneficiaires_datatable' client.id %}",
-                "data": function (data) {
-                    console.log(data);
-                    data.page = data.start / data.length + 1;
-                    data.search_police_origine = $('#search_police_origine').val();
-                    data.search_formule_origine = $('#search_formule_origine').val();
-                    data.search_police_destination = $('#police_destination').val();
-                    data.search_etat_beneficiaire = $('#search_etat_beneficiaire').val();
-                },
-                "dataSrc": function (json) {
-                    return json.data;
-                }
-            },
-            "columns": [
-                {"data": "checkbox", "orderable": false, "searchable": false},
-                {"data": "aliment__cartes__numero", "orderable": false},
-                {"data": "aliment__nom", "orderable": false},
-                {"data": "aliment__prenoms", "orderable": false},
-                {"data": "aliment__date_naissance", "orderable": false},
-                {"data": "aliment__genre", "orderable": false},
-                {"data": "aliment__qualite_beneficiaire__libelle", "orderable": false},
-                //{"data": "aliment__matricule_cie", "orderable": false},
-                {"data": "aliment__adherent_principal__numero_famille", "orderable": false},
-                {"data": "aliment__formule__libelle", "orderable": false},
-                {"data": "aliment__statut", "orderable": false},
-            ],
-            "paging": true,
-            "pageLength": 50,
-            lengthMenu: [[50, 100, 500, 1000, -1], [50, 100, 500, 1000, "Tout"]],
-            "processing": true,  // Show the loading indicator
-            "searching": true,   // Enable the search feature
-        });
-
-
-        dataTable.on('xhr.dt', function (e, settings, json, xhr) {
-            // Hide the spinner when the data is loaded
-            $('.spinner-border').hide();
-        });
-
-        // Show the spinner when the table is processing
-        dataTable.on('processing.dt', function (e, settings, processing) {
-            if (processing) {
-                $('.spinner-border').show();
-            }
-        });
-
-        // dataTable.search('').draw();
-        // dataTable.draw();
-
-        // Add custom search functionality for code, name, and prenoms columns
-
-        $('#search_police_origine, #search_formule_origine, #search_etat_beneficiaire, #police_destination').on('keyup change', function() {
-            dataTable.search('').draw();
-            dataTable.draw();
-            $('#btnSelectAll').prop('checked', false);
-        });
-
-        $('#search_police_origine').on('change', function() {
-
-            police_id = $(this).val();
-            $('#search_formule_origine').html('').append('<option value="">Choisir</option>');
-            $('#police_destination').html('').append('<option value="">Choisir</option>');
-
-            //charger les formules
-            $.ajax({
-                type: 'get',
-                url: '/production/formules_by_police/' + police_id,
-                dataType:'json',
-                success: function(formules){
-
-                    formules.forEach(function(formule) {
-                        $('#search_formule_origine').append('<option value="'+formule.pk+'">'+formule.fields.libelle+'</option>');
-                    });
-                },
-                error: function(){
-                    console.log('Erreur lors du chargement des formules ');
-                }
-            });
-
-            //charger les formules
-            $.ajax({
-                type: 'get',
-                url: '/production/polices_restantes/' + police_id,
-                dataType:'json',
-                success: function(polices){
-
-                    polices.forEach(function(police) {
-                        $('#police_destination').append('<option value="'+police.pk+'">'+police.fields.numero+'</option>');
-                    });
-                },
-                error: function(){
-                    console.log('Erreur lors du chargement des formules ');
-                }
-            });
-
-        });
-
-
-        $('#police_destination').on('change', function() {
-            police_id = $(this).val();
-            $('#formule_destination').html('').append('<option value="">Choisir</option>');
-
-            //charger les formules
-            $.ajax({
-                type: 'get',
-                url: '/production/formules_by_police/' + police_id,
-                dataType:'json',
-                success: function(formules){
-
-                    formules.forEach(function(formule) {
-                        $('#formule_destination').append('<option value="'+formule.pk+'">'+formule.fields.libelle+'</option>');
-                    });
-                },
-                error: function(){
-                    console.log('Erreur lors du chargement des formules ');
-                }
-            });
-
-        });
-
-
-
-       // Gérer le "Sélectionner tout"
-        $('#btnSelectAll').on('change', function() {
-           // Mettre à jour le tableau des éléments sélectionnés
-           if (this.checked) {
-
-                $('input[type="checkbox"]', dataTable.rows().nodes()).prop('checked', true);
-
-           } else {
-
-               // Cocher/décocher toutes les cases individuelles
-               $('input[type="checkbox"]', dataTable.rows().nodes()).prop('checked', false);
-           }
-
-       });
-
-        // Décocher le checkbox btnSelectAll si un des éléments est désélectionné
-        $('#datatable_transfert_beneficiaires tbody').on('change', 'input[type="checkbox"]', function () {
-            var data = dataTable.row($(this).closest('tr')).data();
-            var itemId = data.id;
-            console.log('itemId', itemId);
-
-            if (!this.checked) {
-                $('#btnSelectAll').prop('checked', false);
-            }
-
-        });
-
-        // Transférer les bénéficiaires sélectionnés
-        $('#btnTransfererBeneficiaireSelectionnes').on('click', function () {
-            let ceBouton = $(this);
-            let href = $(this).data('href');
-            let police_origine_id = $("#search_police_origine").val();
-            let formule_origine_id = $("#search_formule_origine").val();
-            let police_destination_id = $("#police_destination").val();
-            let formule_destination_id = $("#formule_destination").val();
-
-            var selected_aliment_ids = [];
-            var checkedCheckboxes = $('input[type="checkbox"]:checked', dataTable.rows().nodes());
-
-            console.log("Nombre de lignes cochées : ", checkedCheckboxes.length);
-
-            checkedCheckboxes.each(function() {
-                selected_aliment_id = $(this).val();
-                selected_aliment_ids.push(selected_aliment_id);
-
-                console.log("selected_aliment_id : ", selected_aliment_ids);
-            });
-
-
-            if(checkedCheckboxes.length > 0){
-
-                 $.ajax({
-                    type:'post',
-                    url:href,
-                    data: {
-                        police_origine_id: police_origine_id,
-                        formule_origine_id: formule_origine_id,
-                        police_destination_id: police_destination_id,
-                        formule_destination_id: formule_destination_id,
-                        selectedItems: JSON.stringify(selected_aliment_ids)
-                    },
-                    beforeSend:function(){
-                         ceBouton.prop('disabled', true);
-                         $('#loader').show();
-                    },
-                    success: function(response){
-
-                        console.log(response);
-                        ceBouton.prop('disabled', false);
-
-                        if (response.statut == 1){
-                            notifySuccess(response.message);
-
-                            dataTable.search('').draw();
-                            dataTable.draw();
-                            $('#btnSelectAll').prop('checked', false);
-
-                        }else{
-                            notifyWarning(response.message);
-                        }
-
-                    },
-                    error: function(){
-                        notifyWarning("Erreur lors du traitement");
-                        ceBouton.prop('disabled', false);
-                        $('#loader').hide();
-                    }
-
-                });
-
-            }else{
-                notifyWarning("Veuillez sélectionner des prestataires");
-            }
-
-        });
-
-
-    var my_noty;//variale global pour pouvoir le fermer de popup de l'extérieur
-    function notifySuccess(message, fnCallback){
-        my_noty = noty({
-                text        : message,
-                type        : 'success',
-                dismissQueue: true,
-                layout      : 'center',
-                theme       : 'defaultTheme',
-                buttons     : [
-                    {addClass: 'btn btn-primary', text: 'OK', onClick: function ($noty) {
-
-                        if (typeof fnCallback === 'function') fnCallback();
-
-                        $noty.close();
-                    }
-                    }
-                ]
-            });
-    }
-
-    function notifyWarning(message, fnCallback){
-          if (my_noty) {
-            my_noty.close();
-          }
-
-        my_noty = noty({
-                text        : message,
-                type        : 'warning',
-                dismissQueue: true,
-                layout      : 'center',
-                theme       : 'defaultTheme',
-                buttons     : [
-                    {addClass: 'btn btn-primary', text: 'OK', onClick: function ($noty) {
-
-                        if (typeof fnCallback === 'function') fnCallback();
-
-                        $noty.close();
-                    }
-                    }
-                ]
-            });
-
-    }
-
-    function notifyError(message, fnCallback){
-        my_noty = noty({
-                text        : message,
-                type        : 'error',
-                dismissQueue: true,
-                layout      : 'center',
-                theme       : 'defaultTheme',
-                buttons     : [
-                    {addClass: 'btn btn-primary', text: 'OK', onClick: function ($noty) {
-
-                        if (typeof fnCallback === 'function') fnCallback();
-
-                        $noty.close();
-                    }
-                    }
-                ]
-            });
-    }
-
-
-  });
-
-// FIN GESTION TRANSFERT DE BENEFICIIRES
-</script>
 
 {% endblock %}

@@ -5,8 +5,8 @@ from shared import veos
 from shared.helpers import openai_complete
 from . import views
 from .views import PrestatairesView, DetailsPrestatairesView, GroupePermissionsView, TarifsView, ReseauxSoinsView, \
-    DetailsReseauSoinView, WsBobyView, WsBobyCreateView, WsBobyEditeView, ActesView, ConnectedUsersView, businessView, \
-    brancheView, banquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView,ViewCourrier, CompagnieView
+    DetailsReseauSoinView, WsBobyView, WsBobyCreateView, WsBobyEditeView, ActesView, ConnectedUsersView, BusinessUnitView, \
+    brancheView, banquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView,ViewCourrier, CompagnieView, CarosseriesView
 
 
 
@@ -58,10 +58,11 @@ urlpatterns = [
     #
     path('categorieaffection/', CategorieView.as_view(), name='categorieaffections'),
     #
-    path('businessunit/', businessView.as_view(), name='business_unit'),
-    path("businessunit/add_business", views.add_business, name='add_business'),
-    path("businessunit/delete", views.supprimer_business, name='supprimer_business'),
-    path('businessunit/<int:business_id>', views.modifier_businessunit, name='modifier_business'),
+    path('businessunit/', BusinessUnitView.as_view(), name='business_unit'),
+    path('businessunit/ajouter', views.add_businessunit, name='add_businessunit'),
+    path('businessunit/<int:businessunit_id>/modifier', views.modifier_businessunit, name='modifier_businessunit'),
+    path('businessunit/delete/<int:businessunit_id>/', views.supprimer_businessunit, name='supprimer_businessunit'),
+
     #
     path('branche/',brancheView.as_view(), name='branche'),
     path('branche/ajouter', views.add_branche, name='add_branche'),
@@ -73,6 +74,11 @@ urlpatterns = [
     path('banque/<int:banque_id>/modifier', views.modifier_banque, name='modifier_banque'),
     path('banque/delete/<int:banque_id>/', views.supprimer_banque, name='supprimer_banque'),
     #
+    path('carosserie/',CarosseriesView.as_view(),name='carosseries'),
+    path('carosserie/ajouter', views.add_carosserie, name='add_carosserie'),
+    path('carosserie/<int:carosserie_id>/modifier', views.modifier_carosserie, name='modifier_carosserie'),
+    path('carosserie/delete/<int:carosserie_id>/', views.supprimer_carosserie, name='supprimer_carosserie'),
+
     # path('devise/', DeviseView.as_view(), name='devises'),
     #
     path('courriers/', ViewCourrier.as_view(), name='courrier'),

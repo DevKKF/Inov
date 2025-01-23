@@ -1979,6 +1979,7 @@ class TypeCarosserie(models.Model):
 
 class Carosserie(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
+    status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -11,6 +11,7 @@ import docx
 import pdfkit
 import pypandoc
 from ast import literal_eval
+from datetime import datetime as datetimes
 from datetime import date
 from datetime import datetime, timezone
 from datetime import timedelta
@@ -64,6 +65,7 @@ from django.views.decorators.cache import never_cache
 ## INOV API MOBILE
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
+from docx import Document as WordDocument
 # from django_dump_die.middleware import dd
 from fpdf import FPDF
 from urllib3 import request
@@ -93,7 +95,7 @@ from production.models import FormuleRubriquePrefinance, ModePrefinancement, Mot
     TaxeQuittance, Reglement, OptionYesNo, Carte, TypeMajorationContrat, Vehicule, VehiculePolice, Energie, \
     StatutPolice, Operation, TarifPrestataireClient, PeriodeCouverture, Bareme, AlimentTemporaire, MouvementAliment, \
     OperationReglement, HistoriquePolice, HistoriqueApporteurPolice, HistoriqueTaxePolice, Marchandise, HistoriqueAliment
-from production.templatetags.my_filters import money_field, convertir_date_multiformat, supprimer_espaces, convertir_date_jj_mm_aaaa
+from production.templatetags.my_filters import money_field, convertir_date_multiformat, supprimer_espaces, convertir_date_jj_mm_aaaa, format_montant
 from shared.enum import StatutIncorporation, StatutValidite, StatutSinistre, StatutEnrolement, StatutTraitement, \
     StatutReversementCompagnie, StatutValiditeQuittance
 from shared.helpers import generer_qrcode_carte, generate_numero_famille, generate_numero_carte, render_pdf, \
@@ -326,14 +328,11 @@ def modifier_contact(request, contact_id):
             return JsonResponse(response)
 
     else:
-        contact = Contact.objects.get(id=contact_id)
-        pays = Pays.objects.all().order_by('nom')
 
         form = ContactForm()
 
         context = {
             'contact': contact,
-            'pays': pays,
             'form': form,
         }
 
@@ -341,7 +340,7 @@ def modifier_contact(request, contact_id):
 
 
 @login_required
-def supprimer_contact(request):
+def supprimer_contact(request, contact_id):
     if request.method == "POST":
 
         contact_id = request.POST.get('contact_id')
@@ -447,7 +446,7 @@ def modifier_filiale(request, filiale_id):
                       {'filiale': filiale, 'pays': pays, 'form': form})
 
 
-def supprimer_filiale(request):
+def supprimer_filiale(request, filiale_id):
     if request.method == "POST":
 
         filiale_id = request.POST.get('filiale_id')
@@ -482,29 +481,17 @@ def add_document(request, client_id):
             client = Client.objects.get(id=client_id)
             type_document_id = request.POST.get('type_document')
 
-            #   type_document = get_object_or_404(TypeDocument, id=request.POST.get('type_document'))
-
-            # Use the ORM to create and update the Document instance
             document = form.save(commit=False)
             document.client = client
-            #   document.type_document = type_document
             document.type_document = TypeDocument.objects.get(id=type_document_id)
             document.save()
 
             pprint("document.fichier")
             pprint(document.fichier.path)
 
-            # response = {
-            #     'id': document.pk,
-            #     'nom': document.nom,
-            #     'fichier': document.fichier.url,
-            #     'type_document': document.type_document.libelle,
-            #     'confidentialite': document.confidentialite,
-            # }
-
             response = {
                 'statut': 1,
-                'message': "Enregistrement effectué avec succès !",
+                'message': _("Enregistrement effectue avec succes !"),
                 'data': {
                     'id': document.pk,
                     'nom': document.nom,
@@ -520,7 +507,7 @@ def add_document(request, client_id):
 
             response = {
                 'statut': 0,
-                'message': "Veuillez renseigner correctement le formulaire !",
+                'message': _("Veuillez renseigner correctement le formulaire !"),
                 'errors': form.errors,
             }
 
@@ -598,16 +585,16 @@ def modifier_document(request, document_id):
     else:
 
         document = Document.objects.get(id=document_id)
-        types_documents = TypeDocument.objects.all().order_by('libelle')
+        typedocuments = TypeDocument.objects.all().order_by('libelle')
 
         form = DocumentForm()
 
         return render(request, 'client/modification_document.html',
-                      {'document': document, 'types_documents': types_documents, 'form': form})
+                      {'document': document, 'typedocuments': typedocuments, 'form': form})
 
 
 @login_required
-def supprimer_document(request):
+def supprimer_document(request, document_id):
     if request.method == "POST":
 
         document_id = request.POST.get('document_id')
@@ -633,65 +620,32 @@ def supprimer_document(request):
 
 @login_required
 def add_acompte(request, client_id):
-    errors = {}
+
     if request.method == "POST":
 
-        montant = request.POST.get('montant')
-        date_versement = request.POST.get('date_versement')
+        client_id = request.POST.get('client_id')
 
-        if not montant:
-            response = {
-                'statut': 0,
-                'message': "Veuillez renseigner correctement le formulaire",
-                'errors': errors
+        acompte = Acompte(
+            credit=request.POST.get('montant', '').replace(' ', ''),
+            date_versement=convertir_date_multiformat(request.POST.get('date_versement')),
+            periode_debut=convertir_date_multiformat(request.POST.get('periode_debut')),
+            periode_fin=convertir_date_multiformat(request.POST.get('periode_fin')),
+            solde=request.POST.get('montant', '').replace(' ', ''),
+        )
+        acompte.client = Client.objects.get(id=client_id)
+        acompte.save()
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': acompte.pk,
+                'montant': acompte.credit,
+                'date_versement': acompte.date_versement,
             }
+        }
 
-            return JsonResponse(response)
-
-        if not date_versement:
-            response = {
-                'statut': 0,
-                'message': "Veuillez renseigner correctement le formulaire",
-                'errors': errors
-            }
-
-            return JsonResponse(response)
-
-        if not errors:
-
-            client_id = request.POST.get('client_id')
-
-            acompte = Acompte(
-                credit=request.POST.get('montant', '').replace(' ', ''),
-                date_versement=convertir_date_multiformat(request.POST.get('date_versement')),
-                periode_debut=convertir_date_multiformat(request.POST.get('periode_debut')),
-                periode_fin=convertir_date_multiformat(request.POST.get('periode_fin')),
-                solde=request.POST.get('montant', '').replace(' ', ''),
-            )
-            acompte.client = Client.objects.get(id=client_id)
-            acompte.save()
-
-            response = {
-                'statut': 1,
-                'message': "Enregistrement effectué avec succès !",
-                'data': {
-                    'id': acompte.pk,
-                    'montant': acompte.credit,
-                    'date_versement': acompte.date_versement,
-                }
-            }
-
-            return JsonResponse(response)
-
-        else:
-
-            response = {
-                'statut': 0,
-                'message': "Veuillez renseigner correctement le formulaire",
-                'errors': errors
-            }
-
-            return JsonResponse(response)
+        return JsonResponse(response)
 
 
 @login_required
@@ -699,56 +653,50 @@ def modifier_acompte(request, acompte_id):
     acompte = Acompte.objects.get(id=acompte_id)
 
     if request.method == 'POST':
-        form = AcompteForm(request.POST, instance=acompte)
-        if form.is_valid():
-            form.save()
 
-            response = {
-                'statut': 1,
-                'message': "Modification effectuée avec succès !",
-                'data': {
-                    'id': acompte.pk,
-                    'nom': acompte.montant,
-                    'nom': acompte.date_versement,
-                }
+        Acompte.objects.filter(id=acompte_id).update(
+            credit=request.POST.get('montant', '').replace(' ', ''),
+            date_versement=convertir_date_multiformat(request.POST.get('date_versement')),
+            periode_debut=convertir_date_multiformat(request.POST.get('periode_debut')),
+            periode_fin=convertir_date_multiformat(request.POST.get('periode_fin')),
+            solde=request.POST.get('montant', '').replace(' ', ''),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': acompte.pk,
+                'nom': acompte.credit,
+                'date_versement': acompte.date_versement,
             }
+        }
 
-            return JsonResponse(response)
-
-        else:
-
-            response = {
-                'statut': 0,
-                'message': "Veuillez renseigner correctement le formulaire",
-                'errors': form.errors,
-            }
-
-            return JsonResponse(response)
+        return JsonResponse(response)
 
     else:
 
-        acompte = Acompte.objects.get(id=acompte_id)
-
-        form = AcompteForm()
-
         return render(request, 'client/modification_acompte.html',
-                      {'acompte': acompte, 'form': form})
+                      {'acompte': acompte})
 
 
 @login_required
-def supprimer_acompte(request):
+def supprimer_acompte(request, acompte_id):
     if request.method == "POST":
 
         acompte_id = request.POST.get('acompte_id')
-
+        print("acompte id : ", acompte_id)
         acompte = Acompte.objects.get(id=acompte_id)
         if acompte.pk is not None:
+
             acompte.delete()
 
             response = {
                 'statut': 1,
                 'message': "Acompte supprimé avec succès !",
             }
+
+            return JsonResponse(response)
 
         else:
 
@@ -3208,6 +3156,174 @@ def add_reglement(request, police_id):
                       {'police': police, 'today': today, 'quittances_impayees': quittances_impayees, 'devises': devises,
                        'natures_operations': natures_operations, 'modes_reglements': modes_reglements,
                        'banques': banques, 'comptes_tresoreries': comptes_tresoreries, 'uuid_reglement': uuid_reglement})
+
+
+@login_required
+def imprimer_recu_reglement(request, quittance_id, reglement_id):
+    quittance = Quittance.objects.get(id=quittance_id)
+    reglement = Reglement.objects.get(id=reglement_id)
+    police = quittance.police
+
+    print('client : ', police.client.nom, police.client.prenoms)
+    # Récupérer le dernier historique de la police
+    dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+    # Récupérer l'assureur associé à l'historique
+    assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id, type_compagnie_id=1).first()
+
+    # Chemin du document Word
+    doc_path = os.path.join(settings.BASE_DIR, 'production', 'templates', 'police', 'courriers', "3-Recu paiement.docx")
+
+    doc_path = r"{}".format(doc_path)  # Pour s'assurer que c'est bien une chaîne Unicode
+
+    # Charger le document Word
+    document = WordDocument(doc_path)
+
+    # Définir les remplacements de base
+    base_replacements = {
+        'DESTINATAIRE_TITRE': reglement.quittance.police.client.civilite if reglement.quittance.police.client.civilite else '',
+        'DESTINATAIRE_NOM': reglement.quittance.police.client.nom if reglement.quittance.police.client.nom else '',
+        'DESTINATAIRE_PRÉNOM': reglement.quittance.police.client.prenoms if reglement.quittance.police.client.prenoms else '',
+        'DESTINATAIRE_ADRESSELIGNE1': reglement.quittance.police.client.adresse if reglement.quittance.police.client.adresse else '',
+        'DESTINATAIRE_ADRESSELIGNE2': '',
+        'DESTINATAIRE_CODEPOSTAL': reglement.quittance.police.client.adresse_postale if reglement.quittance.police.client.adresse_postale else '',
+        'DESTINATAIRE_VILLE': reglement.quittance.police.client.ville if reglement.quittance.police.client.ville else '',
+        'CABINET_VILLECAB': reglement.quittance.police.bureau.ville,
+        'QUITTANCE_NUMÉROPOLICE': reglement.quittance.police.numero,
+        'QUITTANCE_NUMÉRO': reglement.quittance.numero,
+        'PAIEMENT_ID_OPER': reglement.numero,
+        'QUITTANCE_DATEDÉBUT': reglement.quittance.date_debut.strftime('%d-%m-%Y'),
+        'QUITTANCE_DATEFIN': reglement.quittance.date_fin.strftime('%d-%m-%Y'),
+        'COMPAGNIE_NOM': assureur_police.compagnie.nom if assureur_police.compagnie.nom else '',
+        'POLICE_BRANCHE': reglement.quittance.police.produit.branche.nom if reglement.quittance.police.produit.branche.nom else '',
+        'ASSURÉ_NOM': reglement.quittance.police.client.nom,
+        'ASSURÉ_PRÉNOM': reglement.quittance.police.client.prenoms,
+        'SIGNATAIRE_NOM': request.user.first_name,
+        'SIGNATAIRE_PRENOM': request.user.last_name,
+        '$QUITTANCE_PRIMETOTALE': f"{num2words(reglement.montant, lang='fr').capitalize()} {reglement.quittance.police.client.pays.devise.code}",
+        'QUITTANCE_PRIMETOTALE$$': f"{format_montant(reglement.montant)} {reglement.quittance.police.client.pays.devise.code}",
+        'PAIEMENT_LIBELLE_MODEREG': reglement.mode_reglement.libelle if reglement.mode_reglement else '',
+        'PAIEMENT_BANQUE_CLIENT': reglement.banque.libelle if reglement.banque else '',
+        'PAIEMENT_NUMERO_CHEQUE': reglement.compte_tresorerie.code if reglement.compte_tresorerie else '',
+        'POLICE_NUMÉRO': reglement.quittance.police.numero,
+        'POLICE_NOMPRODUIT': reglement.quittance.police.produit.nom,
+        'CABINET_MENTIONS': reglement.quittance.police.bureau.mention_legale,
+        'LIBRE_TODAY': datetimes.today().strftime('%d/%m/%Y'),
+    }
+
+    replacements = {}
+    for key, value in base_replacements.items():
+        formats = [
+            f'«{key}»', f'"{key}"', key
+        ]
+        for fmt in formats:
+            replacements[fmt] = str(value) if value else ""
+
+    # Fonction pour remplacer le logo séparément
+    def replace_logo_in_document(document, logo_path):
+        if not logo_path:
+            return
+
+        for paragraph in document.paragraphs:
+            if 'LOGO_SOC' in paragraph.text:
+                for run in paragraph.runs:
+                    if 'LOGO_SOC' in run.text:
+                        run.clear()
+                        run.add_picture(logo_path, width=Inches(1.0))
+                        break
+
+        # Remplacer dans les en-têtes et les pieds de page également
+        for section in document.sections:
+            # En-têtes
+            for paragraph in section.header.paragraphs:
+                if 'LOGO_SOC' in paragraph.text:
+                    for run in paragraph.runs:
+                        if 'LOGO_SOC' in run.text:
+                            run.clear()
+                            run.add_picture(logo_path, width=Inches(1.0))
+                            break
+
+            # Pieds de page
+            for paragraph in section.footer.paragraphs:
+                if 'LOGO_SOC' in paragraph.text:
+                    for run in paragraph.runs:
+                        if 'LOGO_SOC' in run.text:
+                            run.clear()
+                            run.add_picture(logo_path, width=Inches(1.0))
+                            break
+
+    # Fonction pour remplacer les autres placeholders
+    def replace_placeholders_in_paragraph(paragraph):
+        original_text = paragraph.text
+        new_text = original_text
+
+        for placeholder, value in replacements.items():
+            if placeholder in new_text:
+                new_text = new_text.replace(placeholder, value)
+
+        if new_text != original_text:
+            first_run = paragraph.runs[0] if paragraph.runs else paragraph.add_run()
+            first_run.text = new_text
+            for run in paragraph.runs[1:]:
+                run.clear()
+
+    def replace_placeholders_in_document(document):
+        for paragraph in document.paragraphs:
+            replace_placeholders_in_paragraph(paragraph)
+
+        for table in document.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        replace_placeholders_in_paragraph(paragraph)
+
+        for section in document.sections:
+            for paragraph in section.header.paragraphs + section.footer.paragraphs:
+                replace_placeholders_in_paragraph(paragraph)
+            for table in section.header.tables + section.footer.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        for paragraph in cell.paragraphs:
+                            replace_placeholders_in_paragraph(paragraph)
+
+    def generate_document_response(document):
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        response['Content-Disposition'] = 'attachment; filename="RECU PAIEMENT.docx"'
+        document.save(response)
+        return response
+
+    # Remplacement du logo
+
+    if reglement.quittance.police.client.logo and hasattr(reglement.quittance.police.client.logo,
+                                                          'path') and os.path.isfile(
+            reglement.quittance.police.client.logo.path):
+        logo_path = reglement.quittance.police.client.logo.path
+        replace_logo_in_document(document, logo_path)
+    else:
+        # Fonction pour remplacer le texte tout en conservant le format
+        def remplacer_texte_avec_format(paragraphs, ancien_texte, nouveau_texte):
+            for para in paragraphs:
+                for run in para.runs:
+                    if ancien_texte in run.text:
+                        run.text = run.text.replace(ancien_texte, nouveau_texte)
+
+        # Remplacer dans le corps du document
+        remplacer_texte_avec_format(document.paragraphs, '«LOGO_SOC»', '')
+
+        # Remplacer également dans les en-têtes (headers)
+        for section in document.sections:
+            remplacer_texte_avec_format(section.header.paragraphs, '«LOGO_SOC»', '')
+
+        # Remplacer également dans les pieds de page (footers)
+        for section in document.sections:
+            remplacer_texte_avec_format(section.footer.paragraphs, '«LOGO_SOC»', '')
+
+    # Remplacement des autres placeholders
+    replace_placeholders_in_document(document)
+
+    return generate_document_response(document)
 
 
 @login_required
@@ -7279,7 +7395,12 @@ class ClientsView(TemplateView):
         secteurs_activite = SecteurActivite.objects.filter(status=True).order_by('libelle')
         groupes = Groupe.objects.filter(statut=True)
 
-        commercials = User.objects.all().order_by('-first_name').exclude(is_admin_group=1)
+        commercials = []
+
+        utilisateur = User.objects.all().order_by('-first_name').exclude(is_admin_group=1)
+        for user in utilisateur:
+            if user.is_commercial():
+                commercials.append(user)
 
         context_perso = {'types_clients': types_clients, 'types_personnes': types_personnes, 'secteurs_activite': secteurs_activite,
                          'civilites': civilites, 'bureaux': bureaux, 'pays': pays, 'business_units': business_units, 'commercials':commercials,
@@ -7555,8 +7676,14 @@ def modifier_client(request, client_id):
         utilisateurs = User.objects.all().order_by('last_name')
         genre = Genre
         secteurs_activite = SecteurActivite.objects.filter(status=True).order_by('libelle')
-        commercials = User.objects.all().order_by('-first_name').exclude(is_admin_group=1)
         groupes = Groupe.objects.filter(statut=True)
+
+        commercials = []
+
+        utilisateur = User.objects.all().order_by('-first_name').exclude(is_admin_group=1)
+        for user in utilisateur:
+            if user.is_commercial():
+                commercials.append(user)
 
         return render(request, 'client/modal_client_modification.html',
                       {'client': client, 'types_clients': types_clients, 'types_personnes': types_personnes, 'secteurs_activite': secteurs_activite,
@@ -7795,19 +7922,11 @@ class ContactClientView(TemplateView):
         if clients:
             client = clients.first()
 
-
             statut_contrat = "CONTRAT"
 
-            contacts = Contact.objects.filter(client_id=client_id)
+            contacts = Contact.objects.filter(client_id=client_id).order_by('-id')
 
-            pays = Pays.objects.all().order_by('nom')
-
-            bureaux = Bureau.objects.filter(id=request.user.bureau.id)
-
-            context_perso = {'client': client, 'contacts': contacts,
-                             'pays': pays,
-                             'bureaux': bureaux, 'statut_contrat': statut_contrat
-                             }
+            context_perso = {'client': client, 'contacts': contacts,'statut_contrat': statut_contrat}
 
             context = {**context_original, **context_perso}
 
@@ -7847,16 +7966,12 @@ class FilialeClientView(TemplateView):
 
             statut_contrat = "CONTRAT"
 
-            filiales = Filiale.objects.filter(client_id=client_id)
+            filiales = Filiale.objects.filter(client_id=client_id).order_by('-id')
 
             pays = Pays.objects.all().order_by('nom')
 
-
-            bureaux = Bureau.objects.filter(id=request.user.bureau.id)
-
             context_perso = {'client': client,
-                             'filiales': filiales, 'pays': pays,
-                             'bureaux': bureaux, 'statut_contrat': statut_contrat
+                             'filiales': filiales, 'pays': pays, 'statut_contrat': statut_contrat
                              }
 
             context = {**context_original, **context_perso}
@@ -7895,7 +8010,7 @@ class AcompteClientView(TemplateView):
         if clients:
             client = clients.first()
 
-            acomptes = Acompte.objects.filter(client_id=client_id, solde__gt=0)
+            acomptes = Acompte.objects.filter(client_id=client_id, solde__gt=0).order_by('date_versement')
 
             pays = Pays.objects.all().order_by('nom')
 
@@ -8054,29 +8169,30 @@ def generer_exportation_quittance(request, typefichier_id):
     periode_fin = request.GET.get('pf')
 
     quittances = Quittance.objects.filter(police_id=police.id, police__client=client, statut_validite=StatutValidite.VALIDE).order_by('numero')
-
+    
     if periode_debut and periode_fin:
         periode_debut = convertir_date_multiformat(periode_debut)
         periode_fin = convertir_date_multiformat(periode_fin)
 
         quittances = quittances.filter(
-            #Q(date_debut__gte=periode_debut, date_fin__lte=periode_fin) |
+            Q(date_debut__gte=periode_debut, date_fin__lte=periode_fin) |
             (Q(statut=StatutQuittance.IMPAYE))
         ).order_by('numero')
 
     site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
 
     heure_actuelle = datetime.now().strftime('%H:%M:%S')
-
+    
+    quittance_impayees = Quittance.objects.filter(police_id=police.id, police__client=client, statut_validite=StatutValidite.VALIDE, statut=StatutQuittance.IMPAYE).order_by('numero')
     acomptes = Acompte.objects.filter(client_id=client.id, solde__gt=0)
 
     solde_acomptes = sum(acompte.solde for acompte in acomptes)
-    solde_quittances = sum(quittance.solde for quittance in quittances)
+    solde_quittances = sum(quittance_impayee.solde for quittance_impayee in quittance_impayees)
 
     if solde_quittances > solde_acomptes:
         difference_acomptes_quittances = solde_quittances - solde_acomptes
     else:
-        difference_acomptes_quittances = solde_acomptes - solde_quittances
+        difference_acomptes_quittances = 0
 
     print('quittances : ', quittances)
     print("date_exportation : ", date_exportation)
@@ -8086,7 +8202,6 @@ def generer_exportation_quittance(request, typefichier_id):
     print("solde_acomptes : ", solde_acomptes)
     print("solde_quittances : ", solde_quittances)
     print("difference_acomptes_quittances : ", difference_acomptes_quittances)
-    print("heure_actuelle : ", heure_actuelle)
     print("Logo : ", site_logo_url)
 
     contexte = {
@@ -8112,20 +8227,162 @@ def generer_exportation_quittance(request, typefichier_id):
             pass
         elif typefichier.id == 2:
 
-            pdf = render_pdf('police/generation/quittances.html', contexte)
+            pdf = render_pdf('police/courriers/quittances.html', contexte)
 
             pdf_file = PyPDF2.PdfReader(pdf)
             nombre_pages = len(pdf_file.pages)
 
             # Ajout du nombre de page obtenu au contexte pour le rendu final
             contexte['nombre_pages'] = nombre_pages
-            pdf = render_pdf('police/generation/quittances.html', contexte)
+            pdf = render_pdf('police/courriers/quittances.html', contexte)
 
             # AFFICHER DIRECTEMENT
             return HttpResponse(File(pdf), content_type='application/pdf')
 
         elif typefichier.id == 3:
-            pass
+
+            # Chemin du document Word
+            doc_path = os.path.join(settings.BASE_DIR, 'production', 'templates', 'police', 'courriers', "4-quittances.docx")
+
+            doc_path = r"{}".format(doc_path)  # Pour s'assurer que c'est bien une chaîne Unicode
+
+            # Charger le document Word
+            document = WordDocument(doc_path)
+
+            # Définir les remplacements de base
+            base_replacements = {
+                'BUREAU_NOM': client.bureau.nom if client.bureau.nom else '',
+                'BUREAU_ADRESSE': client.bureau.addresse if client.bureau.addresse else '',
+                'BUREAU_SITUATION_GEOGRAPHIQUE': client.bureau.situation_geographique if client.bureau.situation_geographique else '',
+                'BUREAU_TELEPHONE': client.bureau.telephone if client.bureau.telephone else '',
+                'BUREAU_FAX': client.bureau.fax if client.bureau.fax else '',
+                'BUREAU_EMAIL': client.bureau.email if client.bureau.email else '',
+                'POLICE_NUMERO': police.numero if police.numero else '',
+                'CLIENT_NOM': client.nom if client.nom else '',
+                'CLIENT_PRENOMS': client.prenoms if client.prenoms else '',
+                'PERIODE': '', #"PERIODE ",periode_debut," - ",periode_fin,
+                'DEVICE': 'XOF',
+                'TOTAL_QUITTANCES_IMPAYEES': format_montant(solde_quittances) if solde_quittances else '0',
+                'TOTAL_COMPTE_CLIENT': format_montant(solde_acomptes) if solde_acomptes else '0',
+                'RESTANT_A_PAYER': format_montant( difference_acomptes_quittances) if difference_acomptes_quittances else '0',
+                'LIBRE_TODAY': datetimes.today().strftime('%d/%m/%Y'),
+                'LIBRE_TIMEDAY': heure_actuelle,
+            }
+
+            replacements = {}
+            for key, value in base_replacements.items():
+                formats = [
+                    f'«{key}»', f'"{key}"', key
+                ]
+                for fmt in formats:
+                    replacements[fmt] = str(value) if value else ""
+
+            # Fonction pour remplacer le logo séparément
+            def replace_logo_in_document(document, logo_path):
+                if not logo_path:
+                    return
+
+                for paragraph in document.paragraphs:
+                    if 'LOGO_SOC' in paragraph.text:
+                        for run in paragraph.runs:
+                            if 'LOGO_SOC' in run.text:
+                                run.clear()
+                                run.add_picture(logo_path, width=Inches(1.0))
+                                break
+
+                # Remplacer dans les en-têtes et les pieds de page également
+                for section in document.sections:
+                    # En-têtes
+                    for paragraph in section.header.paragraphs:
+                        if 'LOGO_SOC' in paragraph.text:
+                            for run in paragraph.runs:
+                                if 'LOGO_SOC' in run.text:
+                                    run.clear()
+                                    run.add_picture(logo_path, width=Inches(1.0))
+                                    break
+
+                    # Pieds de page
+                    for paragraph in section.footer.paragraphs:
+                        if 'LOGO_SOC' in paragraph.text:
+                            for run in paragraph.runs:
+                                if 'LOGO_SOC' in run.text:
+                                    run.clear()
+                                    run.add_picture(logo_path, width=Inches(1.0))
+                                    break
+
+            # Fonction pour remplacer les autres placeholders
+            def replace_placeholders_in_paragraph(paragraph):
+                original_text = paragraph.text
+                new_text = original_text
+
+                for placeholder, value in replacements.items():
+                    if placeholder in new_text:
+                        new_text = new_text.replace(placeholder, value)
+
+                if new_text != original_text:
+                    first_run = paragraph.runs[0] if paragraph.runs else paragraph.add_run()
+                    first_run.text = new_text
+                    for run in paragraph.runs[1:]:
+                        run.clear()
+
+            def replace_placeholders_in_document(document):
+                for paragraph in document.paragraphs:
+                    replace_placeholders_in_paragraph(paragraph)
+
+                for table in document.tables:
+                    for row in table.rows:
+                        for cell in row.cells:
+                            for paragraph in cell.paragraphs:
+                                replace_placeholders_in_paragraph(paragraph)
+
+                for section in document.sections:
+                    for paragraph in section.header.paragraphs + section.footer.paragraphs:
+                        replace_placeholders_in_paragraph(paragraph)
+                    for table in section.header.tables + section.footer.tables:
+                        for row in table.rows:
+                            for cell in row.cells:
+                                for paragraph in cell.paragraphs:
+                                    replace_placeholders_in_paragraph(paragraph)
+
+            def generate_document_response(document):
+                response = HttpResponse(
+                    content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                )
+                response['Content-Disposition'] = 'attachment; filename="LISTE DES QUITTANCES.docx"'
+                document.save(response)
+                return response
+
+            # Remplacement du logo
+
+            if client.logo and hasattr(client.logo,
+                                       'path') and os.path.isfile(
+                client.logo.path):
+                logo_path = client.logo.path
+                replace_logo_in_document(document, logo_path)
+            else:
+                # Fonction pour remplacer le texte tout en conservant le format
+                def remplacer_texte_avec_format(paragraphs, ancien_texte, nouveau_texte):
+                    for para in paragraphs:
+                        for run in para.runs:
+                            if ancien_texte in run.text:
+                                run.text = run.text.replace(ancien_texte, nouveau_texte)
+
+                # Remplacer dans le corps du document
+                remplacer_texte_avec_format(document.paragraphs, '«LOGO_SOC»', '')
+
+                # Remplacer également dans les en-têtes (headers)
+                for section in document.sections:
+                    remplacer_texte_avec_format(section.header.paragraphs, '«LOGO_SOC»', '')
+
+                # Remplacer également dans les pieds de page (footers)
+                for section in document.sections:
+                    remplacer_texte_avec_format(section.footer.paragraphs, '«LOGO_SOC»', '')
+
+            # Remplacement des autres placeholders
+            replace_placeholders_in_document(document)
+
+            return generate_document_response(document)
+
         else:
             pass
 
@@ -8152,12 +8409,7 @@ class GEDClientView(TemplateView):
 
             documents = Document.objects.filter(client_id=client_id)
 
-            pays = Pays.objects.all().order_by('nom')
-
-            bureaux = Bureau.objects.filter(id=request.user.bureau.id)
-
-            context_perso = {'client': client, 'documents': documents, 'typedocuments': typedocuments, 'pays': pays,
-                             'bureaux': bureaux, 'statut_contrat': statut_contrat
+            context_perso = {'client': client, 'documents': documents, 'typedocuments': typedocuments, 'statut_contrat': statut_contrat
                              }
 
             context = {**context_original, **context_perso}

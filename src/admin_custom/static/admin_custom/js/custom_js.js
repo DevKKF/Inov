@@ -351,7 +351,6 @@ $(document).ready(function () {
                             $noty.close();
 
                             //confirmation obtenu
-
                             if (files.length > 0) {
                                 formData.append('logo_client', files[0]);
                             }
@@ -660,227 +659,289 @@ $(document).ready(function () {
 
     //----------------- AJOUT DE CONTACT ------------------//
     // TODO AJOUT DE CONTACT DU CLIENT
-    //Ajout contact
-    $("#btn_enregistrer_contact_client").on('click', function () {
-
-        let btn_enregistrer_contact_client = $(this);
+    //Création d'une contact
+    $(document).on('click', "#btn_contact_client", function () {
 
         let formulaire = $('#form_contact_client');
+        let href = formulaire.attr('action');
 
         $.validator.setDefaults({ ignore: [] });
 
+        let formData = new FormData();
+
         if (formulaire.valid()) {
 
-            $.ajax({
-                type: 'post',
-                url: formulaire.attr('action'),
-                data: $('#form_contact_client').serialize(),
-                beforeSend: function () {
-                    $('#loading_gif').show();
-                    btn_enregistrer_contact_client.hide();
-                },
-                success: function (response) {
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment enregistrer cette contact ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
 
-                    $('#loading_gif').hide();
-                    //btn_enregistrer_contact_client.hide();
+                            //confirmation obtenu
 
-                    if (response.statut == 1) {
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
 
-                        notifySuccess(response.message, function () {
-                            location.reload();
-                        });
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
 
-                    } else {
-                        notifyWarning(response.message);
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        notifySuccess(response.message, function () {
+                                            formulaire[0].reset(); // Réinitialise tous les champs du formulaire
+                                            location.reload();
+                                        });
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-client .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
                     }
-
-                },
-                error: function (response) {
-                    console.log(response);
-                    btn_enregistrer_contact_client.show();
-                }
+                ]
             });
+            //fin demande confirmation
+
 
         } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
             let validator = formulaire.validate();
-            notifyWarning("Veuillez renseigner tout les champs obligatoire");
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
         }
 
     });
 
-    //Standard: ouvrir les popups de modification
-    $(document).on("click", ".btn_modifier_on_modal", function () {
+    //Modification d'un contact
+    $(document).on('click', '.btn_modifier_contact', function () {
 
         let model_name = $(this).attr('data-model_name');
         let modal_title = $(this).attr('data-modal_title');
         let href = $(this).attr('data-href');
 
-        $('#modal-dynamique').find('.modal-title').text(modal_title);
-        $('#modal-dynamique').find('#btn_valider_modification').attr({ 'data-model_name': model_name, 'data-href': href });
+        $('#olea_std_dialog_box').load(href, function () {
 
-        $('#modal-dynamique').modal({ backdrop: "static ", keyboard: false }).find('.modal-body').text("Chargement en cours...").load(href);
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
 
-    });
+            $('#modal-modification_contact').attr('data-backdrop', 'static').attr('data-keyboard', false);
 
-    //Valider les modifications
-    //$("#btn_valider").on('click', function(){
-    $(document).on("click", "#btn_valider_modification", function (e) {
-        e.stopPropagation();
+            $('#modal-modification_contact').find('.modal-title').text(modal_title);
+            $('#modal-modification_contact').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_contact').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
 
-        let model_name = $(this).attr('data-model_name');
-        let href = $(this).attr('data-href');
-        let formulaire = $('#modal-dynamique').find('form');
+            //
+            $('#modal-modification_contact').modal();
 
-        switch (model_name) {
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_contact").on('click', function () {
 
-            case 'document':
-
-                let formData = new FormData();
-                let files = $('#modal-dynamique #fichier')[0].files;
-                let type_document = $('#modal-dynamique #type_document').val();
-                let nom = $('#modal-dynamique #nom').val();
-                let confidentialite = $('#modal-dynamique #confidentialite').val();
-                let commentaire = $('#modal-dynamique #commentaire').val();
+                let formulaire = $('#form_update_contact');
+                let href = formulaire.attr('action');
 
                 $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
                 if (formulaire.valid()) {
 
-                    //formData.append('client_id', client_id);
-                    formData.append('fichier', files[0]);
-                    formData.append('type_document', type_document);
-                    formData.append('nom', nom);
-                    formData.append('confidentialite', confidentialite);
-                    formData.append('commentaire', commentaire);
+                    //demander confirmation
+                    let n = noty({
+                        text: 'Voulez-vous vraiment modifier cet contact ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
 
-                    $.ajax({
-                        type: 'post',
-                        url: href,
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function (response) {
+                                    //confirmation obtenu
 
-                            if (response.statut == 1) {
+                                    let data_serialized = formulaire.serialize();
+                                    $.each(data_serialized.split('&'), function (index, elem) {
+                                        let vals = elem.split('=');
 
-                                notifySuccess(response.message);
-                                //location.reload();
+                                        let key = vals[0];
+                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
 
-                            } else {
+                                        formData.append(key, valeur);
 
-                                let errors = JSON.parse(JSON.stringify(response.errors));
-                                let errors_list_to_display = '';
-                                for (field in errors) {
-                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                    });
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                notifySuccess(response.message, function () {
+                                                    location.reload();
+                                                });
+
+                                            } else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-modification_contact .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-modification_contact .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
                                 }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
 
-                                $('#modal-dynamique .alert .message').html(errors_list_to_display);
-
-                                $('#modal-dynamique .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                                    $(this).slideUp(500);
-                                }).removeClass('alert-success').addClass('alert-warning');
-
+                                }
                             }
-
-                        },
-                        error: function () {
-
-                        }
+                        ]
                     });
 
                 } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
                     notifyWarning('Veuillez renseigner tous les champs obligatoires');
                 }
 
+            });
 
-                break;
-
-            default:
-
-                $.ajax({
-                    url: href,
-                    type: 'post',
-                    data: formulaire.serialize(),
-                    success: function (response) {
-
-                        if (response.statut == 1) {
-
-                            $('#modal-dynamique .alert .message').text(response.message);
-
-                            $('#modal-dynamique .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                                $(this).slideUp(500);
-                                $("#modal-dynamique").modal('toggle');
-
-                                notifySuccess(response.message);
-                                location.reload();
-
-                            }).removeClass('alert-warning').addClass('alert-success');
-
-                        } else {
-
-                            $('#modal-dynamique .alert .message').text(response.message);
-
-                            $('#modal-dynamique .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                                $(this).slideUp(500);
-                            }).removeClass('alert-success').addClass('alert-warning');
-
-                        }
-
-                    },
-                    error: function () {
-                        notifyWarning('Erreur lors de la modification');
-                    }
-                });
-
-                break;
-
-        }
-
-    });
-
-
-    // Suppression d'un contact
-    $(document).on('click', '.btn_supprimer_contact', function () {
-        let contact_id = $(this).data('contact_id');
-
-        let n = noty({
-            text: 'Voulez-vous vraiment supprimer ce contact ?',
-            type: 'warning',
-            dismissQueue: true,
-            layout: 'center',
-            theme: 'defaultTheme',
-            buttons: [
-                {
-                    addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
-                        $noty.close();
-
-                        //effectuer la suppression
-                        $.ajax({
-                            url: '/production/client/delete',
-                            type: 'post',
-                            data: { contact_id: contact_id },
-                            success: function (e) {
-
-                                location.reload();
-
-                            },
-                            error: function () {
-                                notifyWarning('Erreur lors de la suppression');
-                            }
-                        });
-
-                    }
-                },
-                {
-                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
-                        //annuler la suppression
-                        $noty.close();
-                    }
-                }
-            ]
         });
 
-
     });
+
+    //Suppression d'un contact
+    $(document).on('click', '.btn_supprimer_contact', function () {
+    let contact_id = $(this).data('contact_id');
+    let href = $(this).data('href');
+    let n = noty({
+        text: 'Voulez-vous vraiment supprimer cette contact ?',
+        type: 'warning',
+        dismissQueue: true,
+        layout: 'center',
+        theme: 'defaultTheme',
+        buttons: [
+            {
+                addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                    $noty.close();
+
+                    //effectuer la suppression
+                    $.ajax({
+                        url: href,
+                        type: 'post',
+                        data: { contact_id: contact_id },
+                        success: function (response) {
+
+                            notifySuccess(response.message, function () {
+                                location.reload();
+                            });
+
+                        },
+                        error: function () {
+                            notifyWarning('Erreur lors de la suppression');
+                        }
+                    });
+
+                }
+            },
+            {
+                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                    //annuler la suppression
+                    $noty.close();
+                }
+            }
+        ]
+    });
+});
 
 
     //----------------- FIN AJOUT DE CONTACT ------------------//
@@ -942,57 +1003,250 @@ $(document).ready(function () {
     });*/
 
     // TODO AJOUT DE FILIALE DU CLIENT
-    //Ajout filiale
-    $("#btn_enregistrer_filiale_client").on('click', function () {
-
-        let btn_enregistrer_filiale_client = $(this);
+    //Création d'une filiale
+    $(document).on('click', "#btn_filiale_client", function () {
 
         let formulaire = $('#form_filiale_client');
+        let href = formulaire.attr('action');
 
         $.validator.setDefaults({ ignore: [] });
 
+        let formData = new FormData();
+
         if (formulaire.valid()) {
 
-            $.ajax({
-                type: 'post',
-                url: formulaire.attr('action'),
-                data: $('#form_filiale_client').serialize(),
-                beforeSend: function () {
-                    $('#loading_gif').show();
-                    btn_enregistrer_filiale_client.hide();
-                },
-                success: function (response) {
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment enregistrer cette contact ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
 
-                    $('#loading_gif').hide();
-                    //btn_enregistrer_filiale_client.hide();
+                            //confirmation obtenu
 
-                    if (response.statut == 1) {
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
 
-                        notifySuccess(response.message, function () {
-                            location.reload();
-                        });
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
 
-                    } else {
-                        notifyWarning(response.message);
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        notifySuccess(response.message, function () {
+                                            formulaire[0].reset(); // Réinitialise tous les champs du formulaire
+                                            location.reload();
+                                        });
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-client .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
                     }
-
-                },
-                error: function (response) {
-                    console.log(response);
-                    btn_enregistrer_filiale_client.show();
-                }
+                ]
             });
+            //fin demande confirmation
+
 
         } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
             let validator = formulaire.validate();
-            notifyWarning("Veuillez renseigner tout les champs obligatoire");
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
         }
 
     });
 
+    //Modification d'une filiale
+    $(document).on('click', '.btn_modifier_filiale', function () {
+
+    let model_name = $(this).attr('data-model_name');
+    let modal_title = $(this).attr('data-modal_title');
+    let href = $(this).attr('data-href');
+
+    $('#olea_std_dialog_box').load(href, function () {
+
+        //appliquer le mask de saisie sur les champs montant
+        AppliquerMaskSaisie();
+
+        $('#modal-modification_filiale').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+        $('#modal-modification_filiale').find('.modal-title').text(modal_title);
+        $('#modal-modification_filiale').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+        $('#modal-modification_filiale').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
+
+        //
+        $('#modal-modification_filiale').modal();
+
+        //gestion du clique sur valider les modifications
+        $("#btn_save_modification_filiale").on('click', function () {
+
+            let formulaire = $('#form_update_filiale');
+            let href = formulaire.attr('action');
+
+            $.validator.setDefaults({ ignore: [] });
+
+            let formData = new FormData();
+
+            if (formulaire.valid()) {
+
+                //demander confirmation
+                let n = noty({
+                    text: 'Voulez-vous vraiment modifier cette filiale ?',
+                    type: 'warning',
+                    dismissQueue: true,
+                    layout: 'center',
+                    theme: 'defaultTheme',
+                    buttons: [
+                        {
+                            addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                $noty.close();
+
+                                //confirmation obtenu
+
+                                let data_serialized = formulaire.serialize();
+                                $.each(data_serialized.split('&'), function (index, elem) {
+                                    let vals = elem.split('=');
+
+                                    let key = vals[0];
+                                    let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                    formData.append(key, valeur);
+
+                                });
+
+                                $.ajax({
+                                    type: 'post',
+                                    url: href,
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: function (response) {
+
+                                        if (response.statut == 1) {
+
+                                            notifySuccess(response.message, function () {
+                                                location.reload();
+                                            });
+
+                                        } else {
+
+                                            let errors = JSON.parse(JSON.stringify(response.errors));
+                                            let errors_list_to_display = '';
+                                            for (field in errors) {
+                                                errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                            }
+
+                                            $('#modal-modification_filiale .alert .message').html(errors_list_to_display);
+
+                                            $('#modal-modification_filiale .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                $(this).slideUp(500);
+                                            }).removeClass('alert-success').addClass('alert-warning');
+
+                                        }
+
+                                    },
+                                    error: function (request, status, error) {
+
+                                        notifyWarning("Erreur lors de l'enregistrement");
+                                    }
+
+                                });
+
+                                //fin confirmation obtenue
+
+                            }
+                        },
+                        {
+                            addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                //confirmation refusée
+                                $noty.close();
+
+                            }
+                        }
+                    ]
+                });
+
+            } else {
+
+                $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                let validator = formulaire.validate();
+
+                $.each(validator.errorMap, function (index, value) {
+
+                    console.log('Id: ' + index + ' Message: ' + value);
+
+                });
+
+                notifyWarning('Veuillez renseigner tous les champs obligatoires');
+            }
+
+        });
+
+    });
+
+});
+
+    //Suppression d'une filiale
     $(document).on('click', '.btn_supprimer_filiale', function () {
         let filiale_id = $(this).data('filiale_id');
-
+        let href = $(this).data('href');
         let n = noty({
             text: 'Voulez-vous vraiment supprimer cette filiale ?',
             type: 'warning',
@@ -1006,12 +1260,14 @@ $(document).ready(function () {
 
                         //effectuer la suppression
                         $.ajax({
-                            url: '/production/filiale/delete',
+                            url: href,
                             type: 'post',
                             data: { filiale_id: filiale_id },
-                            success: function (e) {
+                            success: function (response) {
 
-                                location.reload();
+                                notifySuccess(response.message, function () {
+                                    location.reload();
+                                });
 
                             },
                             error: function () {
@@ -1029,153 +1285,266 @@ $(document).ready(function () {
                 }
             ]
         });
-
-
     });
 
     //----------------- FIN AJOUT DE FILIALE ------------------//
 
 
     //----------------- AJOUT DE DOCUMENT ------------------//
-    $(document).on("click", "#btn_save_document", function () {
-
-        let modal_id = $(this).closest('.modal').attr('id');
-
-        let formulaire = $(this).closest('form');
-        $.validator.setDefaults({ ignore: [] });
-
-
-        let confidentialite = 'NON';
-
-        let action_url = $(this).closest('form').attr('action');
-
-        let option = $(this).data('option');
-
-        let client_id = $('#' + modal_id + ' #client_id').val();
-
-        let formData = new FormData();
-        let files = $('#' + modal_id + ' #fichier')[0].files;
-        let type_document = $('#' + modal_id + ' #type_document').val();
-        let nom = $('#' + modal_id + ' #nom').val();
-        confidentialite = $('#' + modal_id + ' #confidentialite:checked').val();
-        let commentaire = $('#' + modal_id + ' #commentaire').val();
-        if (typeof (confidentialite) == 'undefined') {
-            confidentialite = 'NON';
-        }
-
-        if (formulaire.valid()) {
-
-            formData.append('client_id', client_id);
-            formData.append('fichier', files[0]);
-            formData.append('type_document', type_document);
-            formData.append('nom', nom);
-            formData.append('confidentialite', confidentialite);
-            formData.append('commentaire', commentaire);
-
-            $.ajax({
-                type: 'post',
-                url: action_url,
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-
-                    if (response.statut == 1) {
-
-                        //mettre à jour le tableau
-                        let document = response.data;
-                        let t = $('#' + modal_id + ' #table_documents').DataTable();
-                        t.row.add([document.nom, document.type_document, document.fichier, '<td class=""><span class="btn_supprimer_document" data-document_id="' + document.id + '" onClick="supprimer_document(' + document.id + ')" style="cursor:pointer;"><i class="fa fa-times text-danger"></i></span>&nbsp;&nbsp;&nbsp;<span class="btn_modifier_on_modal" data-modal_title="Modification d\'un document" data-model_name="document" data-href="/production/document/' + document.id + '/modifier" title="Modifier" style="cursor:pointer;"><i class="fas fa-edit text-warning"></i></span></td>']).draw(false);
-
-                        //Afficher le message de succès et fermer la fenêtre
-                        $('#' + modal_id + ' input[type=file]').val("");
-                        $('#' + modal_id + ' input[type=text]').val("");
-                        $('#' + modal_id + ' textarea').val("");
-                        $('#' + modal_id + ' select').prop('selectedIndex', 0);
-
-                        notifySuccess(response.message);
-
-                    } else {
-
-                        $('#' + modal_id + ' .alert .message').text(response.message);
-
-                        $('#' + modal_id + ' .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                            $(this).slideUp(500);
-                        }).removeClass('alert-success').addClass('alert-warning');
-
-                    }
-
-
-                },
-                error: function () {
-
-                    $('#' + modal_id + ' .alert .message').text("Erreur lors de l'enregistrement !");
-
-                    $('#' + modal_id + ' .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                        $(this).slideUp(500);
-                    }).removeClass('alert-success').addClass('alert-warning');
-
-                }
-            });
-
-        } else {
-            notifyWarning("Veuillez renseigner tous les champs obligatoires");
-        }
-
-    });
-
-    // TODO AJOUT DE DOCUMENT DU CLIENT
-    //Ajout document
-    $("#btn_enregistrer_document_client").on('click', function () {
-
-        let btn_enregistrer_document_client = $(this);
+    //Création d'un document
+    $(document).on('click', "#btn_save_document_client", function () {
 
         let formulaire = $('#form_document_client');
+        let href = formulaire.attr('action');
 
         $.validator.setDefaults({ ignore: [] });
 
+        let formData = new FormData();
+        let files = $('#form_document_client #fichier')[0].files;
+
         if (formulaire.valid()) {
 
-            $.ajax({
-                type: 'post',
-                url: formulaire.attr('action'),
-                data: $('#form_document_client').serialize(),
-                beforeSend: function () {
-                    $('#loading_gif').show();
-                    btn_enregistrer_document_client.hide();
-                },
-                success: function (response) {
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment enregistrer cette contact ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
 
-                    $('#loading_gif').hide();
-                    //btn_enregistrer_document_client.hide();
+                            //confirmation obtenu
+                            if (files.length > 0) {
+                                formData.append('fichier', files[0]);
+                            }
 
-                    if (response.statut == 1) {
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
 
-                        notifySuccess(response.message, function () {
-                            location.reload();
-                        });
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
 
-                    } else {
-                        notifyWarning(response.message);
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        notifySuccess(response.message, function () {
+                                            formulaire[0].reset(); // Réinitialise tous les champs du formulaire
+                                            location.reload();
+                                        });
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-client .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
                     }
+                ]
+            });
+            //fin demande confirmation
 
-                },
-                error: function (response) {
-                    console.log(response);
-                    btn_enregistrer_filiale_client.show();
-                }
+
+        }
+
+        else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
             });
 
-        } else {
-            let validator = formulaire.validate();
-            notifyWarning("Veuillez renseigner tout les champs obligatoire");
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
         }
 
     });
 
+    //Modification d'un document
+    $(document).on('click', '.btn_modifier_document', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_document').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_document').find('.modal-title').text(modal_title);
+            $('#modal-modification_document').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_document').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
+
+            //
+            $('#modal-modification_document').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_document_client").on('click', function () {
+
+                let formulaire = $('#form_modification_document_client');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+                let files = $('#form_modification_document_client #fichier')[0].files;
+
+                if (formulaire.valid()) {
+
+                    //demander confirmation
+                    let n = noty({
+                        text: 'Voulez-vous vraiment modifier cette document ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+
+                                    //confirmation obtenu
+                                    if (files.length > 0) {
+                                        formData.append('fichier', files[0]);
+                                    }
+
+                                    let data_serialized = formulaire.serialize();
+                                    $.each(data_serialized.split('&'), function (index, elem) {
+                                        let vals = elem.split('=');
+
+                                        let key = vals[0];
+                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                        formData.append(key, valeur);
+
+                                    });
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                notifySuccess(response.message, function () {
+                                                    location.reload();
+                                                });
+
+                                            } else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-modification_document .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-modification_document .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
+
+                                }
+                            }
+                        ]
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+
+            });
+
+        });
+
+    });
+
+    //Suppression d'un document
     $(document).on('click', '.btn_supprimer_document', function () {
         let document_id = $(this).data('document_id');
-
+        let href = $(this).data('href');
         let n = noty({
             text: 'Voulez-vous vraiment supprimer cette document ?',
             type: 'warning',
@@ -1189,12 +1558,14 @@ $(document).ready(function () {
 
                         //effectuer la suppression
                         $.ajax({
-                            url: '/production/document/delete',
+                            url: href,
                             type: 'post',
                             data: { document_id: document_id },
-                            success: function (e) {
+                            success: function (response) {
 
-                                location.reload();
+                                notifySuccess(response.message, function () {
+                                    location.reload();
+                                });
 
                             },
                             error: function () {
@@ -1212,30 +1583,13 @@ $(document).ready(function () {
                 }
             ]
         });
-
-
-    });
-
-
-    $(document).ready(function () {
-        // Ensure Noty and jQuery are loaded
-        if (typeof $.noty === 'undefined' || typeof $ === 'undefined') {
-            console.error("Noty or jQuery not loaded");
-            return;
-        }
-
-        // Event delegation for dynamically added elements
-        $(document).on('click', '.btn_supprimer_document', function () {
-            let document_id = $(this).data('document_id');
-            supprimer_document(document_id);
-        });
     });
 
 
     $(document).on("click", "#btn_save_document_dossier_sinistre", function () {
 
-        const button = $(this); // Sauvegarder le bouton cliqué
-        button.prop('disabled', true).text('Chargement'); // Désactive le bouton et change le texte
+        const button = $(this); // Sauvegarder le bouton cliquÃ©
+        button.prop('disabled', true).text(gettext('Chargement')); // DÃ©sactive le bouton et change le texte
 
         let modal_id = $(this).closest('.modal').attr('id');
 
@@ -1291,12 +1645,12 @@ $(document).ready(function () {
                     //return false;
                     if (response.statut == 1) {
                         for (var d = 0; d < response.documents.length; d++) {
-                            //mettre à jour le tableau
+                            //mettre Ã  jour le tableau
                             let document = response.documents[d];
                             let t = $('#table_documents').DataTable();
                             t.row.add([document.type_document, document.fichier, '<td class=""><span class="btn_delete_document_dossier_sinistre" id="btn_delete_document_dossier_sinistre" data-document_id="' + document.id + '" onClick="dossier_sinistre_supprimer_document(' + document.id + ')" style="cursor:pointer;"><i class="fa fa-times text-danger"></i></span></td>']).draw(false);
 
-                            //Afficher le message de succès et fermer la fenêtre
+                            //Afficher le message de succÃ¨s et fermer la fenÃªtre
                             $('#' + modal_id + ' input[type=file]').val("");
                             $('#' + modal_id + ' input[type=text]').val("");
                             $('#' + modal_id + ' textarea').val("");
@@ -1322,7 +1676,7 @@ $(document).ready(function () {
 
                     button.prop('disabled', false).text('Valider');
 
-                    $('#' + modal_id + ' .alert .message').text("Erreur lors de l'enregistrement !");
+                    $('#' + modal_id + ' .alert .message').text(gettext("Erreur lors de l'enregistrement !"));
 
                     $('#' + modal_id + ' .alert ').fadeTo(2000, 500).slideUp(500, function () {
                         $(this).slideUp(500);
@@ -1332,7 +1686,7 @@ $(document).ready(function () {
             });
 
         } else {
-            notifyWarning("Veuillez charger au moins un fichier");
+            notifyWarning(gettext("Veuillez charger au moins un fichier"));
             button.prop('disabled', false).text('Valider');
         }
 
@@ -1345,14 +1699,14 @@ $(document).ready(function () {
 
         //demander confirmation
         let n = noty({
-            text: 'Voulez-vous vraiment supprimer ce document ?',
+            text: gettext('Voulez-vous vraiment supprimer ce document ?'),
             type: 'warning',
             dismissQueue: true,
             layout: 'center',
             theme: 'defaultTheme',
             buttons: [
                 {
-                    addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                    addClass: 'btn btn-primary', text: gettext('OUI'), onClick: function ($noty) {
                         $noty.close();
 
                         //confirmation obtenu
@@ -1369,13 +1723,13 @@ $(document).ready(function () {
                                     });
 
                                 } else {
-                                    notifyWarning("Erreur lors de la suppression du tarif");
+                                    notifyWarning(gettext("Erreur lors de la suppression du tarif"));
                                 }
 
                             },
                             error: function (request, status, error) {
 
-                                notifyWarning("Erreur lors du traitement");
+                                notifyWarning(gettext("Erreur lors du traitement"));
                             }
 
                         });
@@ -1383,8 +1737,8 @@ $(document).ready(function () {
                     }
                 },
                 {
-                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
-                        //confirmation refusée
+                    addClass: 'btn btn-danger', text: gettext('Annuler'), onClick: function ($noty) {
+                        //confirmation refusÃ©e
                         $noty.close();
 
                     }
@@ -1608,89 +1962,47 @@ $(document).ready(function () {
     });
 
 
-    //----------------- AJOUT DE ACOMPTE ------------------//
-    $(document).on('click', "#modal-acompte #btn_save_acompte", function () {
+    // TODO ACOMPTE DU CLIENT
+    //Ajout acompte
+    $("#btn_client_acompte").on('click', function () {
 
-        let client_id = $("#modal-acompte #client_id").val();
-
-        $.ajax({
-            type: 'post',
-            url: '/production/client/' + client_id + '/acompte/add',
-            data: $("#modal_form_acompte").serialize(),
-            success: function (response) {
-
-                if (response.statut == 1) {
-
-                    //mettre à jour le tableau
-                    let acompte = response.data;
-                    let t = $('#table_acomptes').DataTable();
-                    t.row.add([acompte.montant, acompte.date_versement, '<td class=""><span class="btn_supprimer_acompte" data-acompte_id="' + acompte.id + '" onClick="supprimer_acompte(' + acompte.id + ')" style="cursor:pointer;"><i class="fa fa-times text-danger"></i></span>&nbsp;&nbsp;&nbsp;<span class="btn_modifier_on_modal" data-modal_title="Modification d\'un acompte" data-model_name="acompte" data-href="/production/acompte/' + acompte.id + '/modifier" title="Modifier" style="cursor:pointer;"><i class="fas fa-edit text-warning"></i></span></td>']).draw(false);
-
-                    //Afficher le message de succès et fermer la fenêtre
-                    $("#modal_form_acompte input[type=number]").val("");
-                    $("#modal_form_acompte input[type=date]").val("");
-
-                    $('#modal_form_acompte .alert .message').text(response.message);
-
-                    $('#modal_form_acompte .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                        $(this).slideUp(500);
-                        $("#modal-acompte").modal('toggle');
-                    }).removeClass('alert-warning').addClass('alert-success');
-
-                } else {
-
-                    $('#modal_form_acompte .alert .message').text(response.message);
-
-                    $('#modal_form_acompte .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                        $(this).slideUp(500);
-                    }).removeClass('alert-success').addClass('alert-warning');
-
-                }
-
-
-            },
-            error: function () {
-
-                $('#modal_form_acompte .alert .message').text("Erreur lors de l'enregistrement !");
-
-                $('#modal_form_acompte .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                    $(this).slideUp(500);
-                }).removeClass('alert-success').addClass('alert-warning');
-
-            }
-
-        });
-
-    });
-
-    // TODO AJOUT DE ACOMPTE DU CLIENT
-    //Ajout filiale
-    $("#btn_enregistrer_acompte_client").on('click', function () {
-
-        let btn_enregistrer_acompte_client = $(this);
+        let btn_client_acompte = $(this);
 
         let formulaire = $('#form_acompte_client');
+
+        let montant = parseFloat($('#montant').val());
+        let periode_debut = $('#periode_debut').val();
+        let periode_fin = $('#periode_fin').val();
 
         $.validator.setDefaults({ ignore: [] });
 
         if (formulaire.valid()) {
+            // Vérifie si le montant est valide
+            if (isNaN(montant) || montant <= 0) {
+                notifyWarning('Le montant doit être un nombre supérieur à 0.');
+                return;
+            }
+
+            if (periode_debut && !periode_fin) {
+                notifyWarning('La période fin est obligatoire lorsque la période début est renseignée.');
+                return;
+            }
+
+            if (new Date(periode_debut) > new Date(periode_fin)) {
+                notifyWarning('La période début doit être antérieure ou égale à la période fin.');
+                return;
+            }
 
             $.ajax({
                 type: 'post',
                 url: formulaire.attr('action'),
                 data: $('#form_acompte_client').serialize(),
-                beforeSend: function () {
-                    $('#loading_gif').show();
-                    btn_enregistrer_acompte_client.hide();
-                },
                 success: function (response) {
-
-                    $('#loading_gif').hide();
-                    //btn_enregistrer_acompte_client.hide();
 
                     if (response.statut == 1) {
 
                         notifySuccess(response.message, function () {
+                            formulaire[0].reset(); // Réinitialise tous les champs du formulaire
                             location.reload();
                         });
 
@@ -1701,7 +2013,7 @@ $(document).ready(function () {
                 },
                 error: function (response) {
                     console.log(response);
-                    btn_enregistrer_acompte_client.show();
+                    btn_client_acompte.show();
                 }
             });
 
@@ -1712,11 +2024,153 @@ $(document).ready(function () {
 
     });
 
+    //Modification d'un acompte
+    $(document).on('click', '.btn_modifier_acompte', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_acompte').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_acompte').find('.modal-title').text(modal_title);
+            $('#modal-modification_acompte').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_acompte').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
+
+            //
+            $('#modal-modification_acompte').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_acompte").on('click', function () {
+
+                let formulaire = $('#form_update_acompte');
+                let href = formulaire.attr('action');
+
+                let montant = parseFloat($('#montant_modification').val().replace(' ', ''));
+                let periode_debut = $('#periode_debut_modification').val().trim();
+                let periode_fin = $('#periode_fin_modification').val().trim();
+
+                // Vérifie si le montant est valide
+                if (isNaN(montant) || montant <= 0) {
+                    notifyWarning('Le montant doit être un nombre supérieur à 0.');
+                    return;
+                }
+
+                if (periode_debut && !periode_fin) {
+                    notifyWarning('La période fin est obligatoire lorsque la période début est renseignée.');
+                    return;
+                }
+
+                if (new Date(periode_debut) > new Date(periode_fin)) {
+                    notifyWarning('La période début doit être antérieure ou égale à la période fin.');
+                    return;
+                }
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+                    //demander confirmation
+                    let n = noty({
+                        text: 'Voulez-vous vraiment modifier cet acompte ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+
+                                    //confirmation obtenu
+
+                                    let data_serialized = formulaire.serialize();
+                                    $.each(data_serialized.split('&'), function (index, elem) {
+                                        let vals = elem.split('=');
+
+                                        let key = vals[0];
+                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                        formData.append(key, valeur);
+
+                                    });
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                notifySuccess(response.message, function () {
+                                                    location.reload();
+                                                });
+
+                                            }
+                                            if(response.statut == 0){
+
+                                                notifyWarning(response.message);
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
+
+                                }
+                            }
+                        ]
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+
+            });
+
+        });
+
+    });
+
+    //Supprimer acompte
     $(document).on('click', '.btn_supprimer_acompte', function () {
         let acompte_id = $(this).data('acompte_id');
-
+        let href = $(this).data('href');
         let n = noty({
-            text: 'Voulez-vous vraiment supprimer cet acompte ?',
+            text: 'Voulez-vous vraiment supprimer cette acompte ?',
             type: 'warning',
             dismissQueue: true,
             layout: 'center',
@@ -1728,12 +2182,14 @@ $(document).ready(function () {
 
                         //effectuer la suppression
                         $.ajax({
-                            url: '/production/acompte/delete',
+                            url: href,
                             type: 'post',
                             data: { acompte_id: acompte_id },
-                            success: function (e) {
+                            success: function (response) {
 
-                                location.reload();
+                                notifySuccess(response.message, function () {
+                                    location.reload();
+                                });
 
                             },
                             error: function () {
@@ -1751,11 +2207,7 @@ $(document).ready(function () {
                 }
             ]
         });
-
-
     });
-
-    //----------------- FIN AJOUT DE ACOMPTE ------------------//
 
 
     //TRAITEMENT PAGE POLICE
@@ -9833,12 +10285,12 @@ $(document).ready(function () {
                 let periode_fin = $('#periode_fin').val();
 
                 if (periode_debut && !periode_fin) {
-                    notifyWarning('La Période fin est obligatoire lorsque la Période début est renseignée.');
+                    notifyWarning('La période fin est obligatoire lorsque la période début est renseignée.');
                     return;
                 }
 
                 if (new Date(periode_debut) > new Date(periode_fin)) {
-                    notifyWarning('La Période début doit être antérieure ou égale à la Période fin.');
+                    notifyWarning('La période début doit être antérieure ou égale à la période fin.');
                     return;
                 }
 
@@ -14790,7 +15242,7 @@ $(document).ready(function () {
 
             $('#modal-modification_banque').find('.modal-title').text(modal_title);
             $('#modal-modification_banque').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
-            $('#modal-modification_banque').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+            $('#modal-modification_banque').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
 
             //
             $('#modal-modification_banque').modal();
@@ -15073,7 +15525,7 @@ $(document).ready(function () {
 
             $('#modal-modification_branche').find('.modal-title').text(modal_title);
             $('#modal-modification_branche').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
-            $('#modal-modification_branche').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+            $('#modal-modification_branche').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
 
             //
             $('#modal-modification_branche').modal();
@@ -15514,6 +15966,573 @@ $(document).ready(function () {
             ]
         });
     });
+
+    //Création d'une businessunit
+    $(document).on('click', "#btn_save_businessunit", function () {
+
+        let formulaire = $('#form_add_businessunit');
+        let href = formulaire.attr('action');
+
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment enregistrer cette businessunit ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
+
+                            //confirmation obtenu
+
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
+
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        notifySuccess(response.message, function () {
+                                            location.reload();
+                                        });
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-client .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
+                    }
+                ]
+            });
+            //fin demande confirmation
+
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
+        }
+
+    });
+
+    //Modification d'un businessunit
+    $(document).on('click', '.btn_modifier_businessunit', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_businessunit').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_businessunit').find('.modal-title').text(modal_title);
+            $('#modal-modification_businessunit').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_businessunit').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
+
+            //
+            $('#modal-modification_businessunit').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_businessunit").on('click', function () {
+
+                let formulaire = $('#form_update_businessunit');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+
+                    //demander confirmation
+                    let n = noty({
+                        text: 'Voulez-vous vraiment modifier cet businessunit ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+
+                                    //confirmation obtenu
+
+                                    let data_serialized = formulaire.serialize();
+                                    $.each(data_serialized.split('&'), function (index, elem) {
+                                        let vals = elem.split('=');
+
+                                        let key = vals[0];
+                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                        formData.append(key, valeur);
+
+                                    });
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                notifySuccess(response.message, function () {
+                                                    location.reload();
+                                                });
+
+                                            } else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-modification_businessunit .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-modification_businessunit .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
+
+                                }
+                            }
+                        ]
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+
+            });
+
+        });
+
+    });
+
+    //Suppression d'un businessunit
+    $(document).on('click', '.btn_supprimer_businessunit', function () {
+        let businessunit_id = $(this).data('businessunit_id');
+        let href = $(this).data('href');
+        let n = noty({
+            text: 'Voulez-vous vraiment supprimer cette businessunit ?',
+            type: 'warning',
+            dismissQueue: true,
+            layout: 'center',
+            theme: 'defaultTheme',
+            buttons: [
+                {
+                    addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                        $noty.close();
+
+                        //effectuer la suppression
+                        $.ajax({
+                            url: href,
+                            type: 'post',
+                            data: { businessunit_id: businessunit_id },
+                            success: function (response) {
+
+                                notifySuccess(response.message, function () {
+                                    location.reload();
+                                });
+
+                            },
+                            error: function () {
+                                notifyWarning('Erreur lors de la suppression');
+                            }
+                        });
+
+                    }
+                },
+                {
+                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                        //annuler la suppression
+                        $noty.close();
+                    }
+                }
+            ]
+        });
+    });
+
+    //Création d'une carosserie
+    $(document).on('click', "#btn_save_carosserie", function () {
+
+        let formulaire = $('#form_add_carosserie');
+        let href = formulaire.attr('action');
+
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment enregistrer cette carosserie ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
+
+                            //confirmation obtenu
+
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
+
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        notifySuccess(response.message, function () {
+                                            location.reload();
+                                        });
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-client .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
+                    }
+                ]
+            });
+            //fin demande confirmation
+
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
+        }
+
+    });
+
+    //Modification d'un carosserie
+    $(document).on('click', '.btn_modifier_carosserie', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_carosserie').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_carosserie').find('.modal-title').text(modal_title);
+            $('#modal-modification_carosserie').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_carosserie').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
+
+            //
+            $('#modal-modification_carosserie').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_carosserie").on('click', function () {
+
+                let formulaire = $('#form_update_carosserie');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+
+                    //demander confirmation
+                    let n = noty({
+                        text: 'Voulez-vous vraiment modifier cet carosserie ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+
+                                    //confirmation obtenu
+
+                                    let data_serialized = formulaire.serialize();
+                                    $.each(data_serialized.split('&'), function (index, elem) {
+                                        let vals = elem.split('=');
+
+                                        let key = vals[0];
+                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                        formData.append(key, valeur);
+
+                                    });
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                notifySuccess(response.message, function () {
+                                                    location.reload();
+                                                });
+
+                                            } else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-modification_carosserie .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-modification_carosserie .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
+
+                                }
+                            }
+                        ]
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+
+            });
+
+        });
+
+    });
+
+    //Suppression d'un carosserie
+    $(document).on('click', '.btn_supprimer_carosserie', function () {
+    let carosserie_id = $(this).data('carosserie_id');
+    let href = $(this).data('href');
+    let n = noty({
+        text: 'Voulez-vous vraiment supprimer cette carosserie ?',
+        type: 'warning',
+        dismissQueue: true,
+        layout: 'center',
+        theme: 'defaultTheme',
+        buttons: [
+            {
+                addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                    $noty.close();
+
+                    //effectuer la suppression
+                    $.ajax({
+                        url: href,
+                        type: 'post',
+                        data: { carosserie_id: carosserie_id },
+                        success: function (response) {
+
+                            notifySuccess(response.message, function () {
+                                location.reload();
+                            });
+
+                        },
+                        error: function () {
+                            notifyWarning('Erreur lors de la suppression');
+                        }
+                    });
+
+                }
+            },
+            {
+                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                    //annuler la suppression
+                    $noty.close();
+                }
+            }
+        ]
+    });
+});
+
 
 });
 

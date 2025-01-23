@@ -36,4 +36,23 @@ Autres lookups similaires
     __exact: Exactement égal à une valeur.
         Exemple : statut__exact='PAYE' → statut égal à "PAYE".
 
+    <div class="row mb-2">
+          <div class="col-sm-6">
+              <h4 class="m-0 f-bold">CLIENT : {{ client.nom }} {{ client.prenoms }} / N° {{ client.code }}</h4>
+          </div>
+          <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                      <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
+                      <li class="breadcrumb-item">Production</li>
+                      <li class="breadcrumb-item active"><a href="{% url 'clients' %}">Clients</a></li>
+                      <li class="breadcrumb-item active">Gestion des documments électroniques</li>
+                </ol>
+          </div>
+    </div>
 
+    {% if request.user.is_production %}
+      <div class="button-link pull-right mb-2">
+          <a class="btn btn-sm btn-primary mb-1" data-toggle="modal" data-target="#modal-document"><i class="fas fa-plus-circle"></i> {{_("Ajouter un document")}}</a>
+          <span style="cursor:pointer;" class="btn btn-sm btn-warning btn_modifier_client mb-1" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit"></i> {{_("Modifier client")}}</span>&nbsp;
+      </div>
+    {% endif %}

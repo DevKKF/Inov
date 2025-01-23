@@ -41,7 +41,7 @@ from configurations.models import ActionLog, Prescripteur, PrescripteurPrestatai
     Bureau,TypeActe,BusinessUnit,Branche,Banque,Affection,Apporteur,ApporteurInternational,CategorieAffection,Devise,\
     TypePrestataire, User, AuthGroup, TypeEtablissement,Tarif, Rubrique, RegroupementActe, Acte, ReseauSoin, \
     PrestataireReseauSoin, WsBoby, ParamWsBoby, Affection, BackgroundQueryTask, ParamProduitCompagnie, Compagnie, \
-    AlimentMatricule, ParamActe, TypeApporteur, TypePersonne, Pays, TypeCompagnie, TypeGarant, RisqueProduit
+    AlimentMatricule, ParamActe, TypeApporteur, TypePersonne, Pays, TypeCompagnie, TypeGarant, RisqueProduit, Carosserie
 from inov import settings
 # Create your views here.
 from production.models import TarifPrestataireClient, Client, Aliment, AlimentFormule, Mouvement, MouvementAliment, \
@@ -3935,21 +3935,19 @@ def supprimer_branche(request, branche_id):
 
 #---------------------FIN BRANCHE---------------------------------------------
 
-#------------------------------BUSINESS_UNIT---------------------------------------
+#------------------------------BUSINESS UNIT---------------------------------------
 
-class businessView(PermissionRequiredMixin,TemplateView):
-    template_name = 'BusinessUnit/business.html'
-    permission_required = "configurations.view_business"
+class BusinessUnitView(PermissionRequiredMixin,TemplateView):
+    template_name = 'businessunits/businessunit.html'
+    permission_required = "configurations.view_businessunit"
     model = BusinessUnit
 
     def get(self, request, *args, **kwargs):
         context_original = self.get_context_data(**kwargs)
 
-        business = BusinessUnit.objects.all()
-        utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
-                                           is_active=True).order_by('last_name')
+        businessunits = BusinessUnit.objects.all().order_by('-id')
 
-        context_perso = {'businessunits': business, 'utilisateurs': utilisateurs}
+        context_perso = {'businessunits': businessunits}
 
         context = {**context_original, **context_perso}
 
@@ -3968,93 +3966,84 @@ class businessView(PermissionRequiredMixin,TemplateView):
 
 
 @login_required
-def add_business(request):
+def add_businessunit(request):
+
     if request.method == 'POST':
 
-        business_created = BusinessUnit.objects.create(
-                                               libelle=request.POST.get('libelle'),
-                                                status=request.POST.get('status'),
-
-                                               )
-        business_created.save()
+        businessunit_created = BusinessUnit.objects.create(libelle=request.POST.get('libelle'),
+                                       status=request.POST.get('statut'),
+                                       created_at=datetime.now(),
+                                       )
 
         response = {
             'statut': 1,
-            'message': "Enregistrement effectuée avec succès !",
+            'message': "Enregistrement effectué avec succès !",
             'data': {
-                'id': business_created.pk,
-                'libelle': business_created.libelle,
-                'status': business_created.status,
+                'id': businessunit_created.pk,
+                'libelle': businessunit_created.libelle,
+                'status': businessunit_created.status,
             }
         }
 
         return JsonResponse(response)
 
 
-def modifier_businessunit(request, business_id):
-    business = get_object_or_404(BusinessUnit, id=business_id)
+@login_required
+def modifier_businessunit(request, businessunit_id):
+
+    businessunit = BusinessUnit.objects.get(id=businessunit_id)
 
     if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
 
-        business_before = business
-        pprint(business_before)
-
-        # Récupérer les champs envoyés par le formulaire
-        libelle = request.POST.get('libelle')
-        status = request.POST.get('status')
-
-        # Mettre à jour les champs
-        business.libelle = libelle
-        business.status = status
-
-        # Sauvegarder les modifications
-        business.save()
-
-        # Log d'action (si nécessaire)
-        ActionLog.objects.create(
-            done_by=request.user,
-            action="update",
-            description="Modification d'un businessunit",
-            table="business",
-            row=business.pk
-        )
-
-        # Retourner une réponse JSON pour AJAX
-        return JsonResponse({
+        BusinessUnit.objects.filter(id=businessunit_id).update(
+                                                    libelle=request.POST.get('libelle'),
+                                                    status=request.POST.get('statut'),
+                                                   )
+        response = {
             'statut': 1,
-            'message': "Courrier modifié avec succès !"
-        })
+            'message': "Modification effectué avec succès !",
+            'data': {
+                'id': businessunit.pk,
+                'nom': businessunit.libelle,
+                'status': businessunit.status,
+            }
+        }
+
+        return JsonResponse(response)
 
     else:
-        business = BusinessUnit.objects.all()  # Options pour les services et statuts
-        return render(request, 'BusinessUnit/modal_modifier_business.html', {
-            'business': business,
-        })
+        return render(request, 'businessunits/modal_modifier_businessunit.html', {'businessunit': businessunit})
 
 
-@login_required()
-def supprimer_business(request):
+@login_required
+def supprimer_businessunit(request, businessunit_id):
     if request.method == "POST":
-        business_id = request.POST.get('business_id')
 
-        try:
-            business = BusinessUnit.objects.get(id=business_id)
-            business.delete()
+        businessunit_id = request.POST.get('businessunit_id')
+        print("businessunit id : ", businessunit_id)
+        businessunit = BusinessUnit.objects.get(id=businessunit_id)
+        if businessunit.pk is not None:
+
+            businessunit.delete()
 
             response = {
                 'statut': 1,
-                'message': "Businessunit supprimé avec succès !",
+                'message': "BusinessUnit supprimé avec succès !",
             }
 
-        except BusinessUnit.DoesNotExist:
+            return JsonResponse(response)
+
+        else:
+
             response = {
                 'statut': 0,
-                'message': "businessunit introuvable !",
+                'message': "BusinessUnit non trouvé !",
             }
 
         return JsonResponse(response)
 
-    return JsonResponse({'statut': 0, 'message': "Requête invalide !"}, status=400)
+#------------------------------FIN BUSINESS UNIT---------------------------------------
 
 
 #------------------------------BANQUE--------------------------------------
@@ -4172,7 +4161,7 @@ def supprimer_banque(request, banque_id):
 
             response = {
                 'statut': 0,
-                'message': "Apporteur non trouvé !",
+                'message': "Banque non trouvé !",
             }
 
         return JsonResponse(response)
@@ -4511,6 +4500,117 @@ def supprimer_compagnie(request, compagnie_id):
         return JsonResponse(response)
 
 #------------------------FIN COMPAGNIE----------------------------------
+
+
+#------------------------CAROSSERIE----------------------------------
+
+class CarosseriesView(PermissionRequiredMixin,TemplateView):
+    template_name = 'carosseries/carosserie.html'
+    permission_required = "configurations.view_carosserie"
+    model = Carosserie
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        carosseries = Carosserie.objects.all().order_by('-id')
+
+        context_perso = {'carosseries': carosseries}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_carosserie(request):
+
+    if request.method == 'POST':
+
+        carosserie_created = Carosserie.objects.create(libelle=request.POST.get('libelle'),
+                                       status=request.POST.get('statut'),
+                                       created_at=datetime.now(),
+                                       )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': carosserie_created.pk,
+                'libelle': carosserie_created.libelle,
+                'status': carosserie_created.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_carosserie(request, carosserie_id):
+
+    carosserie = Carosserie.objects.get(id=carosserie_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Carosserie.objects.filter(id=carosserie_id).update(
+                                                    libelle=request.POST.get('libelle'),
+                                                    status=request.POST.get('statut'),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectué avec succès !",
+            'data': {
+                'id': carosserie.pk,
+                'nom': carosserie.libelle,
+                'status': carosserie.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'carosseries/modal_modifier_carosserie.html', {'carosserie': carosserie})
+
+
+@login_required
+def supprimer_carosserie(request, carosserie_id):
+    if request.method == "POST":
+
+        carosserie_id = request.POST.get('carosserie_id')
+        print("carosserie id : ", carosserie_id)
+        carosserie = Carosserie.objects.get(id=carosserie_id)
+        if carosserie.pk is not None:
+
+            carosserie.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Carosserie supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Carosserie non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN CAROSSERIE----------------------------------
 
 
 #--------------------------------------APPORTEUR INTERNAL----------------------------------------------------------
