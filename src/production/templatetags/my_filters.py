@@ -1,9 +1,12 @@
+import re
 import base64
 import datetime
 from pprint import pprint
 from decimal import Decimal
 from datetime import datetime, timezone, timedelta
 from datetime import date
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from django import template
 from django.contrib.humanize.templatetags.humanize import intcomma
@@ -184,9 +187,11 @@ def date_du_jour():
     """
     return date.today()
 
+
 # Suppression des espaces entre les mots
 def supprimer_espaces(chaine):
     return ''.join(str(chaine).split())
+
 
 #Convertir une date en format AAAA-MM-JJ
 def convertir_date_multiformat(date_str):
@@ -199,7 +204,6 @@ def convertir_date_multiformat(date_str):
     return None
 
 
-
 #Convertir une date en format JJ/MM/AAAA
 @register.filter
 def convertir_date_jj_mm_aaaa(date_str):
@@ -210,3 +214,15 @@ def convertir_date_jj_mm_aaaa(date_str):
         except ValueError:
             continue
     return None
+
+
+@register.filter
+def rendre_html(contenu):
+    """
+    Marque le contenu HTML comme sûr pour être interprété dans les templates.
+    """
+    if not contenu:
+        return ''
+    return mark_safe(contenu)
+
+

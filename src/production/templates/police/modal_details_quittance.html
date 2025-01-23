@@ -358,6 +358,7 @@
 		  <h4 class="modal-title">CHOISIR UN MODELE</h4>
 		  <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span></button>
 		</div>
+
 		 <div class="modal-body">
 		 <div class="alert  alert-dismissible fade show hidden" role="alert">
 			<span class="message"> TRAITEMENT EN COURS</span>
@@ -368,10 +369,7 @@
 					  <label class="col-sm-5 col-form-label">Liste des modèles <span class="required">*</span></label>
 					  <div class="col-sm-7">
 					  <select class="form-control" name="type_courrier" id="type_courrier" required>
-						  <option value="">Choisir</option>
-						  {% for type_document in types_documents %}
-						  	<option value="{{ type_document.id }}">{{ type_document.libelle }}</option>
-						  {% endfor %}
+						  	<option value='appel de prime'>Appel de prime</option>
 					  </select>
 					  </div>
 				  </div>
@@ -380,11 +378,13 @@
 		</div>
 		<div class="modal-footer justify-content-between">
 		  <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> Retour</button>
-		  <button type="button" id="btn_save_imprimer_document" data-option="aliment" class="btn bg-info"><i class="fa fa-print"></i> Imprimer</button>
+
+
+<!--			<button  id="btn_save_imprimer_document" ><i ><a href="{% url 'generer_pdf' police_id=quittance.police.id courrier_id=30 quittance_id=quittance.id %}"></a></i> Imprimer</button>-->
+			<button type="button" data-option="aliment"  class="btn bg-info"><a style="cursor:pointer;"  href="{% url 'generer_word' police_id=quittance.police.id courrier_id=30 quittance_id=quittance.id %}"><i class="fa fa-print"></i> Imprimer</a>&nbsp;</button>
 		</div>
 		  </form>
 	  </div>
 	</div>
   </div>
 <!-- fin modal interne du document -->
-

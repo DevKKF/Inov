@@ -72,6 +72,7 @@ from urllib3 import request
 from xhtml2pdf import pisa
 from datetime import datetime, timezone
 from django.utils.timezone import now
+from django.utils.html import strip_tags
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -95,7 +96,8 @@ from production.models import FormuleRubriquePrefinance, ModePrefinancement, Mot
     TaxeQuittance, Reglement, OptionYesNo, Carte, TypeMajorationContrat, Vehicule, VehiculePolice, Energie, \
     StatutPolice, Operation, TarifPrestataireClient, PeriodeCouverture, Bareme, AlimentTemporaire, MouvementAliment, \
     OperationReglement, HistoriquePolice, HistoriqueApporteurPolice, HistoriqueTaxePolice, Marchandise, HistoriqueAliment
-from production.templatetags.my_filters import money_field, convertir_date_multiformat, supprimer_espaces, convertir_date_jj_mm_aaaa, format_montant
+from production.templatetags.my_filters import money_field, convertir_date_multiformat, supprimer_espaces, convertir_date_jj_mm_aaaa, format_montant, money_format_mille, \
+    rendre_html
 from shared.enum import StatutIncorporation, StatutValidite, StatutSinistre, StatutEnrolement, StatutTraitement, \
     StatutReversementCompagnie, StatutValiditeQuittance
 from shared.helpers import generer_qrcode_carte, generate_numero_famille, generate_numero_carte, render_pdf, \
@@ -3295,7 +3297,6 @@ def imprimer_recu_reglement(request, quittance_id, reglement_id):
         return response
 
     # Remplacement du logo
-
     if reglement.quittance.police.client.logo and hasattr(reglement.quittance.police.client.logo,
                                                           'path') and os.path.isfile(
             reglement.quittance.police.client.logo.path):
@@ -10288,21 +10289,27 @@ def add_annuler_quittance(request):
     return redirect(reverse('annuler_quittance'))
 
 
-# generation de fichier pdf
-def generer_courrier(request , police_id, courrier_id):
-    users = User.objects.all()
+def generer_courrier(request , police_id, courrier_id, quittance_id=None):
     police = get_object_or_404(Police, id=police_id)
     courrier = get_object_or_404(Courrier, id=courrier_id)
 
     # Récupérer le dernier historique de la police
     historique_police = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
-
     # Récupérer l'assureur associé à l'historique
-    assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id,
-                                                    type_compagnie_id=1).first()
+    assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id,type_compagnie_id=1).first()
 
-    date_fin_effet_plus_un = historique_police.date_fin_effet + timedelta(days=1)
-    date_renouvellement = date_fin_effet_plus_un.strftime('%d/%m/%Y')
+    # Vérifier si une quittance est spécifiée
+    if quittance_id:
+        quittance = get_object_or_404(Quittance, id=quittance_id, police_id=police_id)
+        numero_quittance = quittance.numero
+    else:
+        numero_quittance = None
+
+    date_fin_effet_plus_un=''
+    date_renouvellement=''
+    if historique_police.date_fin_effet:
+        date_fin_effet_plus_un = historique_police.date_fin_effet + timedelta(days=1)
+        date_renouvellement = date_fin_effet_plus_un.strftime('%d/%m/%Y')
 
     site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
     print("Logo : ", site_logo_url)
@@ -10319,10 +10326,11 @@ def generer_courrier(request , police_id, courrier_id):
         'numero_police': police.numero,
         'nom_produit': police.produit.nom,
         'nom_courrier': courrier.designation,
-        'date_debut_effet': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
-        'date_fin_effet': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
+        'numero_quittance':numero_quittance,
+        'date_debut_effet': historique_police.date_debut_effet.strftime('%d/%m/%Y') if historique_police.date_debut_effet else '',
+        'date_fin_effet': historique_police.date_fin_effet.strftime('%d/%m/%Y') if historique_police.date_fin_effet else '',
         'montant_renouvellement': f"{locale.format_string('%.0f', historique_police.prime_ttc, grouping=True)}",
-        'montant_renouvellement_en_lettres': num2words(historique_police.prime_ttc, lang='fr').capitalize() + " F CFA",
+        'montant_renouvellement_en_lettres': num2words(historique_police.prime_ttc, lang='fr').capitalize(),
         'date_jour': datetime.now().strftime('%d/%m/%Y'),
         'compagnie':assureur_police.compagnie,
         'date_renouvellement': date_renouvellement,
@@ -10337,11 +10345,22 @@ def generer_courrier(request , police_id, courrier_id):
 
 
 # generation de fichier word
-def generer_word(request, police_id, courrier_id):
+def generer_word(request, police_id, courrier_id,quittance_id=None):
     # Vérifie que la police existe
     police = get_object_or_404(Police, id=police_id)
     courrier = get_object_or_404(Courrier, id=courrier_id)
-    historique_police = get_object_or_404(HistoriquePolice, id=police_id)
+
+    historique_police = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+    # Récupérer l'assureur associé à l'historique
+    assureur_police = PoliceAssureur.objects.filter(historique_police_id=historique_police.id,
+                                                    type_compagnie_id=1).first()
+
+    # Vérifier si une quittance est spécifiée
+    if quittance_id:
+        quittance = get_object_or_404(Quittance, id=quittance_id, police_id=police_id)
+        numero_quittance = quittance.numero
+    else:
+        numero_quittance = None
 
     # Date actuelle
     date_du_jour = datetime.now().strftime('%d/%m/%Y')
@@ -10350,34 +10369,33 @@ def generer_word(request, police_id, courrier_id):
     if not courrier.type_courrier:
         return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
 
-    # Récupération du logo
-    site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
-    print("Logo : ", site_logo_url)
-
     # Configuration du locale pour le formatage
     locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
     # Formatage de la prime
     prime_ttc = historique_police.prime_ttc
-    prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)} F CFA"
+    prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)}"
 
-
+    print(strip_tags(police.client.bureau.mention_legale))
     # Charger le modèle Word existant
     doc_path = os.path.join(settings.BASE_DIR, 'production', 'templates', 'police', 'courriers', "Appel de prime.docx")
     document = docx.Document(doc_path)
 
     # Dictionnaire des remplacements pour le texte
     base_replacements = {
-        'NOM_CLIENT': historique_police.client.nom,
-        'NUMERO_POLICE': historique_police.numero,
-        'NOM_PRODUIT': historique_police.produit,
-        # 'numero_quittance': quittance,
-        'DATE_DEBUT_EFFET': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
-        'DATE_FIN_EFFET': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
-        'MONTANT_RENOUVELLEMENT': prime_formatee,
-        'MONTANT_RENOUVELLEMENT_EN_LETTRES':  f"{num2words(historique_police.prime_ttc, lang='fr').capitalize()} F CFA",
+        'NOM_CLIENT': police.client.nom,
+        'NUMERO_POLICE': police.numero,
+        'NOM_PRODUIT': police.produit.nom,
+        'ADRESS_CLIENT': police.client.adresse,
+        'QUITTANCE_NUMÉRO': numero_quittance,
+        'DATE_DEBUT_EFFET': historique_police.date_debut_effet.strftime('%d/%m/%Y') if historique_police.date_debut_effet else '',
+        'DATE_FIN_EFFET': historique_police.date_fin_effet.strftime('%d/%m/%Y') if historique_police.date_fin_effet else '',
+        'MONTANT_RENOUVELLEMENT': money_format_mille(prime_formatee),
+        'EN_LETTRES':  f"{num2words(historique_police.prime_ttc, lang='fr').capitalize()}",
         'DATE_JOUR': date_du_jour,
-        'COMPAGNIE': historique_police.compagnie,
+        'COMPAGNIE': assureur_police.compagnie.nom,
+        'CABINET_VILLECAB': police.client.bureau.ville,
+        'CABINET_MENTIONS': strip_tags(police.client.bureau.mention_legale),
     }
 
     replacements = {}
@@ -10388,6 +10406,38 @@ def generer_word(request, police_id, courrier_id):
         for fmt in formats:
             replacements[fmt] = str(value) if value else ""
 
+    # Fonction pour remplacer le logo séparément
+    def replace_logo_in_document(document, logo_path):
+        if not logo_path:
+            return
+
+        for paragraph in document.paragraphs:
+            if 'LOGO_SOC' in paragraph.text:
+                for run in paragraph.runs:
+                    if 'LOGO_SOC' in run.text:
+                        run.clear()
+                        run.add_picture(logo_path, width=Inches(1.0))
+                        break
+
+        # Remplacer dans les en-têtes et les pieds de page également
+        for section in document.sections:
+            # En-têtes
+            for paragraph in section.header.paragraphs:
+                if 'LOGO_SOC' in paragraph.text:
+                    for run in paragraph.runs:
+                        if 'LOGO_SOC' in run.text:
+                            run.clear()
+                            run.add_picture(logo_path, width=Inches(1.0))
+                            break
+
+            # Pieds de page
+            for paragraph in section.footer.paragraphs:
+                if 'LOGO_SOC' in paragraph.text:
+                    for run in paragraph.runs:
+                        if 'LOGO_SOC' in run.text:
+                            run.clear()
+                            run.add_picture(logo_path, width=Inches(1.0))
+                            break
 
     # Fonction pour remplacer les placeholders dans les paragraphes
     def replace_placeholders_in_paragraph(paragraph):
@@ -10424,13 +10474,38 @@ def generer_word(request, police_id, courrier_id):
                         for paragraph in cell.paragraphs:
                             replace_placeholders_in_paragraph(paragraph)
 
+    # Remplacement du logo
+    if police.client.bureau.logo and hasattr(police.client.bureau.logo,
+                                                          'path') and os.path.isfile(
+        police.client.bureau.logo.path):
+        logo_path = police.client.bureau.logo.path
+        replace_logo_in_document(document, logo_path)
+    else:
+        # Fonction pour remplacer le texte tout en conservant le format
+        def remplacer_texte_avec_format(paragraphs, ancien_texte, nouveau_texte):
+            for para in paragraphs:
+                for run in para.runs:
+                    if ancien_texte in run.text:
+                        run.text = run.text.replace(ancien_texte, nouveau_texte)
+
+        # Remplacer dans le corps du document
+        remplacer_texte_avec_format(document.paragraphs, '«LOGO_SOC»', '')
+
+        # Remplacer également dans les en-têtes (headers)
+        for section in document.sections:
+            remplacer_texte_avec_format(section.header.paragraphs, '«LOGO_SOC»', '')
+
+        # Remplacer également dans les pieds de page (footers)
+        for section in document.sections:
+            remplacer_texte_avec_format(section.footer.paragraphs, '«LOGO_SOC»', '')
+
     # Remplacement des placeholders dans le document
     replace_placeholders_in_document(document)
 
 
     # Sauvegarder le document Word dans une réponse HTTP
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.docx"'
+    response['Content-Disposition'] = f'attachment; filename="{courrier.designation}.docx"'
 
     # Sauvegarde le document dans la réponse
     document.save(response)

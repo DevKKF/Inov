@@ -498,6 +498,12 @@ def upload_location_bureau(instance, filename):
     return 'bureaux/tarifs/%s.%s' % (file_name, extension)
 
 
+def upload_logo_location_bureau(instance, filename):
+    filebase, extension = filename.rsplit('.', 1)
+    file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    return 'bureaux/logos/%s.%s' % (file_name, extension)
+
+
 class Bureau(models.Model):
     CA_TYPE = (
         ('EMISSION', 'EMISSION'),
@@ -523,6 +529,7 @@ class Bureau(models.Model):
     ca_type = models.CharField('CA', choices=CA_TYPE, max_length=50, blank=True, null=True, default='REVERSEMENT')
     type_bon_consultation = models.fields.CharField(choices=TypeBonConsultation.choices, default=TypeBonConsultation.AUTO_CARBONE, max_length=15, null=True)
     fuseau_horaire=models.IntegerField(blank=True, null=True)
+    logo = models.ImageField(upload_to=upload_logo_location_bureau, null=True, blank=True, )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=True)
