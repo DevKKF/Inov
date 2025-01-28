@@ -4,7 +4,7 @@
 			<form id="form_update_carosserie" action="{% url 'modifier_carosserie' carosserie.id %}" method="post">
 				{% csrf_token %}
                 <div class="modal-header">
-                    <h4 class="modal-title f-bold" id="mbu-title">{{_("MODIFICATION D'UNE CAROSSERIE")}}</h4>
+                    <h4 class="modal-title" id="mbu-title">{{_("MODIFICATION D'UNE CAROSSERIE")}}</h4>
                     <button type="button"class="close"data-dismiss="modal"aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>

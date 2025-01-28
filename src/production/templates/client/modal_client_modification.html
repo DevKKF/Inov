@@ -72,7 +72,7 @@
 									<div class="form-group row champ_variable_client if_personne_physique">
 										<label class="col-sm-5 col-form-label">{{_('Sexe')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control" name="sexe" id="sexe" >
+											<select class="form-control" name="sexe" id="sexe">
 												<option value="">{{_('Choisir')}}</option>
 												<option {% if client.sexe == genre.FEMININ %} selected {% endif %} value="F">{{_('Feminin')}} ({{genre.FEMININ}})</option>
 												<option {% if client.sexe == genre.MASCULIN %} selected {% endif %} value="M">{{_('Masculin')}} ({{genre.MASCULIN}})</option>
@@ -82,7 +82,7 @@
 									<div class="form-group row" style="display:none">
 										<label class="col-sm-5 col-form-label">{{_("Commercial")}}</label>
 										<div class="col-sm-7">
-											<select class="form-control" name="commercial_id" id="commercial_id" required>
+											<select class="form-control" name="commercial_id" id="commercial_id">
 												<option value="">{{_('Choisir')}}</option>
 												{% for commercial in commercials %}
 													<option value="{{commercial.id}}" {% if commercial.id == client.commercial_id %} selected {% endif %}>{{commercial.first_name}} {{commercial.last_name}}</option>

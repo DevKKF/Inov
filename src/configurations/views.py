@@ -41,7 +41,9 @@ from configurations.models import ActionLog, Prescripteur, PrescripteurPrestatai
     Bureau,TypeActe,BusinessUnit,Branche,Banque,Affection,Apporteur,ApporteurInternational,CategorieAffection,Devise,\
     TypePrestataire, User, AuthGroup, TypeEtablissement,Tarif, Rubrique, RegroupementActe, Acte, ReseauSoin, \
     PrestataireReseauSoin, WsBoby, ParamWsBoby, Affection, BackgroundQueryTask, ParamProduitCompagnie, Compagnie, \
-    AlimentMatricule, ParamActe, TypeApporteur, TypePersonne, Pays, TypeCompagnie, TypeGarant, RisqueProduit, Carosserie
+    AlimentMatricule, ParamActe, TypeApporteur, TypePersonne, Pays, TypeCompagnie, TypeGarant, RisqueProduit, Carosserie, \
+    CategorieVehicule, Civilite, CompteTresorerie, ConditionsAssurance, Carburant, Formule, Fractionnement, Garantie, GarantieFormule, \
+    Groupe, ModeReglement
 from inov import settings
 # Create your views here.
 from production.models import TarifPrestataireClient, Client, Aliment, AlimentFormule, Mouvement, MouvementAliment, \
@@ -3818,7 +3820,7 @@ class DbSuperAdminQueryView(TemplateView):
 
 #---------------------BRANCHE---------------------------------------------
 
-class brancheView(PermissionRequiredMixin,TemplateView):
+class BrancheView(PermissionRequiredMixin,TemplateView):
     template_name = 'branches/branche.html'
     permission_required = "configurations.view_branches"
     model = Branche
@@ -3892,7 +3894,7 @@ def modifier_branche(request, branche_id):
                                                    )
         response = {
             'statut': 1,
-            'message': "Modification effectué avec succès !",
+            'message': "Modification effectuée avec succès !",
             'data': {
                 'id': branche.pk,
                 'nom': branche.nom,
@@ -4002,7 +4004,7 @@ def modifier_businessunit(request, businessunit_id):
                                                    )
         response = {
             'statut': 1,
-            'message': "Modification effectué avec succès !",
+            'message': "Modification effectuée avec succès !",
             'data': {
                 'id': businessunit.pk,
                 'nom': businessunit.libelle,
@@ -4048,7 +4050,7 @@ def supprimer_businessunit(request, businessunit_id):
 
 #------------------------------BANQUE--------------------------------------
 
-class banquesView(PermissionRequiredMixin,TemplateView):
+class BanquesView(PermissionRequiredMixin,TemplateView):
     template_name = 'banques/banque.html'
     permission_required = "configurations.view_banque"
     model = Banque
@@ -4125,7 +4127,7 @@ def modifier_banque(request, banque_id):
                                                    )
         response = {
             'statut': 1,
-            'message': "Modification effectué avec succès !",
+            'message': "Modification effectuée avec succès !",
             'data': {
                 'id': banque.pk,
                 'nom': banque.libelle,
@@ -4569,7 +4571,7 @@ def modifier_carosserie(request, carosserie_id):
                                                    )
         response = {
             'statut': 1,
-            'message': "Modification effectué avec succès !",
+            'message': "Modification effectuée avec succès !",
             'data': {
                 'id': carosserie.pk,
                 'nom': carosserie.libelle,
@@ -4611,6 +4613,1550 @@ def supprimer_carosserie(request, carosserie_id):
         return JsonResponse(response)
 
 #------------------------FIN CAROSSERIE----------------------------------
+
+
+#---------------------CATEGORIE VEHICULE---------------------------------------------
+
+class CategorieVehiculeView(PermissionRequiredMixin,TemplateView):
+    template_name = 'categorievehicules/categorievehicule.html'
+    permission_required = "configurations.view_categorievehicule"
+    model = CategorieVehicule
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        categorievehicule = CategorieVehicule.objects.all().order_by('-id')
+
+        context_perso = {'categorievehicules': categorievehicule}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_categorievehicule(request):
+
+    if request.method == 'POST':
+        # Récupérer le dernier code dans la base de données
+        dernier_categorievehicule = CategorieVehicule.objects.order_by('-pk').first()
+
+        # Obtenir le dernier code numérique, ou 0 si aucun code ou format invalide
+        dernier_code = int(dernier_categorievehicule.code.split('-')[-1]) if dernier_categorievehicule and dernier_categorievehicule.code.startswith('CAT-') else 0
+
+        # Ajouter 1 au dernier code et formater avec des zéros
+        nouveau_code = f"CAT-{dernier_code + 1:04d}"
+
+        # Créer une nouvelle catégorie véhicule
+        categorievehicule_created = CategorieVehicule.objects.create(
+            libelle=request.POST.get('libelle'),
+            status=request.POST.get('statut'),
+            created_at=datetime.now(),
+            code=str(nouveau_code).zfill(2)  # Remplir avec des zéros si nécessaire
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': categorievehicule_created.pk,
+                'libelle': categorievehicule_created.libelle,
+                'status': categorievehicule_created.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_categorievehicule(request, categorievehicule_id):
+
+    categorievehicule = CategorieVehicule.objects.get(id=categorievehicule_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        CategorieVehicule.objects.filter(id=categorievehicule_id).update(libelle=request.POST.get('libelle'),
+                                                    status=request.POST.get('statut'),
+                                                    updated_at=datetime.now(),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': categorievehicule.pk,
+                'libelle': categorievehicule.libelle,
+                'status': categorievehicule.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'categorievehicules/modal_modifier_categorievehicule.html', {'categorievehicule': categorievehicule})
+
+
+@login_required
+def supprimer_categorievehicule(request, categorievehicule_id):
+    if request.method == "POST":
+
+        categorievehicule_id = request.POST.get('categorievehicule_id')
+        print("categorievehicule id : ", categorievehicule_id)
+        categorievehicule = CategorieVehicule.objects.get(id=categorievehicule_id)
+        if categorievehicule.pk is not None:
+
+            categorievehicule.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Catégorie véhicule supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Catégorie véhicule non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+#---------------------FIN CATEGORIE VEHICULE---------------------------------------------
+
+
+#------------------------CIVILITE----------------------------------
+
+class CiviliteView(PermissionRequiredMixin,TemplateView):
+    template_name = 'civilites/civilite.html'
+    permission_required = "configurations.view_civilite"
+    model = Civilite
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        civilites = Civilite.objects.all().order_by('-id')
+
+        context_perso = {'civilites': civilites}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_civilite(request):
+
+    if request.method == 'POST':
+
+        civilite_created = Civilite.objects.create(name=request.POST.get('name'),
+                                       status=request.POST.get('statut'),
+                                       created_at=datetime.now(),
+                                       )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': civilite_created.pk,
+                'name': civilite_created.name,
+                'status': civilite_created.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_civilite(request, civilite_id):
+
+    civilite = Civilite.objects.get(id=civilite_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Civilite.objects.filter(id=civilite_id).update(
+                                                    name=request.POST.get('name'),
+                                                    status=request.POST.get('statut'),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': civilite.pk,
+                'name': civilite.name,
+                'status': civilite.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'civilites/modal_modifier_civilite.html', {'civilite': civilite})
+
+
+@login_required
+def supprimer_civilite(request, civilite_id):
+    if request.method == "POST":
+
+        civilite_id = request.POST.get('civilite_id')
+        print("civilite id : ", civilite_id)
+        civilite = Civilite.objects.get(id=civilite_id)
+        if civilite.pk is not None:
+
+            civilite.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Civilité supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Civilite non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN CIVILITE----------------------------------
+
+
+#------------------------COMPTE TRESORERIE----------------------------------
+
+class CompteTresorerieView(PermissionRequiredMixin,TemplateView):
+    template_name = 'comptetresoreries/comptetresorerie.html'
+    permission_required = "configurations.view_comptetresorerie"
+    model = CompteTresorerie
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        comptetresoreries = CompteTresorerie.objects.all().order_by('-id')
+
+        context_perso = {'comptetresoreries': comptetresoreries}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_comptetresorerie(request):
+
+    if request.method == 'POST':
+
+        # Créer un nouveau compte de trésorerie
+        comptetresorerie_created = CompteTresorerie.objects.create(
+            code=request.POST.get('code'),
+            libelle=request.POST.get('libelle'),
+            status=request.POST.get('statut'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': comptetresorerie_created.pk,
+                'libelle': comptetresorerie_created.libelle,
+                'status': comptetresorerie_created.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_comptetresorerie(request, comptetresorerie_id):
+
+    comptetresorerie = CompteTresorerie.objects.get(id=comptetresorerie_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        CompteTresorerie.objects.filter(id=comptetresorerie_id).update(
+                                                    code=request.POST.get('code'),
+                                                    libelle=request.POST.get('libelle'),
+                                                    status=request.POST.get('statut'),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': comptetresorerie.pk,
+                'libelle': comptetresorerie.libelle,
+                'status': comptetresorerie.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'comptetresoreries/modal_modifier_comptetresorerie.html', {'comptetresorerie': comptetresorerie})
+
+
+@login_required
+def supprimer_comptetresorerie(request, comptetresorerie_id):
+    if request.method == "POST":
+
+        comptetresorerie_id = request.POST.get('comptetresorerie_id')
+        print("comptetresorerie id : ", comptetresorerie_id)
+        comptetresorerie = CompteTresorerie.objects.get(id=comptetresorerie_id)
+        if comptetresorerie.pk is not None:
+
+            comptetresorerie.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Compte trésorerie supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Compte trésorerie non trouvé !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN COMPTE TRESORERIE----------------------------------
+
+
+#------------------------CONDITION D'ASSURANCE----------------------------------
+
+class ConditionsAssuranceView(PermissionRequiredMixin,TemplateView):
+    template_name = 'conditionsassurances/conditionsassurance.html'
+    permission_required = "configurations.view_conditionsassurance"
+    model = ConditionsAssurance
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        conditionsassurances = ConditionsAssurance.objects.all().order_by('-id')
+
+        context_perso = {'conditionsassurances': conditionsassurances}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_conditionsassurance(request):
+
+    if request.method == 'POST':
+        # Récupérer le dernier code dans la base de données
+        dernier_conditionsassurance = ConditionsAssurance.objects.order_by('-pk').first()
+
+        # Obtenir le dernier code numérique, ou 0 si aucun code ou format invalide
+        dernier_code = int(dernier_conditionsassurance.code.split('-')[-1]) if dernier_conditionsassurance and dernier_conditionsassurance.code.startswith('CA-') else 0
+
+        # Ajouter 1 au dernier code et formater avec des zéros
+        nouveau_code = f"CA-{dernier_code + 1:03d}"
+
+        # Créer une nouvelle condition d'assurance
+        conditionsassurance_created = ConditionsAssurance.objects.create(
+            libelle=request.POST.get('libelle'),
+            status=request.POST.get('statut'),
+            created_at=datetime.now(),
+            code=str(nouveau_code).zfill(2)  # Remplir avec des zéros si nécessaire
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': conditionsassurance_created.pk,
+                'libelle': conditionsassurance_created.libelle,
+                'status': conditionsassurance_created.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_conditionsassurance(request, conditionsassurance_id):
+
+    conditionsassurance = ConditionsAssurance.objects.get(id=conditionsassurance_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        ConditionsAssurance.objects.filter(id=conditionsassurance_id).update(
+                                                    libelle=request.POST.get('libelle'),
+                                                    status=request.POST.get('statut'),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': conditionsassurance.pk,
+                'libelle': conditionsassurance.libelle,
+                'status': conditionsassurance.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'conditionsassurances/modal_modifier_conditionsassurance.html', {'conditionsassurance': conditionsassurance})
+
+
+@login_required
+def supprimer_conditionsassurance(request, conditionsassurance_id):
+    if request.method == "POST":
+
+        conditionsassurance_id = request.POST.get('conditionsassurance_id')
+        print("conditionsassurance id : ", conditionsassurance_id)
+        conditionsassurance = ConditionsAssurance.objects.get(id=conditionsassurance_id)
+        if conditionsassurance.pk is not None:
+
+            conditionsassurance.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Condition d'assurance supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Condition d'assurance non trouvé !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN CONDITION D'ASSURANCE----------------------------------
+
+
+#------------------------DEVISE----------------------------------
+
+class DeviseView(PermissionRequiredMixin,TemplateView):
+    template_name = 'devises/devise.html'
+    permission_required = "configurations.view_devise"
+    model = Devise
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        devises = Devise.objects.all().order_by('-id')
+
+        context_perso = {'devises': devises}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_devise(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouvelle dévise
+        devise_created = Devise.objects.create(
+            libelle=request.POST.get('libelle'),
+            code=request.POST.get('code'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': devise_created.pk,
+                'libelle': devise_created.libelle,
+                'code': devise_created.code,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_devise(request, devise_id):
+
+    devise = Devise.objects.get(id=devise_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Devise.objects.filter(id=devise_id).update(
+                                                    libelle=request.POST.get('libelle'),
+                                                    code=request.POST.get('code'),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': devise.pk,
+                'libelle': devise.libelle,
+                'code': devise.code,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'devises/modal_modifier_devise.html', {'devise': devise})
+
+
+@login_required
+def supprimer_devise(request, devise_id):
+    if request.method == "POST":
+
+        devise_id = request.POST.get('devise_id')
+        print("devise id : ", devise_id)
+        devise = Devise.objects.get(id=devise_id)
+        if devise.pk is not None:
+
+            devise.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Dévise supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Dévise non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN DEVISE----------------------------------
+
+
+#------------------------CARBURANT----------------------------------
+
+class CarburantView(PermissionRequiredMixin,TemplateView):
+    template_name = 'carburants/carburant.html'
+    permission_required = "configurations.view_carburant"
+    model = Carburant
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        carburants = Carburant.objects.all().order_by('-id')
+
+        context_perso = {'carburants': carburants}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_carburant(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau carburant
+        carburant_created = Carburant.objects.create(
+            libelle=request.POST.get('libelle'),
+            code=request.POST.get('code'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': carburant_created.pk,
+                'libelle': carburant_created.libelle,
+                'code': carburant_created.code,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_carburant(request, carburant_id):
+
+    carburant = Carburant.objects.get(id=carburant_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Carburant.objects.filter(id=carburant_id).update(
+                                                    libelle=request.POST.get('libelle'),
+                                                    code=request.POST.get('code'),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': carburant.pk,
+                'libelle': carburant.libelle,
+                'code': carburant.code,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'carburants/modal_modifier_carburant.html', {'carburant': carburant})
+
+
+@login_required
+def supprimer_carburant(request, carburant_id):
+    if request.method == "POST":
+
+        carburant_id = request.POST.get('carburant_id')
+        print("carburant id : ", carburant_id)
+        carburant = Carburant.objects.get(id=carburant_id)
+        if carburant.pk is not None:
+
+            carburant.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Energie supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Energie non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN CARBURANT----------------------------------
+
+
+#------------------------FORMULE----------------------------------
+
+class FormuleView(PermissionRequiredMixin,TemplateView):
+    template_name = 'formules/formule.html'
+    permission_required = "configurations.view_formule"
+    model = Formule
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        formules = Formule.objects.all().order_by('-id')
+
+        context_perso = {'formules': formules}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_formule(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouvelle formule
+        formule_created = Formule.objects.create(
+            code=request.POST.get('code'),
+            libelle=request.POST.get('libelle'),
+            status=request.POST.get('statut'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': formule_created.pk,
+                'libelle': formule_created.libelle,
+                'status': formule_created.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_formule(request, formule_id):
+
+    formule = Formule.objects.get(id=formule_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Formule.objects.filter(id=formule_id).update(
+                                                    code=request.POST.get('code'),
+                                                    libelle=request.POST.get('libelle'),
+                                                    status=request.POST.get('status'),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': formule.pk,
+                'libelle': formule.libelle,
+                'status': formule.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'formules/modal_modifier_formule.html', {'formule': formule})
+
+
+@login_required
+def supprimer_formule(request, formule_id):
+    if request.method == "POST":
+
+        formule_id = request.POST.get('formule_id')
+        print("formule id : ", formule_id)
+        formule = Formule.objects.get(id=formule_id)
+        if formule.pk is not None:
+
+            formule.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Formule supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Formule non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN FORMULE----------------------------------
+
+
+#------------------------FRACTIONNEMENT----------------------------------
+
+class FractionnementView(PermissionRequiredMixin,TemplateView):
+    template_name = 'fractionnements/fractionnement.html'
+    permission_required = "configurations.view_fractionnement"
+    model = Fractionnement
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        fractionnements = Fractionnement.objects.all().order_by('-id')
+
+        context_perso = {'fractionnements': fractionnements}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_fractionnement(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau fractionnement
+        fractionnement_created = Fractionnement.objects.create(
+            libelle=request.POST.get('libelle'),
+            status=request.POST.get('status'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': fractionnement_created.pk,
+                'libelle': fractionnement_created.libelle,
+                'status': fractionnement_created.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_fractionnement(request, fractionnement_id):
+
+    fractionnement = Fractionnement.objects.get(id=fractionnement_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Fractionnement.objects.filter(id=fractionnement_id).update(
+                                                    libelle=request.POST.get('libelle'),
+                                                    status=request.POST.get('status'),
+                                                   )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': fractionnement.pk,
+                'libelle': fractionnement.libelle,
+                'status': fractionnement.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'fractionnements/modal_modifier_fractionnement.html', {'fractionnement': fractionnement})
+
+
+@login_required
+def supprimer_fractionnement(request, fractionnement_id):
+    if request.method == "POST":
+
+        fractionnement_id = request.POST.get('fractionnement_id')
+        print("fractionnement id : ", fractionnement_id)
+        fractionnement = Fractionnement.objects.get(id=fractionnement_id)
+        if fractionnement.pk is not None:
+
+            fractionnement.delete()
+
+            response = {
+                'statut': 1,
+                'message': "fractionnement supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "fractionnement non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN FRACTIONNEMENT----------------------------------
+
+
+#------------------------GARANTIE----------------------------------
+
+class GarantieView(PermissionRequiredMixin,TemplateView):
+    template_name = 'garanties/garantie.html'
+    permission_required = "configurations.view_garantie"
+    model = Garantie
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        garanties = Garantie.objects.all().order_by('-id')
+
+        context_perso = {'garanties': garanties}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_garantie(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouvelle garantie
+        garantie_created = Garantie.objects.create(
+            code=request.POST.get('code'),
+            nom=request.POST.get('nom'),
+            status=request.POST.get('statut'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': garantie_created.pk,
+                'nom': garantie_created.nom,
+                'status': garantie_created.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_garantie(request, garantie_id):
+
+    garantie = Garantie.objects.get(id=garantie_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Garantie.objects.filter(id=garantie_id).update(
+            code=request.POST.get('code'),
+            nom=request.POST.get('nom'),
+            status=request.POST.get('status'),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': garantie.pk,
+                'nom': garantie.nom,
+                'status': garantie.status,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'garanties/modal_modifier_garantie.html', {'garantie': garantie})
+
+
+@login_required
+def supprimer_garantie(request, garantie_id):
+    if request.method == "POST":
+
+        garantie_id = request.POST.get('garantie_id')
+        print("garantie id : ", garantie_id)
+        garantie = Garantie.objects.get(id=garantie_id)
+        if garantie.pk is not None:
+
+            garantie.delete()
+
+            response = {
+                'statut': 1,
+                'message': "garantie supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "garantie non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN GARANTIE----------------------------------
+
+
+#------------------------GARANTIE / FORMULE----------------------------------
+
+class GarantieFormuleView(PermissionRequiredMixin,TemplateView):
+    template_name = 'garantieformules/garantieformule.html'
+    permission_required = "configurations.view_garantieformule"
+    model = GarantieFormule
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        garantieformules = GarantieFormule.objects.all().order_by('-id')
+
+        garanties = Garantie.objects.filter(status=1).order_by('nom')
+        formules = Formule.objects.filter(status=1).order_by('libelle')
+
+        context_perso = {
+            'garantieformules': garantieformules,
+            'garanties': garanties,
+            'formules': formules,
+        }
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_garantieformule(request):
+
+    if request.method == 'POST':
+        garantieformules = request.POST.getlist('garantieformules')
+
+        if len(garantieformules) > 0:
+            for garantieformule in garantieformules:
+                # Créer une nouvelle garantie formule
+                garantie_formule = GarantieFormule(
+                    garantie_id=garantieformule,
+                    formule_id=request.POST.get('formule_id'),
+                    status=request.POST.get('status'),
+                    created_at=datetime.now(),
+
+                )
+                garantie_formule.save()
+
+            response = {
+                'statut': 1,
+                'message': "Enregistrement effectué avec succès !",
+                'data': {}
+            }
+
+            return JsonResponse(response)
+
+        response = {
+            'statut': 0,
+            'message': "Veuillez sélectionner des garanties !",
+            'data': {}
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_garantieformule(request, garantieformule_id):
+
+    garantieformule = GarantieFormule.objects.get(id=garantieformule_id)
+    garanties = Garantie.objects.filter(status=1).order_by('nom')
+    formulegaranties = GarantieFormule.objects.filter(formule_id=garantieformule.formule_id)
+    formules = Formule.objects.filter(status=1).order_by('libelle')
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        #Suppression l'existant
+        for formulegarantie in formulegaranties:
+            formulegarantie.delete()
+
+        garantieformules = request.POST.getlist('garantieformules')
+
+        if len(garantieformules) > 0:
+            for garantieformule in garantieformules:
+                # Créer une nouvelle garantie formule
+                garantie_formule = GarantieFormule(
+                    garantie_id=garantieformule,
+                    formule_id=request.POST.get('formule_id'),
+                    status=request.POST.get('status'),
+                    updated_at=datetime.now(),
+
+                )
+                garantie_formule.save()
+
+            response = {
+                'statut': 1,
+                'message': "Modification effectuée avec succès !",
+                'data': {}
+            }
+
+            return JsonResponse(response)
+
+        response = {
+            'statut': 0,
+            'message': "Veuillez sélectionner des garanties !",
+            'data': {}
+        }
+
+        return JsonResponse(response)
+
+    else:
+        print('garantieformule ', garantieformule)
+        print('garanties ', garanties)
+        print('formulegaranties ', formulegaranties)
+        print('formules ', formules)
+
+        context = {
+            'garantieformule':garantieformule,
+            'garanties':garanties,
+            'formulegaranties':formulegaranties,
+            'formules':formules,
+        }
+
+        return render(request, 'garantieformules/modal_modifier_garantieformule.html',context)
+
+
+@login_required
+def supprimer_garantieformule(request, garantieformule_id):
+    if request.method == "POST":
+
+        garantieformule_id = request.POST.get('garantieformule_id')
+        print("garantieformule id : ", garantieformule_id)
+        garantieformule = GarantieFormule.objects.get(id=garantieformule_id)
+        if garantieformule.pk is not None:
+
+            garantieformule.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Garantie formule supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Garantie formule non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN GARANTIE / FORMULE----------------------------------
+
+#------------------------GROUPE----------------------------------
+
+class GroupeView(PermissionRequiredMixin,TemplateView):
+    template_name = 'groupes/groupe.html'
+    permission_required = "configurations.view_groupe"
+    model = Groupe
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        groupes = Groupe.objects.all().order_by('-id')
+
+        context_perso = {'groupes': groupes}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_groupe(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau groupe
+        groupe_created = Groupe.objects.create(
+            libelle=request.POST.get('libelle'),
+            statut=request.POST.get('status'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': groupe_created.pk,
+                'libelle': groupe_created.libelle,
+                'status': groupe_created.statut,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_groupe(request, groupe_id):
+
+    groupe = Groupe.objects.get(id=groupe_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Groupe.objects.filter(id=groupe_id).update(
+            libelle=request.POST.get('libelle'),
+            statut=request.POST.get('status'),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': groupe.pk,
+                'libelle': groupe.libelle,
+                'statut': groupe.statut,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'groupes/modal_modifier_groupe.html', {'groupe': groupe})
+
+
+@login_required
+def supprimer_groupe(request, groupe_id):
+    if request.method == "POST":
+
+        groupe_id = request.POST.get('groupe_id')
+        print("groupe id : ", groupe_id)
+        groupe = Groupe.objects.get(id=groupe_id)
+        if groupe.pk is not None:
+
+            groupe.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Groupe supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Groupe non trouvé !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN GROUPE----------------------------------
+
+
+#------------------------MODE REGLEMENT----------------------------------
+
+class ModeReglementView(PermissionRequiredMixin,TemplateView):
+    template_name = 'modereglements/modereglement.html'
+    permission_required = "configurations.view_modereglement"
+    model = ModeReglement
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        modereglements = ModeReglement.objects.all().order_by('-id')
+
+        context_perso = {'modereglements': modereglements}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_modereglement(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau modereglement
+        modereglement_created = ModeReglement.objects.create(
+            libelle=request.POST.get('libelle'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': modereglement_created.pk,
+                'libelle': modereglement_created.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_modereglement(request, modereglement_id):
+
+    modereglement = ModeReglement.objects.get(id=modereglement_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        ModeReglement.objects.filter(id=modereglement_id).update(
+            libelle=request.POST.get('libelle'),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': modereglement.pk,
+                'libelle': modereglement.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'modereglements/modal_modifier_modereglement.html', {'modereglement': modereglement})
+
+
+@login_required
+def supprimer_modereglement(request, modereglement_id):
+    if request.method == "POST":
+
+        modereglement_id = request.POST.get('modereglement_id')
+        print("modereglement id : ", modereglement_id)
+        modereglement = ModeReglement.objects.get(id=modereglement_id)
+        if modereglement.pk is not None:
+
+            modereglement.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Mode de règlement supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Mode de règlement non trouvé !",
+            }
+
+            return JsonResponse(response)
+
+#------------------------FIN MODE REGLEMENT----------------------------------
+
+
+#------------------------PAYS----------------------------------
+
+class PaysView(PermissionRequiredMixin,TemplateView):
+    template_name = 'pays/pays.html'
+    permission_required = "configurations.view_pays"
+    model = Pays
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        pays = Pays.objects.all().order_by('-id')
+
+        devises = Devise.objects.all().order_by('libelle')
+
+        context_perso = {'pays': pays, 'devises':devises}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_pays(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau pays
+        pays_created = Pays.objects.create(
+            code=request.POST.get('code'),
+            nom=request.POST.get('nom'),
+            indicatif=request.POST.get('indicatif'),
+            poligamie=request.POST.get('poligamie'),
+            devise_id=request.POST.get('devise_id'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': pays_created.pk,
+                'libelle': pays_created.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_pays(request, pays_id):
+
+    pays = Pays.objects.get(id=pays_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Pays.objects.filter(id=pays_id).update(
+            code=request.POST.get('code'),
+            nom=request.POST.get('nom'),
+            indicatif=request.POST.get('indicatif'),
+            poligamie=request.POST.get('poligamie'),
+            devise_id=request.POST.get('devise_id'),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': pays.pk,
+                'libelle': pays.libelle,
+                'statut': pays.statut,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        devises = Devise.objects.all().order_by('libelle')
+        return render(request, 'payss/modal_modifier_pays.html', {'pays': pays, 'devises': devises})
+
+
+@login_required
+def supprimer_pays(request, pays_id):
+    if request.method == "POST":
+
+        pays_id = request.POST.get('pays_id')
+        print("pays id : ", pays_id)
+        pays = Pays.objects.get(id=pays_id)
+        if pays.pk is not None:
+
+            pays.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Pays supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Pays non trouvé !",
+            }
+
+            return JsonResponse(response)
+
+#------------------------FIN PAYS----------------------------------
 
 
 #--------------------------------------APPORTEUR INTERNAL----------------------------------------------------------
@@ -4670,35 +6216,6 @@ class CategorieView(PermissionRequiredMixin, TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
-
-
-
-#-------------------------------Davise--------------------------------------
-
-# class DeviseView(PermissionRequiredMixin, TemplateView):
-#     template_name = 'Devise/devise.html'
-#     permission_required = "configurations.view_devise"
-#     model = Devise
-#
-#     def get(self, request, *args, **kwargs):
-#         context_original = self.get_context_data(**kwargs)
-#
-#         devise = Devise.objects.all()
-#         utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
-#                                            is_active=True).order_by('last_name')
-#
-#         context_perso = {'devises': devise, 'utilisateurs': utilisateurs}
-#
-#         context = {**context_original, **context_perso}
-#
-#         return self.render_to_response(context)
-#
-#     def get_context_data(self, **kwargs):
-#         pprint(kwargs)
-#         return {
-#             **super().get_context_data(**kwargs),
-#             **admin.site.each_context(self.request),
-#             "opts": self.model._meta,
 
 
 class ViewCourrier(PermissionRequiredMixin, TemplateView):

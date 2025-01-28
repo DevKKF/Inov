@@ -436,12 +436,12 @@ JAZZMIN_SETTINGS = {
                 # "icon": "fa fa-times",
                 "permissions": ["configurations.view_courrier"],
             },
-            {
-                "name": "Action super admin",
-                "url": "db_super_admin_query",
-                "icon": "fa fa-times",
-                "permissions": ["configurations.view_wsbooby"],
-            },
+            #{
+            #    "name": "Action super admin",
+            #    "url": "db_super_admin_query",
+            #    "icon": "fa fa-times",
+            #    "permissions": ["configurations.view_wsbooby"],
+            #},
         ],
     },
     "hide_models": [

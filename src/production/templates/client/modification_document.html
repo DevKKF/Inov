@@ -40,10 +40,10 @@
                 <div class="form-group row">
                     <label class="col-sm-5 col-form-label">{{_("Ce document est-il confidentiel")}} ? <span class="required">*</span></label>
                     <div class="col-sm-7">
-                        <input type="radio" value="OUI" name="confidentialite" id="confidentialite_oui" {% if OUI == document.confidentialite %} checked {% endif %}>
+                        <input type="radio" value="OUI" name="confidentialite" id="confidentialite_oui" {% if confidentialite.OUI == document.confidentialite %} checked {% endif %}>
                         <label class="form-check-label" for="confidentialite_oui">OUI</label>
 
-                        <input type="radio" value="NON" name="confidentialite" id="confidentialite_non" class="ml-3" {% if NON == document.confidentialite %} checked {% endif %}>
+                        <input type="radio" value="NON" name="confidentialite" id="confidentialite_non" class="ml-3" {% if confidentialite.NON == document.confidentialite %} checked {% endif %}>
                         <label class="form-check-label" for="confidentialite_non">NON</label>
                     </div>
                 </div>

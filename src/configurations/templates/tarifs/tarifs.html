@@ -4,17 +4,17 @@
 <div class="col-12 col-md-12 order-2 order-md-1">
   <div class="card">
     <div class="card-header">
-        <h3 class="card-title"><b>{{_('LISTE_DES_TARIFS')}}</b></h3>
+        <h3 class="card-title"><b>{{_("LISTE DES TARIFS")}}</b></h3>
         <div class="card-tools">
-            <a href="{% url 'generate_modele_tarifs_bureau' %}" class="btn btn-sm btn-default">{{_('Telecharger_le_modele_de_tarif')}}</a>
+            <a href="{% url 'generate_modele_tarifs_bureau' %}" class="btn btn-sm btn-default"><i class="fas fa-file-excel-o"></i> {{_("Télécharger le modele de tarif")}}</a>
             {% if request.user.is_superuser %}
-            <a class="btn btn-sm btn-default" data-toggle="modal"  data-target="#modal_tarifs_bureau"><i class="fas fa-plus"></i> {{_('Importer_les_tarifs_du_bureau')}}</a>
+                <a class="btn btn-sm btn-default" data-toggle="modal"  data-target="#modal_tarifs_bureau"><i class="fas fa-plus-circle"></i> {{_("Importer les tarifs du bureau")}}</a>
             {% endif %}
         </div>
     </div>
 
   <div style="display:none__;background:#CCCCCC;padding:10px;border-bottom:1px solid #eee;padding-bottom:10px;margin-bottom:10px;">
-    <form method="get"><label style="font-weight:normal;font-size:12px;display:none;"><i>{{_('Formulaire_de_recherche')}}</i></label>
+    <form method="get"><label style="font-weight:normal;font-size:12px;display:none;"><i>{{_("Formulaire de recherche")}}</i></label>
         <div class="row">
             <div class="col-12 col-md-12 col-sm-12 row">
                 <div class="col-md-4 row">
@@ -29,13 +29,13 @@
                     </div>
                 </div>
                 <div class="col-md-4 row">
-                    <span class="col-sm-4 text-right" style="margin-top:5px;">{{_('Code_acte')}}: </span>
+                    <span class="col-sm-4 text-right" style="margin-top:5px;">{{_("Code acte")}}: </span>
                     <div class="col-sm-8">
                         <input id="search_code" class="form-control" type="text" style="border-radius:3px;border:1px solid rgba(0, 0, 0, 0.3);text-transform:uppercase;">
                     </div>
                 </div>
                 <div class="col-md-4 row">
-                    <span class="col-sm-4 text-right" style="margin-top:5px;">{{_('Libelle_acte')}} : </span>
+                    <span class="col-sm-4 text-right" style="margin-top:5px;">{{_("Libelle acte")}} : </span>
                     <div class="col-sm-8">
                         <input id="search_libelle" class="form-control" type="text" style="border-radius:3px;border:1px solid rgba(0, 0, 0, 0.3);text-transform:uppercase;">
                     </div>
@@ -56,22 +56,22 @@
     <div class="card-body">
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
         <div class="row">
-          <div class="col-12 col-md-12 col-sm-12">
+          <div class="col-12 col-md-12 col-sm-12 table-responsive">
               <div class="spinner-border__" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;"></div>
 
-              <table class="table table-bordered table-striped dataTable customDataTable dtr-inline" id="table_tarifs">
+              <table class="table table-bordered table-striped dataTable dtr-inline" id="table_tarifs">
                   <thead>
                     <tr>
-                      <th scope="col">{{_('Code_acte')}}</th>
-                      <th scope="col">{{_('Libelle_acte')}}</th>
-                      <th scope="col">{{_('Rubrique')}}</th>
-                      <th scope="col">{{_('Regroupement')}}</th>
-                      <th scope="col">{{_('Lettre_cle')}}</th>
-                      <th scope="col">{{_('Cout_classique')}}</th>
-                      <th scope="col">{{_('Cout_mutuelle')}}</th>
-                      <th scope="col">{{_('Cout_HG')}}</th>
-                      <th scope="col">{{_('Cout_CHU')}}</th>
-                      <th scope="col">{{_('Cout_ICA')}}</th>
+                      <th scope="col">{{_("Code acte")}}</th>
+                      <th scope="col">{{_("Libelle acte")}}</th>
+                      <th scope="col">{{_("Rubrique")}}</th>
+                      <th scope="col">{{_("Regroupement")}}</th>
+                      <th scope="col">{{_("Lettre cle")}}</th>
+                      <th scope="col">{{_("Coût classique")}}</th>
+                      <th scope="col">{{_("Coût mutuelle")}}</th>
+                      <th scope="col">{{_("Coût HG")}}</th>
+                      <th scope="col">{{_("Coût CHU")}}</th>
+                      <th scope="col">{{_("Coût ICA")}}</th>
                       <!--th scope="col">Statut</th-->
                       <th>{{_('Actions')}}</th>
                     </tr>

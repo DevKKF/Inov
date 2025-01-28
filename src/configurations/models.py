@@ -1464,6 +1464,7 @@ class Fractionnement(models.Model):
     libelle = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
 
     def __str__(self):
         return self.libelle
@@ -1959,6 +1960,7 @@ class CategorieVehicule(models.Model):
     code = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
 
     def __str__(self):
         return self.libelle
@@ -2504,7 +2506,6 @@ class Garantie(models.Model):
     nom = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    deleted_at = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=True)
 
     def __str__(self):

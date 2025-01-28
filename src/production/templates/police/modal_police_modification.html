@@ -182,95 +182,95 @@
 													</tr>
 												</thead>
 												<tbody>
-												<tr id="tr_initial_vide" style="display:none;">
-													<td style="vertical-align:middle;">
-														<div class="row" style="margin-right:5px;">
-															<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
+													<tr id="tr_initial_vide" style="display:none;">
+														<td style="vertical-align:middle;">
+															<div class="row" style="margin-right:5px;">
+																<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
+																	<option value="">{{_('Choisir')}}</option>
+																	{% for apporteur in apporteurs %}
+																	<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %} value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
+																	{% endfor %}
+																</select>
+
+															</div>
+														</td>
+														<td style="vertical-align:middle;padding:5px;">
+															<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
 																<option value="">{{_('Choisir')}}</option>
-																{% for apporteur in apporteurs %}
-																<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %} value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
+																{% for bc in bases_calculs %}
+																<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
 																{% endfor %}
 															</select>
+														</td>
+														<td style="vertical-align:middle;padding:5px;">
+															<input maxlength="2" type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="0" />
+														</td>
+														<td style="vertical-align:middle;padding:5px;">
+															<input maxlength="2" type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="0" />
+														</td>
+														<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-danger btnSupprimerLigneApporteur_modification"><i class="fa fa-trash" style="font-size:12px;"></i></span></td>
+													</tr>
+													{% if apporteurs_police|length > 0 %}
+														{% for apporteur_police in apporteurs_police %}
+															<tr id="tr_{{apporteur_police.id}}">
+																<td style="vertical-align:middle;">
+																	<div class="row" style="margin-right:5px;">
+																		<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
+																			<option value="">{{_('Choisir')}}</option>
+																			{% for apporteur in apporteurs %}
+																			<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %}  value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
+																			{% endfor %}
+																		</select>
 
-														</div>
-													</td>
-													<td style="vertical-align:middle;padding:5px;">
-														<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
-															<option value="">{{_('Choisir')}}</option>
-															{% for bc in bases_calculs %}
-															<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
-															{% endfor %}
-														</select>
-													</td>
-													<td style="vertical-align:middle;padding:5px;">
-														<input maxlength="2" type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="0" />
-													</td>
-													<td style="vertical-align:middle;padding:5px;">
-														<input maxlength="2" type="text" class="form-control money_field_avec_virgule calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="0" />
-													</td>
-													<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-default btnSupprimerLigneApporteur_modification"><i class="fa fa-times" style="font-size:12px;"></i></span></td>
-												</tr>
-												{% if apporteurs_police|length > 0 %}
-												{% for apporteur_police in apporteurs_police %}
-												<tr id="tr_{{apporteur_police.id}}">
-													<td style="vertical-align:middle;">
-														<div class="row" style="margin-right:5px;">
-															<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
-																<option value="">{{_('Choisir')}}</option>
-																{% for apporteur in apporteurs %}
-																<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %}  value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
-																{% endfor %}
-															</select>
+																	</div>
+																</td>
+																<td style="vertical-align:middle;padding:5px;">
+																	<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
+																		<option value="">{{_('Choisir')}}</option>
+																		{% for bc in bases_calculs %}
+																		<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
+																		{% endfor %}
+																	</select>
+																</td>
+																<td style="vertical-align:middle;padding:5px;">
+																	<input maxlength="5" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="{{ apporteur_police.taux_com_affaire_nouvelle|default_if_none:'0' }}" />
+																</td>
+																<td style="vertical-align:middle;padding:5px;">
+																	<input maxlength="5" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="{{ apporteur_police.taux_com_renouvellement|default_if_none:'0' }}" />
+																</td>
+																<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-default btnSupprimerLigneApporteur_modification"><i class="fa fa-times" style="font-size:12px;"></i></span></td>
+															</tr>
+														{% endfor %}
+													{% else %}
+														<tr id="tr_0" style="">
+															<td style="vertical-align:middle;">
+																<div class="row" style="margin-right:5px;">
+																	<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
+																		<option value="">{{_('Choisir')}}</option>
+																		{% for apporteur in apporteurs %}
+																		<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %}  value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
+																		{% endfor %}
+																	</select>
 
-														</div>
-													</td>
-													<td style="vertical-align:middle;padding:5px;">
-														<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
-															<option value="">{{_('Choisir')}}</option>
-															{% for bc in bases_calculs %}
-															<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
-															{% endfor %}
-														</select>
-													</td>
-													<td style="vertical-align:middle;padding:5px;">
-														<input maxlength="5" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="{{ apporteur_police.taux_com_affaire_nouvelle|default_if_none:'0' }}" />
-													</td>
-													<td style="vertical-align:middle;padding:5px;">
-														<input maxlength="5" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="{{ apporteur_police.taux_com_renouvellement|default_if_none:'0' }}" />
-													</td>
-													<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-default btnSupprimerLigneApporteur_modification"><i class="fa fa-times" style="font-size:12px;"></i></span></td>
-												</tr>
-												{% endfor %}
-												{% else %}
-												<tr id="tr_0" style="">
-													<td style="vertical-align:middle;">
-														<div class="row" style="margin-right:5px;">
-															<select class="form-control calculs_handler_police_modification intermediaire_modification " name="intermediaires" >
-																<option value="">{{_('Choisir')}}</option>
-																{% for apporteur in apporteurs %}
-																<option {% if apporteur_police.apporteur.id == apporteur.id %} selected {% endif %}  value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
-																{% endfor %}
-															</select>
-
-														</div>
-													</td>
-													<td style="vertical-align:middle;padding:5px;">
-														<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
-															<option value="">{{_('Choisir')}}</option>
-															{% for bc in bases_calculs %}
-															<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
-															{% endfor %}
-														</select>
-													</td>
-													<td style="vertical-align:middle;padding:5px;">
-														<input maxlength="2" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="0" />
-													</td>
-													<td style="vertical-align:middle;padding:5px;">
-														<input maxlength="2" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="0" />
-													</td>
-													<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-default btnSupprimerLigneApporteur_modification"><i class="fa fa-times" style="font-size:12px;"></i></span></td>
-												</tr>
-												{% endif %}
+																</div>
+															</td>
+															<td style="vertical-align:middle;padding:5px;">
+																<select class="form-control calculs_handler_police_modification base_calcul_taux_retrocession_modification " name="base_calcul_taux_retrocession" >
+																	<option value="">{{_('Choisir')}}</option>
+																	{% for bc in bases_calculs %}
+																	<option {% if apporteur_police.base_calcul.id == bc.id %} selected {% endif %}  value="{{ bc.id }}">{{ bc.libelle }}</option>
+																	{% endfor %}
+																</select>
+															</td>
+															<td style="vertical-align:middle;padding:5px;">
+																<input maxlength="2" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_affaire_nouvelle_modification" name="taux_com_affaire_nouvelle" value="0" />
+															</td>
+															<td style="vertical-align:middle;padding:5px;">
+																<input maxlength="2" type="text" class="form-control float_field_only_positive calculs_handler_police_modification taux_com_renouvelement_modification" name="taux_com_renouvelement" value="0" />
+															</td>
+															<td style="vertical-align:middle;padding:5px;"><span style="cursor:pointer;" class="btn btn-sm btn-default btnSupprimerLigneApporteur_modification"><i class="fa fa-times" style="font-size:12px;"></i></span></td>
+														</tr>
+													{% endif %}
 												</tbody>
 												<tfoot style="display:none;">
 													<tr class="add-row"><td colspan="5"><span id="btnAddLigneApporteur_modification" style="cursor:pointer;" class="btn btn-sm btn-default float-right"><i class="fa fa-plus" style="font-size:12px;"></i> {{_('Ajouter_une_ligne')}}</span></td></tr>

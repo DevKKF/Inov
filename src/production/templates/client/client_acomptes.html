@@ -221,8 +221,8 @@
                                     {% if not acompte.quittance_id %}
                                         {% if acompte.credit <= acompte.solde %}
                                             <span style="cursor:pointer;" class="btn_modifier_acompte badge badge-warning text-white rounded-pill text-center" data-acompte_id="{acompte.id}" data-model_name="acompte" data-modal_title="MODIFICATION D'UN ACOMPTE" data-href="{% url 'modifier_acompte' acompte.id %}"><i class="fas fa-edit"></i></span>
+                                            <span class="badge badge-danger text-white btn_supprimer_acompte" data-acompte_id="{{ acompte.id }}" data-href="{% url 'supprimer_acompte' acompte.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;&nbsp;&nbsp;
                                         {% endif %}
-                                        <span class="badge badge-danger text-white btn_supprimer_acompte" data-acompte_id="{{ acompte.id }}" data-href="{% url 'supprimer_acompte' acompte.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;&nbsp;&nbsp;
                                     {% endif %}
                                 {% endif %}
                             </td>

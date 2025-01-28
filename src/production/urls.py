@@ -128,6 +128,13 @@ urlpatterns = [
     path('police/<int:police_id>/details_marchandise/<int:marchandise_id>', views.details_marchandise, name='details_marchandise'),
     path('police/<int:police_id>/update_marchandise/<int:marchandise_id>', views.update_marchandise, name='update_marchandise'),
     path("police/<int:police_id>/supprimer_marchandise/<int:marchandise_id>", views.supprimer_marchandise, name='supprimer_marchandise'),
+
+    path('police/<int:police_id>/autres-risques', views.police_autres_risques, name='police_autres_risques'),
+    path('police/<int:police_id>/details_autrerisque/<int:autre_risque_id>', views.details_autrerisque,name='details_autrerisque'),
+    path('police/<int:police_id>/add_autrerisque', views.add_autrerisque, name='add_autrerisque'),
+    path('police/<int:police_id>/update_autrerisque/<int:autre_risque_id>', views.update_autrerisque, name='update_autrerisque'),
+    path("police/<int:police_id>/supprimer_autresrisque/<int:autresrisque_id>", views.supprimer_autresrisque, name='supprimer_autresrisque'),
+
     path('police/<int:police_id>/prime_famille', views.prime_famille, name='prime_famille'),
     path('police/<int:police_id>/modifier', views.modifier_police, name='modifier_police'),
     path('police/<int:police_id>/beneficiaires/photos', PhotosBeneficiairesView.as_view(), name='photos_beneficiaires'),

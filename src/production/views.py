@@ -99,7 +99,7 @@ from production.models import FormuleRubriquePrefinance, ModePrefinancement, Mot
 from production.templatetags.my_filters import money_field, convertir_date_multiformat, supprimer_espaces, convertir_date_jj_mm_aaaa, format_montant, money_format_mille, \
     rendre_html
 from shared.enum import StatutIncorporation, StatutValidite, StatutSinistre, StatutEnrolement, StatutTraitement, \
-    StatutReversementCompagnie, StatutValiditeQuittance
+    StatutReversementCompagnie, StatutValiditeQuittance, Confidentialite
 from shared.helpers import generer_qrcode_carte, generate_numero_famille, generate_numero_carte, render_pdf, \
     generer_numero_ordre, generer_nombre_famille_du_mois, custom_model_to_dict
 from shared.veos import get_taux_euro_by_devise, get_taux_usd_by_devise, send_client_to_veos
@@ -588,11 +588,12 @@ def modifier_document(request, document_id):
 
         document = Document.objects.get(id=document_id)
         typedocuments = TypeDocument.objects.all().order_by('libelle')
+        confidentialite = Confidentialite
 
         form = DocumentForm()
 
         return render(request, 'client/modification_document.html',
-                      {'document': document, 'typedocuments': typedocuments, 'form': form})
+                      {'document': document, 'typedocuments': typedocuments, 'form': form, 'confidentialite':confidentialite})
 
 
 @login_required
@@ -5985,7 +5986,7 @@ def import_vehicules(request, police_id):
 @never_cache
 def police_marchandises(request, police_id):
     police = Police.objects.get(id=police_id)
-    
+
     marchandises = AlimentPolice.objects.filter(police_id=police.id)
     print("marchandises", marchandises)
 
@@ -6360,6 +6361,179 @@ def supprimer_marchandise(request, police_id, marchandise_id):
             response = {
                 'statut': 0,
                 'message': "Marchandise non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+
+@never_cache
+def police_autres_risques(request, police_id):
+    police = Police.objects.get(id=police_id)
+
+    autresrisques = AlimentPolice.objects.filter(police_id=police.id)
+    print("autresrisques", autresrisques)
+
+    today = datetime.now(tz=timezone.utc)
+
+    return render(request, 'police/autresrisques.html',
+                  {'police': police, 'autresrisques': autresrisques, 'today': today})
+
+
+# ajout un autre risque
+def add_autrerisque(request, police_id):
+    police = Police.objects.get(id=police_id)
+
+    dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+    if request.method == 'POST':
+
+        devise_id = request.POST.get('devise')
+        libelle = request.POST.get('libelle')
+        description = request.POST.get('description')
+
+        autrerisque_created = AutreRisque(
+            libelle=libelle,
+            description=description,
+            date_liaison=datetime.now(),
+            created_by=request.user,
+            statut=Statut.ACTIF
+        )
+        autrerisque_created.save()
+
+        autrerisque = AutreRisque.objects.get(id=autrerisque_created.pk)
+
+        aliment_police = AlimentPolice(
+            autre_risque_id=autrerisque.id,
+            historique_police_id=dernier_historique.id,
+            police_id=police.id,
+            created_by=request.user,
+            date_liaison=datetime.now(),
+            statut=Statut.ACTIF
+        )
+        aliment_police.save()
+
+        response = {
+            'statut': 1,
+            'message': "Autre risque ajouté avec succès !",
+            'data': {
+                'id': autrerisque.id,
+                'autrerisque_libelle': autrerisque.libelle,
+            }
+        }
+        return JsonResponse(response)
+
+    else:
+        response = {
+            'statut': 2,
+            'message': "Cette methode n'est pas reconnue !",
+        }
+        return JsonResponse(response)
+
+
+# Afficher les details d'un autre risque
+def details_autrerisque(request, police_id, autre_risque_id):
+    police = Police.objects.get(id=police_id)
+    autre_risque = AutreRisque.objects.get(id=autre_risque_id)
+
+    sinistres = []
+
+    tarifs = []
+
+    historiques = HistoriqueAliment.objects.filter(autre_risque_id=autre_risque_id).order_by('-id')
+
+    return render(
+        request,
+        'police/modal_details_autrerisque.html',
+        {
+            'police': police,
+            'autre_risque': autre_risque,
+            'tarifs': tarifs,
+            'sinistres': sinistres,
+            'historiques': historiques,
+        }
+    )
+
+
+#Modifier l'autre risque
+def update_autrerisque(request, police_id, autre_risque_id):
+    police = Police.objects.get(id=police_id)
+    autrerisque = AutreRisque.objects.get(id=autre_risque_id)
+    alimentpolice = AlimentPolice.objects.filter(autre_risque_id=autrerisque.id)
+
+    if request.method == 'POST':
+
+        devise_id = request.POST.get('devise')
+        libelle = request.POST.get('libelle')
+        description = request.POST.get('description')
+
+        #Créer sa ligne d'historique
+        autrerisque_historique_created = HistoriqueAliment(
+            autre_risque_id=autrerisque.id,
+            libelle=libelle,
+            description=description,
+            devise_id=devise_id,
+            date_liaison=datetime.now(),
+            created_by=autrerisque.created_by,
+            updated_by=autrerisque.updated_by,
+            statut=autrerisque.statut
+        )
+        autrerisque_historique_created.save()
+
+        # Mise à jour de la autrerisque
+        autrerisque.libelle=libelle
+        autrerisque.description=description
+        autrerisque.devise_id=devise_id
+        autrerisque.updated_at=datetime.now()
+        autrerisque.updated_by=request.user
+        autrerisque.save()
+
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': autrerisque.id,
+                'libelle': autrerisque.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+
+        context ={
+            'police': police,
+            'autrerisque': autrerisque,
+            'alimentpolice': alimentpolice
+        }
+
+        return render(request, 'police/modal_autrerisque_modification.html', context)
+
+
+# Supprimer un autre risque
+def supprimer_autresrisque(request, police_id, autresrisque_id):
+    police = Police.objects.get(id=police_id)
+
+    if request.method == "POST":
+
+        autresrisque_id = request.POST.get('autresrisque_id')
+
+        autresrisque = AutreRisque.objects.get(id=autresrisque_id)
+        if autresrisque.pk is not None:
+            alimentpolice = AlimentPolice.objects.filter(autre_risque_id=autresrisque.id).first()
+
+            alimentpolice.delete()
+            autresrisque.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Autre risque supprimé avec succès !",
+            }
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Autre risque non trouvé !",
             }
 
         return JsonResponse(response)

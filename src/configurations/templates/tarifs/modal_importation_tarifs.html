@@ -5,7 +5,7 @@
 			<form enctype="multipart/form-data" id="form_importer_tarifs_bureau" action="{% url 'import_tarifs_bureau' %}" method="POST">
 			{% csrf_token %}
 			<div class="modal-header">
-				<h4 class="modal-title">{{_('TARIFS_DE_BUREAU')}}</h4>
+				<h4 class="modal-title">{{_("TARIFS DE BUREAU")}}</h4>
 				<button type="button" class="close"data-dismiss="modal"aria-label="Close">
 					<span aria-hidden="true">×</span>
 				</button>
@@ -18,7 +18,7 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="form-group">
-                                <label class="col-form-label">{{_('Fichier_contenant_les_tarifs_de_bureau')}} <span class="required"></span></label>
+                                <label class="col-form-label">{{_("Fichier contenant les tarifs de bureau")}} <span class="required"></span></label>
                                 <div>
                                     <input type="file" class="form-control" name="fichier_import_tarif" id="fichier_import_tarif"/>
                                 </div>
@@ -27,10 +27,9 @@
                     </div>
 				</div>
 				<div class="modal-footer justify-content-between">
-					<button type="button" class="btn btn-default" data-dismiss="modal">{{_('Retour')}}</button>
-					<span id="loading_gif" style="display:none;color:#BB4127;">{{_('Importation_en_cours')}}... <img src="{% static 'admin_custom/ripple-loader.svg' %}" style="width:50px;"></span>
-					<button type="button" id="btn_importer_tarifs_bureau" class="btn o-bg-primary">{{_('Importer')}}</button>
-
+					<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
+					<span id="loading_gif" style="display:none;color:#BB4127;">{{_("Importation en cours")}}... <img src="{% static 'admin_custom/ripple-loader.svg' %}" style="width:50px;"></span>
+					<button type="button" id="btn_importer_tarifs_bureau" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Importer')}}</button>
 				</div>
 			</div>
 			</form>

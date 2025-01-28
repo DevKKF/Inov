@@ -227,3 +227,8 @@ class SourceCreationSinistre(models.TextChoices):
     MOBILE = 'MOBILE'
     BACKOFFICE = 'BACKOFFICE'
     API = 'API'
+
+
+class Confidentialite(models.TextChoices):
+    OUI = 'OUI'
+    NON = 'NON'

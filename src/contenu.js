@@ -1,19 +1,18 @@
-//Création d'un document
-$(document).on('click', "#btn_save_document_client", function () {
+//Création d'un mode de règlement
+$(document).on('click', "#btn_save_modereglement", function () {
 
-    let formulaire = $('#form_document_client');
+    let formulaire = $('#form_add_modereglement');
     let href = formulaire.attr('action');
 
     $.validator.setDefaults({ ignore: [] });
 
     let formData = new FormData();
-    let files = $('#form_document_client #fichier')[0].files;
 
     if (formulaire.valid()) {
 
         //demander confirmation
         let n = noty({
-            text: 'Voulez-vous vraiment enregistrer cette contact ?',
+            text: "Voulez-vous vraiment enregistrer ce mode de règlement ?",
             type: 'warning',
             dismissQueue: true,
             layout: 'center',
@@ -24,9 +23,6 @@ $(document).on('click', "#btn_save_document_client", function () {
                         $noty.close();
 
                         //confirmation obtenu
-                        if (files.length > 0) {
-                            formData.append('fichier', files[0]);
-                        }
 
                         let data_serialized = formulaire.serialize();
                         $.each(data_serialized.split('&'), function (index, elem) {
@@ -50,7 +46,6 @@ $(document).on('click', "#btn_save_document_client", function () {
                                 if (response.statut == 1) {
 
                                     notifySuccess(response.message, function () {
-                                        formulaire[0].reset(); // Réinitialise tous les champs du formulaire
                                         location.reload();
                                     });
 
@@ -111,8 +106,8 @@ $(document).on('click', "#btn_save_document_client", function () {
 
 });
 
-//Modification d'un document
-$(document).on('click', '.btn_modifier_document', function () {
+//Modification d'un mode de règlement
+$(document).on('click', '.btn_modifier_modereglement', function () {
 
     let model_name = $(this).attr('data-model_name');
     let modal_title = $(this).attr('data-modal_title');
@@ -123,31 +118,30 @@ $(document).on('click', '.btn_modifier_document', function () {
         //appliquer le mask de saisie sur les champs montant
         AppliquerMaskSaisie();
 
-        $('#modal-modification_document').attr('data-backdrop', 'static').attr('data-keyboard', false);
+        $('#modal-modification_modereglement').attr('data-backdrop', 'static').attr('data-keyboard', false);
 
-        $('#modal-modification_document').find('.modal-title').text(modal_title);
-        $('#modal-modification_document').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
-        $('#modal-modification_document').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
+        $('#modal-modification_modereglement').find('.modal-title').text(modal_title);
+        $('#modal-modification_modereglement').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+        $('#modal-modification_modereglement').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
 
         //
-        $('#modal-modification_document').modal();
+        $('#modal-modification_modereglement').modal();
 
         //gestion du clique sur valider les modifications
-        $("#btn_save_modification_document_client").on('click', function () {
+        $("#btn_save_modification_modereglement").on('click', function () {
 
-            let formulaire = $('#form_modification_document_client');
+            let formulaire = $('#form_update_modereglement');
             let href = formulaire.attr('action');
 
             $.validator.setDefaults({ ignore: [] });
 
             let formData = new FormData();
-            let files = $('#form_modification_document_client #fichier')[0].files;
 
             if (formulaire.valid()) {
 
                 //demander confirmation
                 let n = noty({
-                    text: 'Voulez-vous vraiment modifier cette document ?',
+                    text: "Voulez-vous vraiment modifier ce mode de règlement ?",
                     type: 'warning',
                     dismissQueue: true,
                     layout: 'center',
@@ -158,9 +152,6 @@ $(document).on('click', '.btn_modifier_document', function () {
                                 $noty.close();
 
                                 //confirmation obtenu
-                                if (files.length > 0) {
-                                    formData.append('fichier', files[0]);
-                                }
 
                                 let data_serialized = formulaire.serialize();
                                 $.each(data_serialized.split('&'), function (index, elem) {
@@ -195,9 +186,9 @@ $(document).on('click', '.btn_modifier_document', function () {
                                                 errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                             }
 
-                                            $('#modal-modification_document .alert .message').html(errors_list_to_display);
+                                            $('#modal-modification_modereglement .alert .message').html(errors_list_to_display);
 
-                                            $('#modal-modification_document .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $('#modal-modification_modereglement .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                                 $(this).slideUp(500);
                                             }).removeClass('alert-success').addClass('alert-warning');
 
@@ -246,12 +237,12 @@ $(document).on('click', '.btn_modifier_document', function () {
 
 });
 
-//Suppression d'un document
-$(document).on('click', '.btn_supprimer_document', function () {
-    let document_id = $(this).data('document_id');
+//Suppression d'un mode de règlement
+$(document).on('click', '.btn_supprimer_modereglement', function () {
+    let modereglement_id = $(this).data('modereglement_id');
     let href = $(this).data('href');
     let n = noty({
-        text: 'Voulez-vous vraiment supprimer cette document ?',
+        text: "Voulez-vous vraiment supprimer ce mode de règlement ?",
         type: 'warning',
         dismissQueue: true,
         layout: 'center',
@@ -265,7 +256,7 @@ $(document).on('click', '.btn_supprimer_document', function () {
                     $.ajax({
                         url: href,
                         type: 'post',
-                        data: { document_id: document_id },
+                        data: { modereglement_id: modereglement_id },
                         success: function (response) {
 
                             notifySuccess(response.message, function () {
@@ -289,3 +280,16 @@ $(document).on('click', '.btn_supprimer_document', function () {
         ]
     });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+

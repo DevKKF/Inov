@@ -19,7 +19,7 @@ from configurations.models import Banque, Bureau, Civilite, Compagnie, Fractionn
     SousRegroupementActe, Secteur, GroupeInter, Carosserie, Formule, Usage, Carburant, BusinessUnit, Garantie, ConditionsAssurance, MoyensTransport, TypeCourrier, Groupe
 from shared.enum import Genre, Statut, StatutRelation, StatutFamilial, OptionYesNo, PlacementEtGestion, \
     ModeRenouvellement, TypeEncaissementCommission, TypeMajorationContrat, CalculTM, StatutContrat, StatutPolice, \
-    StatutQuittance, \
+    StatutQuittance, Confidentialite, \
     StatutReversementCompagnie, StatutReglementApporteurs, StatutEncaissementCommission, Energie, StatutSinistre, \
     StatutValidite, StatutIncorporation, StatutTraitement
 
@@ -818,6 +818,11 @@ class HistoriqueAliment(models.Model):
     date_mis_en_circulation = models.DateField(blank=True, null=True)
     date_entree = models.DateField(blank=True, null=True)
     commentaire = models.TextField(null=True)
+
+    # LES CHAMPS DU MODEL AUTRERISQUE
+    autre_risque = models.ForeignKey(AutreRisque, on_delete=models.RESTRICT, null=True)
+    libelle = models.TextField(null=True)
+    description = models.TextField(null=True)
 
     # Champs en commun
     date_sortie = models.DateField(null=True)

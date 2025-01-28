@@ -391,6 +391,13 @@
                       <p>Marchandises</p>
                     </a>
                 </li>
+            {% else %}
+                <li class="nav-item">
+                    <a href="{% url 'police_autres_risques' police.id %}" class="nav-link">
+                      <i class="nav-icon fa fa-sitemap"></i>
+                      <p>Autres risques</p>
+                    </a>
+                </li>
             {% endif %}
             <li class="nav-item">
                 <a href="{% url 'police_quittances' police.id %}" class="nav-link">
@@ -504,6 +511,7 @@
 
 {% include 'police/modal_vehicule.html' %}
 {% include 'police/modal_marchandise.html' %}
+{% include 'police/modal_add_autrerisque.html' %}
 {% include 'police/modal_import_vehicules.html' %}
 {% include 'police/modal_document.html' %}
 {% include 'police/modal_edition_cartes.html' %}

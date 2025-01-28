@@ -6,7 +6,9 @@ from shared.helpers import openai_complete
 from . import views
 from .views import PrestatairesView, DetailsPrestatairesView, GroupePermissionsView, TarifsView, ReseauxSoinsView, \
     DetailsReseauSoinView, WsBobyView, WsBobyCreateView, WsBobyEditeView, ActesView, ConnectedUsersView, BusinessUnitView, \
-    brancheView, banquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView,ViewCourrier, CompagnieView, CarosseriesView
+    BrancheView, BanquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView,ViewCourrier, CompagnieView, \
+    CarosseriesView, CategorieVehiculeView, CiviliteView, CompteTresorerieView, ConditionsAssuranceView, DeviseView, CarburantView, \
+    FormuleView, FractionnementView, GarantieView, GarantieFormuleView, GroupeView, ModeReglementView, PaysView
 
 
 
@@ -62,14 +64,43 @@ urlpatterns = [
     path('businessunit/ajouter', views.add_businessunit, name='add_businessunit'),
     path('businessunit/<int:businessunit_id>/modifier', views.modifier_businessunit, name='modifier_businessunit'),
     path('businessunit/delete/<int:businessunit_id>/', views.supprimer_businessunit, name='supprimer_businessunit'),
-
     #
-    path('branche/',brancheView.as_view(), name='branche'),
+    path('categorievehicule/', CategorieVehiculeView.as_view(), name='categorievehicule'),
+    path('categorievehicule/ajouter', views.add_categorievehicule, name='add_categorievehicule'),
+    path('categorievehicule/<int:categorievehicule_id>/modifier', views.modifier_categorievehicule, name='modifier_categorievehicule'),
+    path('categorievehicule/delete/<int:categorievehicule_id>/', views.supprimer_categorievehicule, name='supprimer_categorievehicule'),
+    #
+    path('civilite/', CiviliteView.as_view(), name='civilite'),
+    path('civilite/ajouter', views.add_civilite, name='add_civilite'),
+    path('civilite/<int:civilite_id>/modifier', views.modifier_civilite, name='modifier_civilite'),
+    path('civilite/delete/<int:civilite_id>/', views.supprimer_civilite, name='supprimer_civilite'),
+    #
+    path('comptetresorerie/', CompteTresorerieView.as_view(), name='comptetresorerie'),
+    path('comptetresorerie/ajouter', views.add_comptetresorerie, name='add_comptetresorerie'),
+    path('comptetresorerie/<int:comptetresorerie_id>/modifier', views.modifier_comptetresorerie, name='modifier_comptetresorerie'),
+    path('comptetresorerie/delete/<int:comptetresorerie_id>/', views.supprimer_comptetresorerie, name='supprimer_comptetresorerie'),
+    #
+    path('conditionsassurance/', ConditionsAssuranceView.as_view(), name='conditionsassurance'),
+    path('conditionsassurance/ajouter', views.add_conditionsassurance, name='add_conditionsassurance'),
+    path('conditionsassurance/<int:conditionsassurance_id>/modifier', views.modifier_conditionsassurance, name='modifier_conditionsassurance'),
+    path('conditionsassurance/delete/<int:conditionsassurance_id>/', views.supprimer_conditionsassurance, name='supprimer_conditionsassurance'),
+    #
+    path('carburant/', CarburantView.as_view(), name='carburant'),
+    path('carburant/ajouter', views.add_carburant, name='add_carburant'),
+    path('carburant/<int:carburant_id>/modifier', views.modifier_carburant, name='modifier_carburant'),
+    path('carburant/delete/<int:carburant_id>/', views.supprimer_carburant, name='supprimer_carburant'),
+    #
+    path('devise/', DeviseView.as_view(), name='devise'),
+    path('devise/ajouter', views.add_devise, name='add_devise'),
+    path('devise/<int:devise_id>/modifier', views.modifier_devise, name='modifier_devise'),
+    path('devise/delete/<int:devise_id>/', views.supprimer_devise, name='supprimer_devise'),
+    #
+    path('branche/',BrancheView.as_view(), name='branche'),
     path('branche/ajouter', views.add_branche, name='add_branche'),
     path('branche/<int:branche_id>/modifier', views.modifier_branche, name='modifier_branche'),
     path('branche/delete/<int:branche_id>/', views.supprimer_branche, name='supprimer_branche'),
     #
-    path('banque/',banquesView.as_view(),name='banques'),
+    path('banque/',BanquesView.as_view(),name='banques'),
     path('banque/ajouter', views.add_banque, name='add_banque'),
     path('banque/<int:banque_id>/modifier', views.modifier_banque, name='modifier_banque'),
     path('banque/delete/<int:banque_id>/', views.supprimer_banque, name='supprimer_banque'),
@@ -78,8 +109,41 @@ urlpatterns = [
     path('carosserie/ajouter', views.add_carosserie, name='add_carosserie'),
     path('carosserie/<int:carosserie_id>/modifier', views.modifier_carosserie, name='modifier_carosserie'),
     path('carosserie/delete/<int:carosserie_id>/', views.supprimer_carosserie, name='supprimer_carosserie'),
-
-    # path('devise/', DeviseView.as_view(), name='devises'),
+    #
+    path('formule/', FormuleView.as_view(), name='formule'),
+    path('formule/ajouter', views.add_formule, name='add_formule'),
+    path('formule/<int:formule_id>/modifier', views.modifier_formule, name='modifier_formule'),
+    path('formule/delete/<int:formule_id>/', views.supprimer_formule, name='supprimer_formule'),
+    #
+    path('fractionnement/', FractionnementView.as_view(), name='fractionnement'),
+    path('fractionnement/ajouter', views.add_fractionnement, name='add_fractionnement'),
+    path('fractionnement/<int:fractionnement_id>/modifier', views.modifier_fractionnement, name='modifier_fractionnement'),
+    path('fractionnement/delete/<int:fractionnement_id>/', views.supprimer_fractionnement, name='supprimer_fractionnement'),
+    #
+    path('garantie/', GarantieView.as_view(), name='garantie'),
+    path('garantie/ajouter', views.add_garantie, name='add_garantie'),
+    path('garantie/<int:garantie_id>/modifier', views.modifier_garantie, name='modifier_garantie'),
+    path('garantie/delete/<int:garantie_id>/', views.supprimer_garantie, name='supprimer_garantie'),
+    #
+    path('garantieformule/', GarantieFormuleView.as_view(), name='garantieformule'),
+    path('garantieformule/ajouter', views.add_garantieformule, name='add_garantieformule'),
+    path('garantieformule/<int:garantieformule_id>/modifier', views.modifier_garantieformule, name='modifier_garantieformule'),
+    path('garantieformule/delete/<int:garantieformule_id>/', views.supprimer_garantieformule, name='supprimer_garantieformule'),
+    #
+    path('groupe/', GroupeView.as_view(), name='groupe'),
+    path('groupe/ajouter', views.add_groupe, name='add_groupe'),
+    path('groupe/<int:groupe_id>/modifier', views.modifier_groupe, name='modifier_groupe'),
+    path('groupe/delete/<int:groupe_id>/', views.supprimer_groupe, name='supprimer_groupe'),
+    #
+    path('modereglement/', ModeReglementView.as_view(), name='modereglement'),
+    path('modereglement/ajouter', views.add_modereglement, name='add_modereglement'),
+    path('modereglement/<int:modereglement_id>/modifier', views.modifier_modereglement, name='modifier_modereglement'),
+    path('modereglement/delete/<int:modereglement_id>/', views.supprimer_modereglement, name='supprimer_modereglement'),
+    #
+    path('pays/', PaysView.as_view(), name='pays'),
+    path('pays/ajouter', views.add_pays, name='add_pays'),
+    path('pays/<int:pays_id>/modifier', views.modifier_pays, name='modifier_pays'),
+    path('pays/delete/<int:pays_id>/', views.supprimer_pays, name='supprimer_pays'),
     #
     path('courriers/', ViewCourrier.as_view(), name='courrier'),
     path('courrier/add_courrier', views.add_courrier, name='add_courrier'),

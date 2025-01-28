@@ -14,7 +14,7 @@
             <div class="card-tools">
                  <div class="button-link pull-right mb-2">
                     {% if request.user.is_production and police.etat_police == "En cours" or police.etat_police == "En attente" %}
-                        <a class="btn btn-sm btn-primary mb-1 " data-toggle="modal" data-target="#modal-document"><i class="fas fa-plus"></i> {{_('Ajouter un document')}}</a>
+                        <a class="btn btn-sm btn-primary mb-1 " data-toggle="modal" data-target="#modal-document"><i class="fas fa-plus-circle"></i> {{_('Ajouter un document')}}</a>
                     {% endif %}
                 </div>
                 <div class="card-body">
@@ -23,13 +23,16 @@
                             <thead>
                                 <tr role="row">
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Nom_du_document')}}
+                                        {{_("Nom du document")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                                        {{_('Type_de_document')}}
+                                        {{_("Type de document")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
                                         {{_('Fichier')}}
+                                    </th>
+                                    <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
+                                        {{_("Date de création")}}
                                     </th>
                                     <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
                                         {{_('Action')}}
@@ -43,9 +46,10 @@
                                             <td class="dtr-control" tabindex="0">{{ document.nom }}</td>
                                             <td class="">{{ document.type_document.libelle }}</td>
                                             <td class="text-center"><a href="{{ document.fichier.url }}"><i class="fa fa-file" title="Aperçu"></i> {{_('Afficher')}}</a></td>
-                                            <td class="">
-                                                <span class="btn_supprimer_document" data-document_id="{{ document.id }}" onclick="supprimer_document({{ document.id }})" style="cursor:pointer;"><i class="fa fa-times text-danger"></i> </span>&nbsp;&nbsp;&nbsp;
-                                                <span class="btn_modifier_on_modal" data-model_name="document" data-href="{% url 'modifier_document' document.id %}" data-modal_title="Modification d'un document" title="Modifier" style="cursor:pointer;"><i class="fas fa-edit text-warning"></i></span>
+                                            <td class="dtr-control" tabindex="0">{{ document.created_at|date:'d/m/Y'|default_if_none:"" }}</td>
+                                            <td class="text-center">
+                                                <span style="cursor:pointer;" class="btn_modifier_document badge badge-warning text-white rounded-pill text-center" data-document_id="{document.id}" data-model_name="document" data-modal_title="MODIFICATION D'UN DOCUMENT" data-href="{% url 'modifier_document' document.id %}"><i class="fas fa-edit"></i></span>
+                                                <span class="badge badge-danger text-white btn_supprimer_document" data-document_id="{{ document.id }}" data-href="{% url 'supprimer_document' document.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>
                                             </td>
                                         </tr>
                                     {% endif %}
