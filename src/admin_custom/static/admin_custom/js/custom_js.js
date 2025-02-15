@@ -4569,11 +4569,8 @@ $(document).ready(function () {
         let href = formulaire.attr('action');
         let href_police = $(this).attr('data-href_police');
         let mouvement = $('#mouvement').val();
-        // console.log('href_police', href_police);
-        // console.log('formulaire.serialize()', formulaire.serialize());
-        // // Get form mouvement value
-        // console.log('mouvement', $('#mouvement').val());
-        // alert(href_police);
+
+        console.log('href_police', href_police);
 
         if (formulaire.valid()) {
 
@@ -4596,34 +4593,6 @@ $(document).ready(function () {
                                 location.reload();
                             });
                         }
-
-
-                        /*
-                        $('#modal-avenant .alert .message').text(response.message);
-
-                        $('#modal-avenant .alert ').fadeTo(2000, 500).slideUp(500, function(){
-                            $(this).slideUp(500);
-
-                            avenant = response.data;
-                            let t = $('#table_avenants').DataTable();
-
-                            t.row.add([
-                                        avenant.mouvement,
-                                        avenant.motif ,
-                                        avenant.date_effet,
-                                        avenant.date_fin_periode_garantie
-                                        ])
-                                        .draw(false);
-
-                            //Vider le formulaire
-                            resetFields('#'+formulaire.attr('id'));
-
-                            notifySuccess(response.message, function(){
-                                location.reload();
-                            });
-
-                        }).removeClass('alert-warning').addClass('alert-success');
-                        */
 
                     } else {
 
@@ -4666,6 +4635,7 @@ $(document).ready(function () {
 
 
     });
+
 
     //Changement de mouvement, charger les motifs liés
     $('#mouvement').on('change', function () {
@@ -5823,6 +5793,7 @@ $(document).ready(function () {
 
     });
 
+
     $("#btn_save_police").on('click', function () {
         let btn_submit = $(this);
 
@@ -5831,12 +5802,22 @@ $(document).ready(function () {
         let formulaire = $('#form_add_police');
         let href = formulaire.attr('action');
 
+        let police_date_debut = $('#date_debut_effet').val();
+        let police_date_fin = $('#date_fin_effet').val();
+
+        if (police_date_debut && police_date_fin) {
+            if (new Date(police_date_debut) >= new Date(police_date_fin)){
+                notifyWarning('La date de fin de la police doit être strictement postérieure à la date de début.');
+                btn_submit.removeAttr('disabled'); // Réactivation du bouton avant le return
+                return;
+            }
+        }
+
         $.validator.setDefaults({ ignore: [] });
 
         let formData = new FormData();
 
         if (formulaire.valid()) {
-
             // Enregistrement direct sans confirmation
             let data_serialized = formulaire.serialize();
             $.each(data_serialized.split('&'), function (index, elem) {
@@ -5847,12 +5828,6 @@ $(document).ready(function () {
 
                 formData.append(key, valeur);
             });
-
-            // Ajout du fichier logo_partenaire au FormData
-            let logo_partenaire_input = $('#logo_partenaire')[0];
-            let logo_partenaire_file = logo_partenaire_input.files[0];
-
-            formData.append('logo_partenaire', logo_partenaire_file);
 
             $.ajax({
                 type: 'post',
@@ -5871,6 +5846,9 @@ $(document).ready(function () {
                         // Vider le formulaire
                         resetFields('#' + formulaire.attr('id'));
                         resetFields('#form_add_autres_taxes');
+                        $("#form_add_police select").each(function() {
+                            $(this).prop('selectedIndex', 0).trigger('change');
+                        });
 
                         // Vider les cookies enregistrées pour l'occasion
                         document.cookie = "taxes=";
@@ -5928,7 +5906,7 @@ $(document).ready(function () {
             url: '/production/ajax_produits/' + branche_id,
             dataType: 'json',
             success: function (produits) {
-                $('#modal-police #produit').html('').append('<option value="">Choisir</option>');
+                $('#modal-police #produit').html('').append('<option value="">Choisir un produit</option>');
 
                 produits.forEach(function (produit) {
                     $('#modal-police #produit').append('<option value="' + produit.pk + '">' + produit.fields.nom + '</option>');
@@ -5938,18 +5916,6 @@ $(document).ready(function () {
                 console.log('Erreur loading produits ');
             }
         });
-
-        //si ce n'est pas la santé, retirer les onglets option de calcul de la prime et coeficients stats
-
-        if (branche_code == "SANTE") {
-            $('.onglets_sante_uniquement').show();
-            $('.required_field').attr('required', true);
-        } else {
-            $('.onglets_sante_uniquement').hide();
-            $('.required_field').removeAttr('required');
-        }
-
-
     });
 
     //actualiser la liste des apporteurs
@@ -5990,307 +5956,16 @@ $(document).ready(function () {
 
 
     //TODO:modification de police
-    $(".btn_modifier_police").on('click', function () {
-
-        let model_name = $(this).attr('data-model_name');
-        let modal_title = $(this).attr('data-modal_title');
-        let href = $(this).attr('data-href');
-
-        $('#olea_std_dialog_box').load(href, function () {
-
-            //Added on 23032023: charger la liste des produits
-
-            let branche_id = $("#modal-modification_police #branche_modification").val();
-            let branche_code = $("#modal-modification_police #branche_modification").find('option:selected').data('branche_code');
-
-            //si ce n'est pas la santé, retirer les onglets option de calcul de la prime et coeficients stats
-            if (branche_code == "SANTE") {
-                $('.onglets_sante_uniquement').show();
-                $('.required_field').attr('required', true);
-            } else {
-                $('.onglets_sante_uniquement').hide();
-                $('.required_field').removeAttr('required');
-            }
-
-
-            //actualiser le taux de commission au changement de la compagnie
-            $("#modal-modification_police #branche_modification").on('change', function () {
-
-                let branche_id = $(this).val();
-                let branche_code = $(this).find('option:selected').data('branche_code');
-
-                $.ajax({
-                    type: 'get',
-                    url: '/production/ajax_produits/' + branche_id,
-                    dataType: 'json',
-                    success: function (produits) {
-                        $('#modal-modification_police #produit_modification').html('').append('<option value="">Choisir</option>');
-
-                        produits.forEach(function (produit) {
-                            let selected = (produit.branche_id == branche_id) ? ' selected ' : '';
-                            $('#modal-modification_police #produit_modification').append('<option ' + selected + ' value="' + produit.pk + '">' + produit.fields.nom + '</option>');
-                        });
-                    },
-                    error: function () {
-                        console.log('Erreur loading produits ');
-                    }
-                });
-
-
-                //si ce n'est pas la santé, retirer les onglets option de calcul de la prime et coeficients stats
-                if (branche_code == "SANTE") {
-                    $('.onglets_sante_uniquement').show();
-                    $('.required_field').attr('required', true);
-                } else {
-                    $('.onglets_sante_uniquement').hide();
-                    $('.required_field').removeAttr('required');
-                }
-
-
-            });
-
-
-            //appliquer le mask de saisie sur les champs montant
-            AppliquerMaskSaisie();
-
-            $('#modal-modification_police').attr('data-backdrop', 'static').attr('data-keyboard', false);
-
-            //$('#modal-modification_police').find('.modal-title').text(modal_title);
-            $('#modal-modification_police').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
-            $('#modal-modification_police').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
-
-            //
-            $('#modal-modification_police').modal();
-
-            $('#option_calcul_prime_modification').change();
-
-            //actualiser le taux de commission au changement de la compagnie
-            $("#modal-modification_police #compagnie_modification, #modal-modification_police #produit_modification").on('change', function () {
-                let compagnie_id = $("#modal-modification_police #compagnie_modification").val();
-                let produit_id = $('#modal-modification_police #produit_modification').val();
-
-                $.ajax({
-                    type: 'get',
-                    url: '/production/compagnie/ajax_infos_compagnie/' + compagnie_id + '/' + produit_id,
-                    dataType: 'json',
-                    success: function (data) {
-
-                        let taux_com_gestion = data.taux_com_gestion;
-                        let taux_com_courtage = data.taux_com_courtage;
-
-                        $('#modal-modification_police #taux_com_gestion_modification').val(taux_com_gestion);
-                        $('#modal-modification_police #taux_com_courtage_modification').val(taux_com_courtage);
-
-                        calculer_montant_divers_police_modification();
-
-                    },
-                    error: function () {
-                        console.log('Erreur de chargement : ajax_infos_compagnie ');
-                    }
-                });
-
-
-            });
-
-
-            //pendant la saisie de la prime net
-
-
-
-
-            //gestion du clique sur valider les modifications
-            $("#btn_save_modification_police").on('click', function () {
-
-                let formulaire = $('#form_update_police');
-                let href = formulaire.attr('action');
-
-                $.validator.setDefaults({ ignore: [] });
-
-                let formData = new FormData();
-
-                if (formulaire.valid()) {
-
-                    //demander confirmation
-                    let n = noty({
-                        text: 'Voulez-vous vraiment modifier cette police ?',
-                        type: 'warning',
-                        dismissQueue: true,
-                        layout: 'center',
-                        theme: 'defaultTheme',
-                        buttons: [
-                            {
-                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
-                                    $noty.close();
-
-                                    //confirmation obtenu
-
-                                    let data_serialized = formulaire.serialize();
-                                    $.each(data_serialized.split('&'), function (index, elem) {
-                                        let vals = elem.split('=');
-
-                                        let key = vals[0];
-                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
-
-                                        formData.append(key, valeur);
-
-                                    });
-
-                                    // Add logo_partenaire file to FormData
-                                    let logo_partenaire_input = $('#logo_partenaire_modification')[0];
-                                    let logo_partenaire_file = logo_partenaire_input.files[0];
-
-                                    formData.append('logo_partenaire', logo_partenaire_file);
-
-
-                                    $.ajax({
-                                        type: 'post',
-                                        url: href,
-                                        data: formData,
-                                        processData: false,
-                                        contentType: false,
-                                        xhrFields: {
-                                            withCredentials: true
-                                        },
-                                        success: function (response) {
-
-                                            if (response.statut == 1) {
-
-                                                notifySuccess(response.message, function () {
-                                                    location.reload();
-                                                });
-
-                                            } else {
-
-                                                let errors = JSON.parse(JSON.stringify(response.errors));
-                                                let errors_list_to_display = '';
-                                                for (field in errors) {
-                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
-                                                }
-
-                                                $('#modal-police .alert .message').html(errors_list_to_display);
-
-                                                $('#modal-police .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                                                    $(this).slideUp(500);
-                                                }).removeClass('alert-success').addClass('alert-warning');
-
-                                            }
-
-                                        },
-                                        error: function (request, status, error) {
-
-                                            notifyWarning("Erreur lors de l'enregistrement");
-                                        }
-
-                                    });
-
-
-                                    //fin confirmation obtenue
-
-                                }
-                            },
-                            {
-                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
-                                    //confirmation refusée
-                                    $noty.close();
-
-                                }
-                            }
-                        ]
-                    });
-                    //fin demande confirmation
-
-
-
-                } else {
-
-                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
-
-                    let validator = formulaire.validate();
-
-                    $.each(validator.errorMap, function (index, value) {
-
-                        console.log('Id: ' + index + ' Message: ' + value);
-
-                    });
-
-                    notifyWarning('Il y a des erreurs de saisie dans le formulaire');
-                }
-
-
-            });
-
-
-        });
-
-
-    });
-
-    // creer une function
+    // Créer une function
     function helper_modification_police(href, modal_title, model_name) {
-        // let model_name = $(this).attr('data-model_name');
-        // let modal_title = $(this).attr('data-modal_title');
-        // let href = $(this).attr('data-href');
-        // alert('hello helper_modification_police');
         $('#olea_std_dialog_box').load(href, function () {
-
-            //Added on 23032023: charger la liste des produits
-
-            let branche_id = $("#modal-modification_police #branche_modification").val();
-            let branche_code = $("#modal-modification_police #branche_modification").find('option:selected').data('branche_code');
-
-            //si ce n'est pas la santé, retirer les onglets option de calcul de la prime et coeficients stats
-            if (branche_code == "SANTE") {
-                $('.onglets_sante_uniquement').show();
-                $('.required_field').attr('required', true);
-            } else {
-                $('.onglets_sante_uniquement').hide();
-                $('.required_field').removeAttr('required');
-            }
-
-
-            //actualiser le taux de commission au changement de la compagnie
-            $("#modal-modification_police #branche_modification").on('change', function () {
-
-                let branche_id = $(this).val();
-                let branche_code = $(this).find('option:selected').data('branche_code');
-
-                $.ajax({
-                    type: 'get',
-                    url: '/production/ajax_produits/' + branche_id,
-                    dataType: 'json',
-                    success: function (produits) {
-                        $('#modal-modification_police #produit_modification').html('').append('<option value="">Choisir</option>');
-
-                        produits.forEach(function (produit) {
-                            let selected = (produit.branche_id == branche_id) ? ' selected ' : '';
-                            $('#modal-modification_police #produit_modification').append('<option ' + selected + ' value="' + produit.pk + '">' + produit.fields.nom + '</option>');
-                        });
-                    },
-                    error: function () {
-                        console.log('Erreur loading produits ');
-                    }
-                });
-
-
-                //si ce n'est pas la santé, retirer les onglets option de calcul de la prime et coeficients stats
-                if (branche_code == "SANTE") {
-                    $('.onglets_sante_uniquement').show();
-                    $('.required_field').attr('required', true);
-                } else {
-                    $('.onglets_sante_uniquement').hide();
-                    $('.required_field').removeAttr('required');
-                }
-
-
-            });
-
 
             //appliquer le mask de saisie sur les champs montant
             AppliquerMaskSaisie();
 
             $('#modal-modification_police').attr('data-backdrop', 'static').attr('data-keyboard', false);
 
-            //$('#modal-modification_police').find('.modal-title').text(modal_title);
+            $('#modal-modification_police').find('.modal-title').text(modal_title);
             $('#modal-modification_police').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
             $('#modal-modification_police').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
 
@@ -6299,45 +5974,26 @@ $(document).ready(function () {
 
             $('#option_calcul_prime_modification').change();
 
-            //actualiser le taux de commission au changement de la compagnie
-            $("#modal-modification_police #compagnie_modification, #modal-modification_police #produit_modification").on('change', function () {
-                let compagnie_id = $("#modal-modification_police #compagnie_modification").val();
-                let produit_id = $('#modal-modification_police #produit_modification').val();
-
-                $.ajax({
-                    type: 'get',
-                    url: '/production/compagnie/ajax_infos_compagnie/' + compagnie_id + '/' + produit_id,
-                    dataType: 'json',
-                    success: function (data) {
-
-                        let taux_com_gestion = data.taux_com_gestion;
-                        let taux_com_courtage = data.taux_com_courtage;
-
-                        $('#modal-modification_police #taux_com_gestion_modification').val(taux_com_gestion);
-                        $('#modal-modification_police #taux_com_courtage_modification').val(taux_com_courtage);
-
-                        calculer_montant_divers_police_modification();
-
-                    },
-                    error: function () {
-                        console.log('Erreur de chargement : ajax_infos_compagnie ');
-                    }
-                });
-
-
-            });
-
-
-            //pendant la saisie de la prime net
-
-
-
-
             //gestion du clique sur valider les modifications
             $("#btn_save_modification_police").on('click', function () {
 
                 let formulaire = $('#form_update_police');
                 let href = formulaire.attr('action');
+
+                console.log(href);
+
+                let police_date_debut = $('#modal-modification_police #date_debut_effet').val();
+                let police_date_fin = $('#modal-modification_police #date_fin_effet').val();
+
+                console.log("Début :", police_date_debut, "Fin :", police_date_fin);
+
+                // Vérification des dates avant toute autre action
+                if (police_date_debut && police_date_fin) {
+                    if (new Date(police_date_debut) >= new Date(police_date_fin)) {
+                        notifyWarning('La date de fin de la police doit être strictement postérieure à la date de début.');
+                        return;
+                    }
+                }
 
                 $.validator.setDefaults({ ignore: [] });
 
@@ -6358,7 +6014,6 @@ $(document).ready(function () {
                                     $noty.close();
 
                                     //confirmation obtenu
-
                                     let data_serialized = formulaire.serialize();
                                     $.each(data_serialized.split('&'), function (index, elem) {
                                         let vals = elem.split('=');
@@ -6369,13 +6024,6 @@ $(document).ready(function () {
                                         formData.append(key, valeur);
 
                                     });
-
-                                    // Add logo_partenaire file to FormData
-                                    let logo_partenaire_input = $('#logo_partenaire_modification')[0];
-                                    let logo_partenaire_file = logo_partenaire_input.files[0];
-
-                                    formData.append('logo_partenaire', logo_partenaire_file);
-
 
                                     $.ajax({
                                         type: 'post',
@@ -6394,7 +6042,14 @@ $(document).ready(function () {
                                                     location.reload();
                                                 });
 
-                                            } else {
+                                            }
+                                            if (response.statut == 0) {
+
+                                                notifyWarning(response.message, function () {
+                                                    //location.reload();
+                                                });
+
+                                            }else {
 
                                                 let errors = JSON.parse(JSON.stringify(response.errors));
                                                 let errors_list_to_display = '';
@@ -6402,9 +6057,9 @@ $(document).ready(function () {
                                                     errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                                 }
 
-                                                $('#modal-police .alert .message').html(errors_list_to_display);
+                                                $('#modal-modification_police .alert .message').html(errors_list_to_display);
 
-                                                $('#modal-police .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                $('#modal-modification_police .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                                     $(this).slideUp(500);
                                                 }).removeClass('alert-success').addClass('alert-warning');
 
@@ -6417,7 +6072,6 @@ $(document).ready(function () {
                                         }
 
                                     });
-
 
                                     //fin confirmation obtenue
 
@@ -6433,8 +6087,6 @@ $(document).ready(function () {
                         ]
                     });
                     //fin demande confirmation
-
-
 
                 } else {
 
@@ -6453,7 +6105,6 @@ $(document).ready(function () {
 
 
             });
-
 
         });
     }
@@ -6689,9 +6340,7 @@ $(document).ready(function () {
 
             }
 
-
         });
-
 
         $('#modal-modification_police #prime_ttc_modification').val(prime_ttc);
 
@@ -6701,13 +6350,9 @@ $(document).ready(function () {
 
         $('#modal-modification_police #total_commission_intermediaire_modification').val(total_montant_commission_intermediaire);
 
-
     }
 
-
-    //
-
-
+    //Pour la création de police
     function on_change_participation(participation) {
 
         if (participation == 'OUI') {
@@ -6739,8 +6384,6 @@ $(document).ready(function () {
 
     });
 
-
-    //gestion autres taxes
 
     function appendToStorage(name, data) {
         let old = localStorage.getItem(name);
@@ -6898,12 +6541,8 @@ $(document).ready(function () {
         $('#table_apporteurs_police tbody tr:last')
             .after('<tr id="tr_' + timestamp + '">' + tr.html() + '</tr>')
             .ready(function () {
-                //$('#table_apporteurs_police select').removeClass('select2').hide();
                 AppliquerMaskSaisie();
-
-
             });
-
     });
 
     //
@@ -6936,12 +6575,8 @@ $(document).ready(function () {
         $('#table_apporteurs_police_modification tbody tr:last')
             .after('<tr id="tr_' + timestamp + '">' + tr.html() + '</tr>')
             .ready(function () {
-
                 AppliquerMaskSaisie();
-
-
             });
-
     });
 
     //
@@ -7086,9 +6721,22 @@ $(document).ready(function () {
                 let formulaire = $('#form_add_quittance');
                 let href = formulaire.attr('action');
 
+                let date_debut = $('#date_debut').val();
+                let date_fin = $('#date_fin').val();
+
                 $.validator.setDefaults({ ignore: [] });
 
                 if (formulaire.valid()) {
+
+                    if (date_debut && !date_fin) {
+                        notifyWarning('La date fin est obligatoire lorsque la date début est renseignée.');
+                        return;
+                    }
+
+                    if (new Date(date_debut) > new Date(date_fin)) {
+                        notifyWarning('La date début doit être antérieure ou égale à la date fin.');
+                        return;
+                    }
 
                     //désactiver le bouton Valider, pour empecher une double soumission du formulaire
                     btn_save_quittance.attr('disabled', true);
@@ -10382,7 +10030,6 @@ $(document).ready(function () {
     //********* FIN FAIRE UNE EXPORTATION DES QUITTANCES VIA LA POLICE ***********//
 
 
-
     //GESTION SINISTRE
 
 
@@ -11228,6 +10875,7 @@ $(document).ready(function () {
         $('#modal_rejeter_prorogation').modal();
 
     });
+
     //Rejeter une demande de prorogation
     $(document).on("click", "#btn_rejeter_prorogation", function (e) {
 
@@ -11889,9 +11537,9 @@ $(document).ready(function () {
         var today = new Date().toISOString().split("T")[0];
         $("#pre_empty_date").hide()
         $(this).replaceWith(`
-    <input type="date" id="date_sortie" min="`+ today + `" value="` + formattedDate + `" class="" required>
-    <button id="btnSaveEditDateSortie" class="btn btn-sm m-0 p-1 pl-2 bg-success" type="button"><i class="fa fa-check text-white"></i></button>
-    `);
+            <input type="date" id="date_sortie" min="`+ today + `" value="` + formattedDate + `" class="" required>
+            <button id="btnSaveEditDateSortie" class="btn btn-sm m-0 p-1 pl-2 bg-success" type="button"><i class="fa fa-check text-white"></i></button>
+        `);
     });
 
 
@@ -12625,8 +12273,6 @@ $(document).ready(function () {
         }
 
     });
-
-
 
 
     //Modifier un prestataire modal
@@ -14884,9 +14530,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-apporteur .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-apporteur .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -15170,9 +14816,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-banque .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-banque .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -15453,9 +15099,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-branche .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-branche .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -15736,9 +15382,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-compagnie .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-compagnie .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -16019,9 +15665,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-businessunit .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-businessunit .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -16302,9 +15948,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-carosserie .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-carosserie .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -16585,9 +16231,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-categorievehicule .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-categorievehicule .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -16868,9 +16514,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-civilite .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-civilite .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -17151,9 +16797,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-comptetresorerie .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-comptetresorerie .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -17434,9 +17080,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-conditionsassurance .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-conditionsassurance .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -17717,9 +17363,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-devise .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-devise .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -18000,9 +17646,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-carburant .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-carburant .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -18283,9 +17929,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-formule .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-formule .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -18566,9 +18212,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-fractionnement .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-fractionnement .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -18849,9 +18495,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-garantie .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-garantie .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -19132,9 +18778,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-garantieformule .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-garantieformule .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -19415,9 +19061,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-groupe .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-groupe .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -19698,9 +19344,9 @@ $(document).ready(function () {
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
 
-                                        $('#modal-client .alert .message').html(errors_list_to_display);
+                                        $('#modal-modereglement .alert .message').html(errors_list_to_display);
 
-                                        $('#modal-client .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                        $('#modal-modereglement .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -19922,11 +19568,540 @@ $(document).ready(function () {
         });
     });
 
+    //Création d'un secteur d'activité
+    $(document).on('click', "#btn_save_secteuractivite", function () {
+
+        let formulaire = $('#form_add_secteuractivite');
+        let href = formulaire.attr('action');
+
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            //demander confirmation
+            let n = noty({
+                text: "Voulez-vous vraiment enregistrer ce secteur d'activité ?",
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
+
+                            //confirmation obtenu
+
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
+
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        notifySuccess(response.message, function () {
+                                            location.reload();
+                                        });
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-secteuractivite .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-secteuractivite .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
+                    }
+                ]
+            });
+            //fin demande confirmation
 
 
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
+        }
+
+    });
+
+    //Modification d'un secteur d'activité
+    $(document).on('click', '.btn_modifier_secteuractivite', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_secteuractivite').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_secteuractivite').find('.modal-title').text(modal_title);
+            $('#modal-modification_secteuractivite').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_secteuractivite').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
+
+            //
+            $('#modal-modification_secteuractivite').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_secteuractivite").on('click', function () {
+
+                let formulaire = $('#form_update_secteuractivite');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+
+                    //demander confirmation
+                    let n = noty({
+                        text: "Voulez-vous vraiment modifier ce secteur d'activité ?",
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+
+                                    //confirmation obtenu
+
+                                    let data_serialized = formulaire.serialize();
+                                    $.each(data_serialized.split('&'), function (index, elem) {
+                                        let vals = elem.split('=');
+
+                                        let key = vals[0];
+                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                        formData.append(key, valeur);
+
+                                    });
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                notifySuccess(response.message, function () {
+                                                    location.reload();
+                                                });
+
+                                            } else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-modification_secteuractivite .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-modification_secteuractivite .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
+
+                                }
+                            }
+                        ]
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+
+            });
+
+        });
+
+    });
+
+    //Suppression d'un secteur d'activité
+    $(document).on('click', '.btn_supprimer_secteuractivite', function () {
+        let secteuractivite_id = $(this).data('secteuractivite_id');
+        let href = $(this).data('href');
+        let n = noty({
+            text: "Voulez-vous vraiment supprimer ce secteur d'activité ?",
+            type: 'warning',
+            dismissQueue: true,
+            layout: 'center',
+            theme: 'defaultTheme',
+            buttons: [
+                {
+                    addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                        $noty.close();
+
+                        //effectuer la suppression
+                        $.ajax({
+                            url: href,
+                            type: 'post',
+                            data: { secteuractivite_id: secteuractivite_id },
+                            success: function (response) {
+
+                                notifySuccess(response.message, function () {
+                                    location.reload();
+                                });
+
+                            },
+                            error: function () {
+                                notifyWarning('Erreur lors de la suppression');
+                            }
+                        });
+
+                    }
+                },
+                {
+                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                        //annuler la suppression
+                        $noty.close();
+                    }
+                }
+            ]
+        });
+    });
 
 
+    //TODO ANALYSE & CONTRÔLE
+    //Création d'un portefeuille par compagnie
+    $(document).on('click', "#btn_save_portefeuille_compagnie", function () {
 
+        let formulaire = $('#form_add_portefeuille_compagnie');
+        let href = formulaire.attr('action');
+
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment importer le portefeuille ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
+
+                            //confirmation obtenu
+
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
+
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        let fileContent = response.data.file_base64;
+                                        let filename = response.data.filename;
+
+                                        // Créer un lien de téléchargement
+                                        let link = document.createElement("a");
+                                        link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + fileContent;
+                                        link.download = filename;
+
+                                        // Ajouter le lien temporairement au DOM et le cliquer automatiquement
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+
+                                        notifySuccess(response.message, function () {
+                                            location.reload();
+                                        });
+
+                                    }
+                                    if (response.statut == 0){
+                                        notifyWarning(response.message);
+                                    }
+                                    else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-compagnie .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-compagnie .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
+                    }
+                ]
+            });
+            //fin demande confirmation
+
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
+        }
+
+    });
+
+    //Création d'un portefeuille par commercial
+    $(document).on('click', "#btn_save_portefeuille_commercial", function () {
+
+        let formulaire = $('#form_add_portefeuille_commercial');
+        let href = formulaire.attr('action');
+        
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment importer le portefeuille ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
+
+                            //confirmation obtenu
+
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
+
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        let fileContent = response.data.file_base64;
+                                        let filename = response.data.filename;
+
+                                        // Créer un lien de téléchargement
+                                        let link = document.createElement("a");
+                                        link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + fileContent;
+                                        link.download = filename;
+
+                                        // Ajouter le lien temporairement au DOM et le cliquer automatiquement
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+
+                                        notifySuccess(response.message, function () {
+                                            location.reload();
+                                        });
+
+                                    }
+                                    if (response.statut == 0){
+                                        notifyWarning(response.message);
+                                    }
+                                    else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-commercial .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-commercial .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
+                    }
+                ]
+            });
+            //fin demande confirmation
+
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
+        }
+
+    });
 
 
 
@@ -20086,8 +20261,6 @@ $(document).ready(function () {
             });
         });
     }
-
-
 
 
 
@@ -20265,7 +20438,6 @@ $(document).ready(function () {
     });
 
 
-
 });
 
 //Affichage du tableau si réponse apporteur est oui.
@@ -20307,7 +20479,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-
+//TODO FABRICE Partie 1
 $(document).ready(function () {
 
     function getCSRFToken() {
@@ -20563,7 +20735,6 @@ $(document).ready(function () {
         return cookieValue;
     }
 
-
     $("#importation_aliment").on("click", function () {
         const inputFichier = $("#fichier_aliment");
         const fichier = inputFichier.prop("files")[0];
@@ -20632,7 +20803,6 @@ $(document).ready(function () {
             },
         });
     });
-
 
     $('#btn_save_police_aliment').on('click', function () {
         // Supprimer les erreurs précédentes
@@ -20709,7 +20879,9 @@ $(document).ready(function () {
 
                     // Réinitialiser tous les champs du formulaire
                     $("#form_add_police_aliment").trigger("reset");
-                    $("#form_add_police_aliment select").prop('selectedIndex', 0);
+                    $("#form_add_police_aliment select").each(function() {
+                        $(this).prop('selectedIndex', 0).trigger('change');
+                    });
                     $('.mod_aliment_champ_obligatoire').removeClass('is-valid').removeClass('is-invalid');
 
                 } else {
@@ -20730,7 +20902,6 @@ $(document).ready(function () {
             },
         });
     });
-
 
     $(document).on('click', '.btn-danger', function () {
         const index = $(this).closest('tr').data('index');
@@ -20778,7 +20949,6 @@ $(document).ready(function () {
             error: function () { }
         });
     });
-
 
     // Initialisation lors du chargement de la page
     $("#typecompagnie").val("");
@@ -21099,33 +21269,6 @@ $(document).ready(function () {
         }
     });
 
-    /*
-    function toggleDisabledFields() {
-        var valeurAssuree = parseFloat($('#valeur_assuree').val().replace(/,/g, ''));
-        var disableFields = isNaN(valeurAssuree) || valeurAssuree === 0;
-
-        // Sélectionne TOUS les champs à griser
-        var fieldsToDisable = $('#taux_risque_ordinaire, #taux_risque_guerre, #taux_supprime, #taux_reduction_commerciale, #taux_taxe, #accessoires, #autres_frais');
-
-        fieldsToDisable.prop('disabled', disableFields);
-
-        if (disableFields) {
-          fieldsToDisable.addClass('disabled-field');
-          // Vide les champs si valeur_assuree est vide ou 0
-          fieldsToDisable.val('');
-        } else {
-          fieldsToDisable.removeClass('disabled-field');
-        }
-    }
-
-    // Initialisation au chargement de la page
-    toggleDisabledFields();
-
-    // Événement de changement sur le champ valeur_assuree
-    $('#valeur_assuree').on('input', function() {
-        toggleDisabledFields();
-    }); */
-
     function toggleDisabledFields(prefix) {
         var valeurAssuree = parseFloat($('#valeur_assuree' + prefix).val().replace(/,/g, ''));
         var disableFields = isNaN(valeurAssuree) || valeurAssuree === 0;
@@ -21173,13 +21316,13 @@ $(document).ready(function () {
     function toggleGarantieTable() {
         if ($yesRadio.is(":checked")) {
             // Afficher le tableau et le champ de formule si OUI est sélectionné
-            $garantieTableContainer.show(); // Afficher le conteneur du tableau
-            $formuleBlock.show(); // Afficher le champ de choix de formule
+            $garantieTableContainer.show();
+            $formuleBlock.show();
         } else {
             // Si NON est sélectionné, vider le contenu du tableau, masquer le conteneur et le champ de formule
-            $garantieTableBody.empty(); // Vider le contenu du tableau
-            $garantieTableContainer.hide(); // Masquer le conteneur du tableau
-            $formuleBlock.hide(); // Masquer le champ de choix de formule
+            $garantieTableBody.empty();
+            $garantieTableContainer.hide();
+            $formuleBlock.hide();
         }
     }
 
@@ -21190,124 +21333,9 @@ $(document).ready(function () {
     // Initialiser l'état du tableau et du champ de formule au chargement de la page
     toggleGarantieTable();
 
-    //---------------------------------BUSINESSUNIT-----------------------------------------------------
-    //ajouter un business unit
-    $(document).on('click', "#btn_save_businessunit", function () {
-
-        let formulaire = $('#form_add_business');
-        let href = formulaire.attr('action');
-
-        $.validator.setDefaults({ ignore: [] });
-
-        let formData = new FormData();
-
-        if (formulaire.valid()) {
-
-            // demander confirmation
-            let n = noty({
-                text: 'Voulez-vous vraiment enregistrer ce client ?',
-                type: 'warning',
-                dismissQueue: true,
-                layout: 'center',
-                theme: 'defaultTheme',
-                buttons: [
-                    {
-                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
-                            $noty.close();
-
-                            let data_serialized = formulaire.serialize();
-                            $.each(data_serialized.split('&'), function (index, elem) {
-                                let vals = elem.split('=');
-
-                                let key = vals[0];
-                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, ' '));
-
-                                formData.append(key, valeur);
-
-                            });
-
-                            $.ajax({
-                                type: 'post',
-                                url: href,
-                                data: formData,
-                                processData: false,
-                                contentType: false,
-                                success: function (response) {
-
-                                    if (response.statut == 1) {
-
-                                        // Vider le formulaire
-                                        resetFields('#' + formulaire.attr('id'));
-
-
-
-                                        // Recharger la liste ou la page
-                                        notifySuccess(response.message, function () {
-                                            location.reload();
-                                        });
-
-
-                                        // Fermer le modal
-                                        $('#modal-business').modal('hide');
-
-                                    } else {
-
-                                        let errors = JSON.parse(JSON.stringify(response.errors));
-                                        let errors_list_to_display = '';
-                                        for (field in errors) {
-                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
-                                        }
-
-                                        $('#modal-business .alert .message').html(errors_list_to_display);
-
-                                        $('#modal-business .alert').fadeTo(2000, 500).slideUp(500, function () {
-                                            $(this).slideUp(500);
-                                        }).removeClass('alert-success').addClass('alert-warning');
-
-                                    }
-
-                                },
-                                error: function (request, status, error) {
-                                    notifyWarning("Erreur lors de l'enregistrement");
-                                }
-
-                            });
-
-                            // fin confirmation obtenue
-
-                        }
-                    },
-                    {
-                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
-                            // confirmation refusée
-                            $noty.close();
-
-                        }
-                    }
-                ]
-            });
-            // fin demande confirmation
-
-        } else {
-
-            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
-
-            let validator = formulaire.validate();
-
-            $.each(validator.errorMap, function (index, value) {
-
-                console.log('Id: ' + index + ' Message: ' + value);
-
-            });
-
-            notifyWarning('Veuillez renseigner correctement le formulaire');
-        }
-    });
 });
 
-
-//****** BLOC DE CODE ECRIT ET MODIFIER UNIQUEMENT PAR FABRICE ******//
-// Code js sur la créaction de police
+//TODO FABRICE Partie 2
 $(document).ready(function () {
     // Initialisation : masquer tous les onglets spécifiques et réinitialiser les champs
     $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab, #marchandise-tab').addClass('d-none');
@@ -21368,5 +21396,154 @@ $(document).ready(function () {
         });
     });
 
-});
+    //Récupération des polices
+    function chargementPoliceCompagnieTable(compagnieId) {
+        $("#table_polices_compagnie tbody").empty();
+        $("#total_ht").text("");
+        $("#total_ttc").text("");
+        $("#btn_save_portefeuille_compagnie").prop("disabled", true);
 
+        $('#message-error').text('').hide();
+        $('#message-warning').text('').hide();
+
+        if (!compagnieId) {
+            $("#polices_compagnie").hide();
+            return;
+        }
+
+        $.ajax({
+            url: "/analysecontrole/get_client_by_compagnie/",
+            type: "GET",
+            data: { compagnie_id: compagnieId },
+            success: function (data) {
+                if (data && data.polices_par_compagnie) {
+                    $("#polices_compagnie").show();
+                    $("#table_polices_compagnie tbody").empty();
+
+                    let total_ht = 0;
+                    let total_ttc = 0;
+
+                    for (const [compagnie, polices] of Object.entries(data.polices_par_compagnie)) {
+                        let compagnieHeader = `<tr><td colspan="8" class="fw-bold text-primary">${compagnie}</td></tr>`;
+                        $("#table_polices_compagnie tbody").append(compagnieHeader);
+
+                        polices.forEach(police => {
+                            total_ht += parseFloat(police.prime_ht.replace(/\s/g, '').replace(',', '.')) || 0;
+                            total_ttc += parseFloat(police.prime_ttc.replace(/\s/g, '').replace(',', '.')) || 0;
+
+                            let badgeClass = police.statut.includes("A renouveler") ? "badge-warning" :
+                                             police.statut.includes("NON renouvelé") ? "badge-danger" :
+                                             police.statut.includes("Résilié") ? "badge-yellow" :
+                                             "badge-success";
+
+                            let row = `
+                                <tr>
+                                    <td>${police.nom} ${police.prenoms}</td>
+                                    <td>${police.numero}</td>
+                                    <td>${police.date_fin_effet}</td>
+                                    <td><span class="badge ${badgeClass}">${police.statut}</span></td>
+                                    <td>${police.date_creation}</td>
+                                    <td>${police.date_resiliation}</td>
+                                    <td>${police.prime_ht}</td>
+                                    <td>${police.prime_ttc}</td>
+                                </tr>
+                            `;
+                            $("#table_polices_compagnie tbody").append(row);
+                        });
+                    }
+
+                    $("#total_ht").text(total_ht.toLocaleString("fr-FR"));
+                    $("#total_ttc").text(total_ttc.toLocaleString("fr-FR"));
+                    $("#btn_save_portefeuille_compagnie").prop("disabled", false);
+                }
+            }
+        });
+    }
+
+    $("#compagnie").change(function () {
+        let compagnieId = $(this).find(":selected").data("compagnie_id");
+
+        if (compagnieId) {
+            chargementPoliceCompagnieTable(compagnieId);
+        } else {
+            $("#polices_compagnie").hide(); // Masquer le bloc si aucune compagnie n'est sélectionnée
+        }
+    });
+
+    //Récupération des polices
+    function chargementPoliceCommercialTable(commercialId) {
+        $("#table_polices_commercial tbody").empty();
+        $("#com_total_ht").text("");
+        $("#com_total_ttc").text("");
+        $("#btn_save_portefeuille_commercial").prop("disabled", true);
+
+        $('#message-error').text('').hide();
+        $('#message-warning').text('').hide();
+
+        if (!commercialId) {
+            $("#polices_commercial").hide();
+            return;
+        }
+
+        $.ajax({
+            url: "/analysecontrole/get_client_by_commercial/",
+            type: "GET",
+            data: { commercial_id: commercialId },
+            success: function (data) {
+                if (data && data.polices_par_commercial) {
+                    $("#polices_commercial").show();
+                    $("#table_polices_commercial tbody").empty();
+
+                    let total_ht = 0;
+                    let total_ttc = 0;
+
+                    for (const [commercial, polices] of Object.entries(data.polices_par_commercial)) {
+                        let commercialHeader = `<tr><td colspan="8" class="fw-bold text-primary">${commercial}</td></tr>`;
+                        $("#table_polices_commercial tbody").append(commercialHeader);
+
+                        polices.forEach(police => {
+                            total_ht += parseFloat(police.prime_ht.replace(/\s/g, '').replace(',', '.')) || 0;
+                            total_ttc += parseFloat(police.prime_ttc.replace(/\s/g, '').replace(',', '.')) || 0;
+
+                            let badgeClass = police.statut.includes("A renouveler") ? "badge-warning" :
+                                             police.statut.includes("NON renouvelé") ? "badge-danger" :
+                                             police.statut.includes("Résilié") ? "badge-yellow" :
+                                             "badge-success";
+
+                            let row = `
+                                <tr>
+                                    <td>${police.nom} ${police.prenoms}</td>
+                                    <td>${police.numero}</td>
+                                    <td>${police.date_fin_effet}</td>
+                                    <td><span class="badge ${badgeClass}">${police.statut}</span></td>
+                                    <td>${police.date_creation}</td>
+                                    <td>${police.date_resiliation}</td>
+                                    <td>${police.prime_ht}</td>
+                                    <td>${police.prime_ttc}</td>
+                                </tr>
+                            `;
+                            $("#table_polices_commercial tbody").append(row);
+                        });
+                    }
+
+                    console.log('total_ht : ', total_ht)
+                    console.log('total_ttc : ', total_ttc)
+
+                    $("#com_total_ht").text(total_ht.toLocaleString("fr-FR"));
+                    $("#com_total_ttc").text(total_ttc.toLocaleString("fr-FR"));
+                    $("#btn_save_portefeuille_commercial").prop("disabled", false);
+                }
+            }
+        });
+    }
+
+    $("#commercial").change(function () {
+        let commercialId = $(this).find(":selected").data("commercial_id");
+
+        if (commercialId) {
+            chargementPoliceCommercialTable(commercialId);
+        } else {
+            $("#polices_commercial").hide(); // Masquer le bloc si aucun compercial n'est sélectionnée
+        }
+    });
+});

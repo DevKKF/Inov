@@ -113,7 +113,9 @@ class Police(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     updated_by = models.ForeignKey(User, related_name="police_updated_by", null=True, on_delete=models.RESTRICT)
     produit = models.ForeignKey(Produit, null=True, on_delete=models.RESTRICT)
-    #type_assurance = models.ForeignKey(TypeAssurance, null=True, on_delete=models.RESTRICT)
+    commercial = models.ForeignKey(User, related_name="commercial", null=True, on_delete=models.RESTRICT)
+    gestionnaire = models.ForeignKey(User, related_name="gestionnaire_sinistre", null=True, on_delete=models.RESTRICT)
+    production = models.ForeignKey(User, related_name="production", null=True, on_delete=models.RESTRICT)
     #
     bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
     client = models.ForeignKey(Client, related_name='polices', on_delete=models.RESTRICT)
@@ -136,8 +138,6 @@ class Police(models.Model):
     numero_provisoire = models.CharField(max_length=50, null=True, blank=True)
 
     observation = models.CharField(max_length=255, null=True)
-
-    logo_partenaire = models.ImageField(upload_to='clients/polices/logos_partenaires/', blank=True, null=True)
 
     statut_contrat = models.fields.CharField(choices=StatutContrat.choices, default=StatutContrat.PROJET, max_length=15,
                                              null=True)
@@ -395,11 +395,11 @@ class HistoriquePolice(models.Model):
     police = models.ForeignKey(Police, related_name='historiques', on_delete=models.RESTRICT)
 
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-    updated_by = models.ForeignKey(User, related_name="historique_police_updated_by", null=True,
-                                   on_delete=models.RESTRICT)
+    updated_by = models.ForeignKey(User, related_name="historique_police_updated_by", null=True, on_delete=models.RESTRICT)
+    commercial = models.ForeignKey(User, related_name="histo_commercial", null=True, on_delete=models.RESTRICT)
+    gestionnaire = models.ForeignKey(User, related_name="histo_gestionnaire_sinistre", null=True, on_delete=models.RESTRICT)
+    production = models.ForeignKey(User, related_name="histo_production", null=True, on_delete=models.RESTRICT)
     produit = models.ForeignKey(Produit, null=True, on_delete=models.RESTRICT)
-    #type_assurance = models.ForeignKey(TypeAssurance, on_delete=models.RESTRICT)
-    #
     bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
     client = models.ForeignKey(Client, on_delete=models.RESTRICT)
     devise = models.ForeignKey(Devise, null=True, on_delete=models.RESTRICT)
@@ -518,6 +518,24 @@ class PoliceGarantie(models.Model):
         verbose_name_plural = 'Police Garanties'
 
 
+class HistoriquePoliceGarantie(models.Model):
+    police = models.ForeignKey(Police, on_delete=models.RESTRICT, null=True)
+    police_garantie = models.ForeignKey(PoliceGarantie, on_delete=models.RESTRICT, null=True)
+    garantie = models.ForeignKey(Garantie, on_delete=models.RESTRICT, null=True)
+    formule = models.ForeignKey(Formule, on_delete=models.RESTRICT, null=True)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
+    franchise = models.FloatField(blank=True, null=True)
+    capital = models.FloatField(blank=True, null=True)
+    statut = models.fields.CharField(choices=Statut.choices, default=Statut.ACTIF, max_length=15, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'historique_police_garantie'
+        verbose_name = 'Historique Police Garanties'
+        verbose_name_plural = 'Historique Police Garanties'
+
+
 class PoliceAssureur(models.Model):
     client = models.ForeignKey(Client, on_delete=models.RESTRICT, null=True)
     historique_police = models.ForeignKey(HistoriquePolice, on_delete=models.RESTRICT, null=True)
@@ -560,7 +578,7 @@ class Vehicule(models.Model):
     numero_immat_provisoire = models.CharField(max_length=15, blank=True, null=True)
     numero_serie = models.CharField(max_length=25, blank=True, null=True)
     marque = models.CharField(max_length=50, blank=True, null=True)
-    modele = models.CharField(max_length=50, blank=True, null=True)
+    modele = models.TextField(blank=True, null=True)
     places_assises = models.CharField(max_length=50, blank=True, null=True)
     valeur_neuve = models.CharField(max_length=50, blank=True, null=True)
     puissance = models.CharField(max_length=50, blank=True, null=True)
@@ -677,8 +695,7 @@ class PeriodeCouverture(models.Model):
     date_fin_effet = models.DateTimeField(blank=True, null=True)
     observation = models.CharField(max_length=255, null=True, blank=True)
     statut = models.fields.CharField(choices=Statut.choices, default=Statut.ACTIF, max_length=15, null=True, blank=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
-                                              max_length=15, null=True, blank=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -804,7 +821,7 @@ class HistoriqueAliment(models.Model):
     numero_immat_provisoire = models.CharField(max_length=15, blank=True, null=True)
     numero_serie = models.CharField(max_length=25, blank=True, null=True)
     marque = models.CharField(max_length=50, blank=True, null=True)
-    modele = models.CharField(max_length=50, blank=True, null=True)
+    modele = models.TextField(blank=True, null=True)
     places_assises = models.CharField(max_length=50, blank=True, null=True)
     valeur_neuve = models.CharField(max_length=50, blank=True, null=True)
     puissance = models.CharField(max_length=50, blank=True, null=True)
@@ -889,13 +906,11 @@ class Bareme(models.Model):
 class TauxCouvertureVariable(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     formulegarantie = models.ForeignKey(FormuleGarantie, on_delete=models.RESTRICT)
-    secteur = models.ForeignKey(Secteur,
-                                on_delete=models.RESTRICT)  # Pour une même formule, le taux de couverture varie selon le secteur (public/privé) du prestataire
+    secteur = models.ForeignKey(Secteur, on_delete=models.RESTRICT)  # Pour une même formule, le taux de couverture varie selon le secteur (public/privé) du prestataire
     taux_couverture = models.IntegerField(null=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
-                                              max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
 
     def __str__(self):
         return f'{self.formulegarantie.libelle} - {self.taux_couverture} %'
@@ -1558,7 +1573,7 @@ class Motif(models.Model):
 class MouvementPolice(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     mp_deleted_by = models.ForeignKey(User, related_name="mp_deleted_by", null=True, on_delete=models.RESTRICT)
-    police = models.ForeignKey(Police, on_delete=models.RESTRICT)
+    police = models.ForeignKey(Police, on_delete=models.RESTRICT, related_name="mouvements")
     mouvement = models.ForeignKey(Mouvement, on_delete=models.RESTRICT)
     motif = models.ForeignKey(Motif, on_delete=models.RESTRICT)
     observation = models.CharField(max_length=255, blank=True, null=True)
@@ -1585,7 +1600,6 @@ class MouvementAliment(models.Model):
     aliment = models.ForeignKey(Aliment, related_name="ses_mouvements", on_delete=models.RESTRICT)
     mouvement = models.ForeignKey(Mouvement, on_delete=models.RESTRICT)
     police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
-    # motif = models.ForeignKey(Motif, on_delete=models.RESTRICT)
     motif = models.CharField(max_length=255, blank=True, null=True)
     date_effet = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -99,13 +99,7 @@
                     <div class="form-group row">
                         <label class="col-sm-6 col-form-label">{{_('Produit')}}</label>
                         <div class="col-sm-6">
-                            <span class="form-control" title="{{ police.produit.nom|default_if_none:'' }}">{{ police.produit.nom|default_if_none:""|slice:":37" }}</span>
-                        </div>
-                    </div>
-                    <div class="form-group row d-none">
-                        <label class="col-sm-6 col-form-label">{{_("Type de prefinancement")}}</label>
-                        <div class="col-sm-6">
-                        <span class="form-control" title="{{ police.type_prefinancement|default_if_none:'' }}">{{ police.type_prefinancement|default_if_none:""|slice:":37" }}</span>
+                            <span class="form-control" title="{{ police.produit.nom|default_if_none:'' }}">{{ police.produit.nom|default_if_none:""|slice:":28" }}</span>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -169,7 +163,7 @@
             <hr>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <div class="form-group row">
+                    <div class="form-group row d-none">
                         <label class="col-sm-6 col-form-label">{{_("Dévise")}}</label>
                         <div class="col-sm-6">
                         <span class="form-control">{{police.bureau.pays.devise.code|default_if_none:""}}</span>
@@ -273,7 +267,7 @@
                 </div>
             </div>
             <hr>
-            <h6 class="o-primary">{{_('APPORTEUR')}}</h6>
+            <h6 class="o-primary">{{_('APPORTEUR')}} / <span>{{dernier_historique.apporteur|default_if_none:''}}</span></h6>
             <hr>
             <div class="row mb-3">
 
@@ -290,13 +284,13 @@
                         </thead>
                         <tbody>
                         {% for apporteur_police in apporteurs_police%}
-                        <tr>
-                            <td style="padding:5px;">{{ apporteur_police.apporteur.nom|default_if_none:"" }} {{ apporteur_police.apporteur.prenoms|default_if_none:"" }}</td>
-                            <td style="padding:5px;">{{ apporteur_police.base_calcul.libelle|default_if_none:"" }}</td>
-                            <td style="padding:5px;padding-right:10px;" class="text-right">{{ apporteur_police.taux_com_affaire_nouvelle }} %</td>
-                            <td style="padding:5px;padding-right:10px;" class="text-right">{{ apporteur_police.com_affaire_nouvelle|money_field }} </td>
-                            <td style="padding:5px;padding-right:10px;" class="text-right">{{ apporteur_police.taux_com_renouvellement }} %</td>
-                        </tr>
+                            <tr>
+                                <td style="padding:5px;">{{ apporteur_police.apporteur.nom|default_if_none:"" }} {{ apporteur_police.apporteur.prenoms|default_if_none:"" }}</td>
+                                <td style="padding:5px;">{{ apporteur_police.base_calcul.libelle|default_if_none:"" }}</td>
+                                <td style="padding:5px;padding-right:10px;" class="text-right">{{ apporteur_police.taux_com_affaire_nouvelle }} %</td>
+                                <td style="padding:5px;padding-right:10px;" class="text-right">{{ apporteur_police.com_affaire_nouvelle|money_field }} </td>
+                                <td style="padding:5px;padding-right:10px;" class="text-right">{{ apporteur_police.taux_com_renouvellement }} %</td>
+                            </tr>
                         {% endfor %}
                         </tbody>
                     </table>
@@ -320,27 +314,7 @@
                 </div>
 
             </div>
-            <h6 class="o-primary d-none">{{_("APPORTEUR ET PROGRAMME")}}</h6>
             <hr>
-            <div class="row mb-3 d-none">
-                <div class="col-md-6">
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">{{_('Autofinancement')}}</label>
-                        <div class="col-sm-6">
-                        <span class="form-control">{{ police.autofinancement|default_if_none:"" }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="vl"></div>
-                <div class="col-md-5">
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">{{_('Apporteur')}}</label>
-                        <div class="col-sm-6">
-                            <span class="form-control">{{ dernier_historique.apporteur|default_if_none:"" }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <h6 class="o-primary">{{_("SITUATION POLICE")}}</h6>
             <hr>
             <div class="row mb-3">
@@ -358,6 +332,34 @@
                         <label class="col-sm-6 col-form-label">{{_('Motif')}}</label>
                         <div class="col-sm-6">
                         <span class="form-control">{{mouvement_police.motif.libelle}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <h6 class="o-primary">{{_("GESTIONNAIRE SINISTRE / PRODUCTION ET COMMERCIAL")}}</h6>
+            <hr>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group row">
+                        <label class="col-sm-6 col-form-label">{{_("Gestionnaire sinistre")}}</label>
+                        <div class="col-sm-6">
+                            <span class="form-control">{{ police.gestionnaire.first_name|default_if_none:"" }} {{ police.gestionnaire.last_name|default_if_none:"" }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-6 col-form-label">{{_("Gestionnaire production")}}</label>
+                        <div class="col-sm-6">
+                            <span class="form-control">{{ police.production.first_name|default_if_none:"" }} {{ police.production.last_name|default_if_none:"" }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="vl"></div>
+                <div class="col-md-5">
+                    <div class="form-group row">
+                        <label class="col-sm-6 col-form-label">{{_("Commercial")}}</label>
+                        <div class="col-sm-6">
+                            <span class="form-control">{{ police.commercial.first_name|default_if_none:"" }} {{ police.commercial.last_name|default_if_none:"" }}</span>
                         </div>
                     </div>
                 </div>

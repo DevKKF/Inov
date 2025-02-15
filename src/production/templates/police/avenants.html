@@ -24,46 +24,44 @@
         <h3 class="card-title text-white">{{_('MOUVEMENTS')}}</h3>
     </div>
     <div class="card-body">
-        {% if request.user.is_production %}
-          <div class="button-link pull-right mb-2">
+      {% if request.user.is_production %}
+        <div class="button-link pull-right mb-2">
             <a class="btn btn-sm btn-primary mb-1" data-toggle="modal"  data-target="#modal-avenant"><i class="fas fa-plus-circle"></i> {{_("Faire un mouvement")}}</a>
-          </div>
-        {% endif %}
-
-
+        </div>
+      {% endif %}
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4 ">
         <div class="row">
           <div class="col-12 col-md-12 col-sm-12">
-            <table class="table table-bordered table-striped dtr-inline" id="table_avenants">
+            <table class="table table-bordered table-striped dataTable dtr-inline" id="table_avenants">
               <thead>
                 <tr>
-                  <th scope="col">ID</th>
+                  <th class="d-none"></th>
                   <th scope="col">{{_("Mouvement")}}</th>
                   <th scope="col">{{_("Motif")}}</th>
-                  <th scope="col">{{_("Date effet")}}</th>
+                  <th scope="col">{{_("Date éffet")}}</th>
                   <th scope="col">{{_("Date fin période garantie")}}</th>
-                  <th scope="col">{{_("Effectue le")}}</th>
-                  <th scope="col">{{_("Effectue par")}}</th>
-                  <th scope="col">{{_('Action')}}</th>
+                  <th scope="col">{{_("Effectué le")}}</th>
+                  <th scope="col">{{_("Effectué par")}}</th>
+                  <th scope="col">{{_("Action")}}</th>
                 </tr>
               </thead>
               <tbody>
-                {% for avenant in mouvements_police %}
-                  <tr>
-                    <td>{{ avenant.id|default_if_none:"" }}</td>
-                    <td>{{ avenant.mouvement.libelle|default_if_none:"" }}</td>
-                    <td>{{ avenant.motif.libelle|default_if_none:"" }}</td>
-                    <td>{{ avenant.date_effet|date:"d/m/Y"|default_if_none:"" }}</td>
-                    <td>{{ avenant.date_fin_periode_garantie|date:"d/m/Y"|default_if_none:"" }}</td>
-                    <td>{{ avenant.created_at|date:"d/m/Y"|default_if_none:"" }}</td>
-                    <td>{{ avenant.created_by|default_if_none:"" }}</td>
-                    <td>
-                      {% if avenant.historique_police_id %}
-                        <a style="cursor:pointer;" href="{% url 'police.historique.details' avenant.historique_police_id %}"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> Détails</span></a>
-                      {% endif %}
-                    </td>
-                  </tr>
-                {% endfor %}
+                  {% for avenant in mouvements_police %}
+                    <tr>
+                      <td class="d-none"></td>
+                      <td>{{ avenant.mouvement.libelle|default_if_none:"" }}</td>
+                      <td>{{ avenant.motif.libelle|default_if_none:"" }}</td>
+                      <td>{{ avenant.date_effet|date:"d/m/Y"|default_if_none:"" }}</td>
+                      <td>{{ avenant.date_fin_periode_garantie|date:"d/m/Y"|default_if_none:"" }}</td>
+                      <td>{{ avenant.created_at|date:"d/m/Y"|default_if_none:"" }}</td>
+                      <td>{{ avenant.created_by|default_if_none:"" }}</td>
+                      <td>
+                        {% if avenant.historique_police_id %}
+                            <a style="cursor:pointer;" href="{% url 'police.historique.details' avenant.historique_police_id %}"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> Détails</span></a>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
               </tbody>
             </table>
           </div>
@@ -99,24 +97,6 @@
               $('#motif').html('<option value="">---------------------------</option>');
             }
         });
-
-        $('#table_avenants').DataTable({
-                language: {
-                    "url": "../../../static/admin_custom/js/French.json"
-                },
-                order: [[0, 'desc']],
-                lengthMenu: [
-                    [10, 25, 50, -1],
-                    [10, 25, 50, 'Tout'],
-                ],
-                columnDefs: [
-                    {
-                      "targets": [0],
-                      "visible": false,
-                      "searchable": false
-                    }
-                ]
-            });
     } );
 </script>
 {% endblock %}

@@ -62,26 +62,57 @@
 										</div>
 									</div>
 									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Gestionnaire sinistre")}}</label>
+										<div class="col-sm-7">
+											<select name="gestionnaire_id" id="gestionnaire_id" class="form-control tags-multiple">
+												<option value="">{{_('Choisir')}}</option>
+												{% for gest in gestionnaires %}
+													<option value="{{gest.id}}">{{gest.first_name}} {{gest.last_name}}</option>
+												{% endfor %}
+											</select>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Gestionnaire production")}}</label>
+										<div class="col-sm-7">
+											<select name="production_id" id="production_id" class="form-control tags-multiple">
+												<option value="">{{_('Choisir')}}</option>
+												{% for prod in productions %}
+													<option value="{{prod.id}}">{{prod.first_name}} {{prod.last_name}}</option>
+												{% endfor %}
+											</select>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Commercial")}}</label>
+										<div class="col-sm-7">
+											<select class="form-control tags-multiple" name="commercial_id" id="commercials_id">
+												<option value="">{{_('Choisir')}}</option>
+												{% for comm in commercials %}
+													<option value="{{comm.id}}">{{comm.first_name}} {{comm.last_name}}</option>
+												{% endfor %}
+											</select>
+										</div>
+									</div>
+									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Numéro police Cie")}}</label>
 										<div class="col-sm-7">
 											<input type="text" class="form-control" name="numero" autocomplete="off" value="" />
 										</div>
 									</div>
-
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Date début")}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_debut_effet" autocomplete="off" value="" required/>
-										</div>
-									</div>
 								</div>
 								<div class="vl"></div>
 								<div class="col-md-6" style="border-left:0px;margin-left:-10px;padding-left:20px;">
-
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Date début")}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<input type="date" class="form-control" name="date_debut_effet" id="date_debut_effet" autocomplete="off" value="" required/>
+										</div>
+									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Date Fin période garantie")}}</label>
 										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_fin_effet" autocomplete="off" value="">
+											<input type="date" class="form-control" name="date_fin_effet" id="date_fin_effet" autocomplete="off" value="">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -129,14 +160,6 @@
 											</select>
 										</div>
 									</div>
-
-									<div class="form-group row d-none">
-										<label class="col-sm-6 col-form-label">{{_("Logo du partenaire")}} <span class="required"></span></label>
-										<div class="col-sm-6">
-											<input type="file" class="form-control" id="logo_partenaire" name="logo_partenaire" autocomplete="off"/>
-										</div>
-									</div>
-
 								</div>
 							</div>
 						</div>
@@ -186,7 +209,7 @@
 													<select class="form-control calculs_handler_police base_calcul_taux_retrocession not_select2" name="base_calcul_taux_retrocession" >
 														<option value="">{{_('Choisir')}}</option>
 														{% for bc in bases_calculs %}
-														<option value="{{ bc.id }}">{{ bc.libelle }}</option>
+															<option value="{{ bc.id }}">{{ bc.libelle }}</option>
 														{% endfor %}
 													</select>
 												</td>
@@ -245,7 +268,7 @@
 									<table id="table_garantie_police" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
 										<thead>
 											<tr>
-												<th style="width:5%">##</th>
+												<th style="width:5%"></th>
 												<th>{{_("Garantie")}}</th>
 												<th class="text-center" style="width:20%">{{_("Franchise")}} (F CFA)</th>
 												<th class="text-center" style="width:20%;">{{_("Capital")}} (F CFA)</th>

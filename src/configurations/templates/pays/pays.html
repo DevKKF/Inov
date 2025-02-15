@@ -30,37 +30,37 @@
         <div class="row">
           <div class="col-12 col-md-12 col-sm-12">
               <div class="table-responsive">
-              <table class="table table-bordered table-striped dataTable dtr-inline" id="table_pays">
-                  <thead>
-                    <tr>
-                      <th class="d-none"></th>
-                      <th scope="col">{{_('Nom')}}</th>
-                      <th scope="col">{{_('Code')}}</th>
-                      <th scope="col">{{_('Indicatif')}}</th>
-                      <th scope="col">{{_('Poligamie')}}</th>
-                      <th scope="col">{{_('Dévise')}}</th>
-                      <th scope="col">{{_("Date de création")}}</th>
-                      <th scope="col" class="text-center">{{_('Actions')}}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  {% for p in pays %}
-                    <tr>
-                         <td class="d-none"></td>
-                         <td>{{ p.nom|default_if_none:"" }}</td>
-                         <td>{{ p.code|default_if_none:"" }}</td>
-                         <td>{{ p.indicatif|default_if_none:"" }}</td>
-                         <td>{{ p.poligamie|default_if_none:"" }}</td>
-                         <td>{{ p.devise.libelle|default_if_none:"" }}</td>
-                         <td>{{ p.created_at|date:"d/m/Y" }}</td>
-                         <td class="text-center">
-                             <span style="cursor:pointer;" class="btn_modifier_pays badge btn-sm btn-modifier rounded-pill text-center" data-pays_id="{p.id}" data-model_name="pays" data-modal_title="MODIFICATION D'UN PAYS" data-href="{% url 'modifier_pays' p.id %}"><i class="fas fa-edit"></i> {{_('Modifier')}}</span>
-                             <span class="badge badge-danger btn_supprimer_pays" data-pays_id="{{p.id}}" data-href="{% url 'supprimer_pays' p.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;
-                        </td>
-                    </tr>
-                  {% endfor %}
-                  </tbody>
-                </table>
+                  <table class="table table-bordered table-striped dataTable dtr-inline" id="table_pays">
+                      <thead>
+                        <tr>
+                          <th class="d-none"></th>
+                          <th scope="col">{{_('Nom')}}</th>
+                          <th scope="col">{{_('Code')}}</th>
+                          <th scope="col">{{_('Indicatif')}}</th>
+                          <th scope="col">{{_('Poligamie')}}</th>
+                          <th scope="col">{{_('Dévise')}}</th>
+                          <th scope="col">{{_("Date de création")}}</th>
+                          <th scope="col" class="text-center">{{_('Actions')}}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for p in pays %}
+                        <tr>
+                             <td class="d-none"></td>
+                             <td>{{ p.nom|default_if_none:"" }}</td>
+                             <td>{{ p.code|default_if_none:"" }}</td>
+                             <td>{{ p.indicatif|default_if_none:"" }}</td>
+                             <td>{{ p.poligamie|default_if_none:"" }}</td>
+                             <td>{{ p.devise.libelle|default_if_none:"" }}</td>
+                             <td>{{ p.created_at|date:"d/m/Y" }}</td>
+                             <td class="text-center">
+                                 <span style="cursor:pointer;" class="btn_modifier_pays badge btn-sm btn-modifier rounded-pill text-center" data-pays_id="{p.id}" data-model_name="pays" data-modal_title="MODIFICATION D'UN PAYS" data-href="{% url 'modifier_pays' p.id %}"><i class="fas fa-edit"></i> {{_('Modifier')}}</span>
+                                 <span class="badge badge-danger btn_supprimer_pays" data-pays_id="{{p.id}}" data-href="{% url 'supprimer_pays' p.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;
+                            </td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                  </table>
               </div>
           </div>
         </div>

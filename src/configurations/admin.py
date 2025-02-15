@@ -11,7 +11,7 @@ from admin_custom.admin import custom_admin_site
 from configurations.forms import ActionLogForm, PermissionForm, RegroupementActeForm, SousRubriqueForm, StatExcelWsBobyForm, TarifForm, \
     CompagnieAdminForm, BanqueAdminForm, SousRegroupementActeForm, ApporteurInternationalForm, GroupeInterForm, GarantieBrancheForm, GarantieFormuleForm
 from configurations.models import *
-from production.models import Quittance, SecteurActivite, TypeDocument, TarifPrestataireClient, Mouvement, Motif
+from production.models import Quittance, SecteurActivite, TypeDocument, TarifPrestataireClient, Mouvement, Motif, SecteurActivite
 
 from production.models import Client
 
@@ -1198,6 +1198,7 @@ admin.site.register(User, CustomUserAdmin)
 admin.site.register(Groupe, GroupeAdmin)
 admin.site.register(BureauTaxe, BureauTaxeAdmin)
 admin.site.register(RisqueProduit, RisqueProduitAdmin)
+#admin.site.register(SecteurActivite, SecteurActiviteAdmin)
 #admin.site.register(KeyValueData, KeyValueDataAdmin)
 #admin.site.register(Tarif, TarifAdmin)
 #admin.site.register(GarantieBranche, GarantieBrancheAdmin)
@@ -1219,7 +1220,6 @@ admin.site.register(RisqueProduit, RisqueProduitAdmin)
 #admin.site.register(TypeAssure)
 #admin.site.register(ReseauSoin, ReseauSoinAdmin)
 #admin.site.register(TypeClient)
-#admin.site.register(SecteurActivite, SecteurActiviteAdmin)
 #admin.site.register(Langue, LangueAdmin)
 #admin.site.register(Regularisation,)
 #admin.site.register(TicketModerateur,)
@@ -1314,7 +1314,6 @@ admin.site.register(RisqueProduit, RisqueProduitAdmin)
 #admin.site.register(Prescripteur, PrescripteurAdmin)
 #admin.site.register(TypeAssure)
 #admin.site.register(ReseauSoin, ReseauSoinAdmin)
-#admin.site.register(SecteurActivite, SecteurActiviteAdmin)
 #admin.site.register(Langue, LangueAdmin)
 
 #admin.site.register(MarqueVehicule) #à réactiver plus tard

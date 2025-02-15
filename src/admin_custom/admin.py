@@ -34,14 +34,25 @@ class CustomAdminSite(admin.AdminSite):
         else:
             bureaux_serializer = []
 
-        # Calculs pour les polices
+
         today = now()
         in_90_days = today + timedelta(days=90)
-        print('Date du jour :', today)
-        print('Dans 90 jours :', in_90_days)
-        count_polices_en_cours = Police.objects.filter(date_fin_effet__gt=today).count()
-        count_polices_a_echeance = Police.objects.filter(date_fin_effet__lte=in_90_days, date_fin_effet__gt=today).count()
-        count_polices_non_renouvelees_resilies = Police.objects.filter(date_fin_effet__lt=today).count()
+        count_polices_en_cours = 0
+        count_polices_a_echeance = 0
+        count_polices_non_renouvelees_resilies = 0
+
+        if user.is_commercial:
+            count_polices_en_cours = Police.objects.filter(date_fin_effet__gt=today, commercial_id=user.id).count()
+            count_polices_a_echeance = Police.objects.filter(date_fin_effet__lte=in_90_days, date_fin_effet__gt=today, commercial_id=user.id).count()
+            count_polices_non_renouvelees_resilies = Police.objects.filter(date_fin_effet__lt=today, commercial_id=user.id).count()
+        elif user.is_production:
+            count_polices_en_cours = Police.objects.filter(date_fin_effet__gt=today).count()
+            count_polices_a_echeance = Police.objects.filter(date_fin_effet__lte=in_90_days, date_fin_effet__gt=today).count()
+            count_polices_non_renouvelees_resilies = Police.objects.filter(date_fin_effet__lt=today).count()
+        else:
+            count_polices_en_cours = 0
+            count_polices_a_echeance = 0
+            count_polices_non_renouvelees_resilies = 0
 
         # Ajout au contexte
         extra_context['count_polices_en_cours'] = count_polices_en_cours
@@ -49,20 +60,10 @@ class CustomAdminSite(admin.AdminSite):
         extra_context['count_polices_non_renouvelees_resilies'] = count_polices_non_renouvelees_resilies
 
         sinistres = []
-        prestataires = Prestataire.objects.filter(bureau=user.bureau, status=True)
-        centres_prescripteurs = Prestataire.objects.filter(type_prestataire__code="PRES01", bureau=user.bureau, status=True)
-        prescripteurs = [p for p in Prescripteur.objects.filter(statut=True) if p.prescripteurprestataire_set.filter(prestataire=request.user.prestataire, statut_validite=StatutValidite.VALIDE).exists()]
-        rubriques = Rubrique.objects.all()
-
 
         request.session['bureaux'] = bureaux_serializer
         # extra_context['bureaux'] = bureaux
         extra_context['sinistres'] = sinistres
-        extra_context['prestataires'] = prestataires
-        extra_context['centres_prescripteurs'] = centres_prescripteurs
-        extra_context['prescripteurs'] = prescripteurs
-        extra_context['rubriques'] = rubriques
-        extra_context['affections'] = Affection.objects.filter(status=True)
 
         extra_context['yesterday'] = datetime.datetime.now(tz=timezone.utc) - datetime.timedelta(days=1)
         extra_context['today'] = datetime.datetime.now(tz=timezone.utc)

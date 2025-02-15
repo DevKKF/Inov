@@ -232,3 +232,13 @@ class SourceCreationSinistre(models.TextChoices):
 class Confidentialite(models.TextChoices):
     OUI = 'OUI'
     NON = 'NON'
+
+
+class TypePortefeuille(models.TextChoices):
+    AUCUN = 'AUCUN'
+    PAR_CIE = 'PAR COMPAGNIE'
+    ALL_CIE = 'TOUTES LES COMPAGNIES'
+    PAR_COM = 'PAR COMMERCIAL'
+    ALL_COM = 'TOUS LES COMMERCIAUX'
+    PAR_BUS = 'PAR BUSINESS UNIT'
+    ALL_BUS = 'TOUS LES BUSINESS UNIT'

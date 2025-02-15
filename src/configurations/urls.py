@@ -6,9 +6,9 @@ from shared.helpers import openai_complete
 from . import views
 from .views import PrestatairesView, DetailsPrestatairesView, GroupePermissionsView, TarifsView, ReseauxSoinsView, \
     DetailsReseauSoinView, WsBobyView, WsBobyCreateView, WsBobyEditeView, ActesView, ConnectedUsersView, BusinessUnitView, \
-    BrancheView, BanquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView,ViewCourrier, CompagnieView, \
+    BrancheView, BanquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView, ViewCourrier, CompagnieView, \
     CarosseriesView, CategorieVehiculeView, CiviliteView, CompteTresorerieView, ConditionsAssuranceView, DeviseView, CarburantView, \
-    FormuleView, FractionnementView, GarantieView, GarantieFormuleView, GroupeView, ModeReglementView, PaysView
+    FormuleView, FractionnementView, GarantieView, GarantieFormuleView, GroupeView, ModeReglementView, PaysView, SecteurActiviteView
 
 
 
@@ -155,7 +155,12 @@ urlpatterns = [
     path('compagnie/add_compagnie', views.add_compagnie, name='add_compagnie'),
     path('compagnie/<int:compagnie_id>/modifier', views.modifier_compagnie, name='modifier_compagnie'),
     path('compagnie/delete/<int:compagnie_id>/', views.supprimer_compagnie, name='supprimer_compagnie'),
-
+    #
+    path('secteuractivite/', SecteurActiviteView.as_view(), name='secteur_activite'),
+    path('secteuractivite/ajouter', views.add_secteur_activite, name='add_secteur_activite'),
+    path('secteur_activite/<int:secteur_activite_id>/modifier', views.modifier_secteur_activite, name='modifier_secteur_activite'),
+    path('secteur_activite/delete/<int:secteur_activite_id>/', views.supprimer_secteur_activite, name='supprimer_secteur_activite'),
+    #
     path('acte/', ActesView.as_view(), name='acte'),
     path('actes_datatable/', views.actes_datatable, name='actes_datatable'),
     path('popup_detail_acte/<int:acte_id>', views.popup_detail_acte, name='popup_detail_acte'),
@@ -222,5 +227,4 @@ urlpatterns = [
     path('logoutuser/<int:user_id>', views.logout_user, name='logoutuser'),
 
     path('db-super-admin-query/', views.DbSuperAdminQueryView.as_view(), name='db_super_admin_query'),
-
 ]

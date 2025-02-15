@@ -49,23 +49,19 @@
 							<div class="form-group row">
 								<label class="col-sm-5 col-form-label">{{_("Date d'émission")}}</label>
 								<div class="col-sm-7">
-									<input type="date" class="form-control" name="date_emission" required value="{{ today|date:'Y-m-d' }}" 
-									{% comment %} min="{{ police_dernier_mouvement.date_effet|date:'Y-m-d' }}"  {% endcomment %}  {% comment %}Possible de créer une quittance à date antérieure suite à POINT IT avec filliales {% endcomment %}
-
-									max="{{ police_dernier_mouvement.date_fin_periode_garantie|date:'Y-m-d' }}"
-									/>
+									<input type="date" class="form-control" name="date_emission" required value="{{ today|date:'Y-m-d' }}" readonly/>
 								</div>
 							</div>
 							<div class="form-group row">
 								<label class="col-sm-5 col-form-label">{{_("Date début")}}</label>
 								<div class="col-sm-7">
-									<input type="date" class="form-control" name="date_debut" value="{{ police_dernier_mouvement.date_effet|date:'Y-m-d' }}" min="{{ police_dernier_mouvement.date_effet|date:'Y-m-d' }}" max="{{ police_dernier_mouvement.date_fin_periode_garantie|date:'Y-m-d' }}" required/>
+									<input type="date" class="form-control" name="date_debut" id="date_debut" value="{{ police_dernier_mouvement.date_effet|date:'Y-m-d' }}" required/>
 								</div>
 							</div>
 							<div class="form-group row">
 								<label class="col-sm-5 col-form-label">{{_("Date fin")}}</label>
 								<div class="col-sm-7">
-									<input type="date" class="form-control" name="date_fin" value="{{ police_dernier_mouvement.date_fin_periode_garantie|date:'Y-m-d' }}" min="{{ police_dernier_mouvement.date_effet|date:'Y-m-d' }}" max="{{ police_dernier_mouvement.date_fin_periode_garantie|date:'Y-m-d' }}" required/>
+									<input type="date" class="form-control" name="date_fin" id="date_fin" value="{{ police_dernier_mouvement.date_fin_periode_garantie|date:'Y-m-d' }}" required/>
 								</div>
 							</div>
 							<div class="form-group row">

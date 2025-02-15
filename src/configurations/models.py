@@ -1610,21 +1610,52 @@ class User(AbstractUser):
 
     @property
     def is_production(self):
+        return self.groups.filter(name__contains='PRODUCTION').exists()
+
+    @property
+    def is_comptable(self):
+        return self.groups.filter(name__contains='COMPTABLE').exists()
+
+    @property
+    def is_manager(self):
+        return self.groups.filter(name__contains='MANAGER').exists()
+
+    @property
+    def is_commercial(self):
+        return self.groups.filter(name__contains='COMMERCIAL').exists()
+
+    @property
+    def is_sinistre(self):
+        return self.groups.filter(name__contains='SINISTRE').exists()
+
+    @property
+    def user_groups(self):
+        #Retourne une liste des noms des groupes auxquels l'utilisateur appartient.
+        return [group.name for group in self.groups.all()]
+
+    """
+    @property
+    def is_production(self):
         if self.groups.filter(name__contains='PRODUCTION').first() is not None:
             return True
         return False
 
+
+    @property
     def is_comptable(self):
         if self.groups.filter(name__contains='COMPTABLE').first() is not None:
             return True
         return False
 
 
+    @property
     def is_manager(self):
         if self.groups.filter(name__contains='MANAGER').first() is not None:
             return True
         return False
 
+
+    @property
     def is_commercial(self):
         if self.groups.filter(name__contains='COMMERCIAL').first() is not None:
             return True
@@ -1632,17 +1663,17 @@ class User(AbstractUser):
 
 
     @property
-    def aliment(self):
-        if self.aliments.first() is not None:
-            return self.aliments.first()
-        return None
+    def is_sinistre(self):
+        if self.groups.filter(name__contains='SINISTRE').first() is not None:
+            return True
+        return False
 
 
     @property
     def user_groups(self):
-        """Return a list of group names the user belongs to."""
+        #Return a list of group names the user belongs to.
         return (group.name for group in self.groups.all())
-
+    """
 
 class ParamActe(models.Model):
     created_by = models.ForeignKey(User, related_name="pa_created_by", null=True, on_delete=models.RESTRICT)

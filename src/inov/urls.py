@@ -59,6 +59,7 @@ urlpatterns = customUrl + [
     path('sinistre/', include('sinistre.urls')),
     path('production/', include('production.urls')),
     path('configurations/', include('configurations.urls')),
+    path('analysecontrole/', include('analysecontrole.urls')),
     path('accounts/profile/', views.redirecttohome),
     path('accounts/login/', views.redirecttohome),
     path('cron/cron_all_once', cron.cron_all_once),

@@ -709,3 +709,9 @@ label:not(.form-check-label):not(.custom-file-label) {
     color:#F16623 !important;
 }
 
+.badge-yellow{
+    background:#DFFF00;
+    color:#000;
+}
+
+

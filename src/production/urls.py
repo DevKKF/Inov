@@ -12,6 +12,7 @@ urlpatterns = [
     path('apporteurs/ajax_apporteurs', views.ajax_apporteurs, name='ajax_apporteurs'),
     path("compagnie/ajax_infos_compagnie/<int:compagnie_id>/<int:produit_id>/", views.ajax_infos_compagnie, name='ajax_infos_compagnie'),
     path("ajax_produits/<int:branche_id>/", views.ajax_produits, name='ajax_produits'),
+    path("modification_ajax_produits/<int:branche_id>/", views.modification_ajax_produits, name='modification_ajax_produits'),
     path("actes_by_rubrique/<int:rubrique_id>/", views.actes_by_rubrique, name='actes_by_rubrique'),
     path("sous_rubriques_by_rubrique/<int:rubrique_id>/", views.sous_rubriques_by_rubrique, name='sous_rubriques_by_rubrique'),
     path("regroupements_actes_by_rubrique/<int:rubrique_id>/", views.regroupements_actes_by_rubrique, name='regroupements_actes_by_rubrique'),
@@ -28,14 +29,15 @@ urlpatterns = [
     path("client/delete", views.supprimer_client, name='supprimer_client'),
 
     path("client/<int:client_id>/liste-police", PoliceClientView.as_view(), name='client_polices'),
-    path("client/<int:client_id>/polices", views.list_polices, name='client_list_polices'),
     path("client/<int:client_id>/add_police", views.add_police, name='add_police'),
     path('import-excel-aliments/', views.import_excel_aliments, name='import_excel_aliments'),
     path('import-formulaire-aliments/', views.import_formulaire_aliments, name='import_formulaire_aliments'),
-    path('get_garanties_by_produit/', views.get_garanties_by_produit, name='get_garanties_by_produit'),
     path('get_garanties_by_formule/', views.get_garanties_by_formule, name='get_garanties_by_formule'),
+    path('get_garanties_by_police/', views.get_garanties_by_police, name='get_garanties_by_police'),
     path('get_garanties_by_formule_modification/', views.get_garanties_by_formule_modification, name='get_garanties_by_formule_modification'),
+    path('get_aliments_session/', views.get_aliments_session, name='get_aliments_session'),
     path('supprimer_aliment/<int:index>/', views.supprimer_aliment, name='supprimer_aliment'),
+    path('supprimer_aliment_modification/', views.supprimer_aliment_modification, name='supprimer_aliment_modification'),
     path('clear_session/', views.clear_session, name='clear_session'),
     path('get_compagnies/', views.get_compagnies, name='get_compagnies'),
     path('branche/<int:branche_id>/produits',views.produits_by_branche, name='branche_produits'),
@@ -199,7 +201,6 @@ urlpatterns = [
     #
     path('annuler_quittance/', AnnulerQuittanceView.as_view(), name='annuler_quittance'),
     path('add_annuler_quittance/', views.add_annuler_quittance, name='add_annuler_quittance'),
-
 ]
 
 

@@ -22,7 +22,7 @@ TRUNCATE `aliment_police`; TRUNCATE `apporteurs_police`; TRUNCATE `autre_risque`
 TRUNCATE `historique_paiement_comptable_sinistre`; TRUNCATE `historique_polices`; TRUNCATE `historique_taxe_police`; TRUNCATE `mouvements_aliments`; TRUNCATE `mouvements_polices`;
 TRUNCATE `mouvement_quittance`; TRUNCATE `police_assureurs`; TRUNCATE `police_garantie`; TRUNCATE `vehicules`; TRUNCATE `vehicule_police`; TRUNCATE `polices`; TRUNCATE `periode_couverture`;
 TRUNCATE `quittances`; TRUNCATE `reglements`; TRUNCATE `reglement_compagnie`; TRUNCATE `reglement_facture_compagnie`; TRUNCATE `acomptes`; TRUNCATE `encaissement_commission`;
-TRUNCATE `journal`; TRUNCATE `operations`; TRUNCATE `operation_reglement`; TRUNCATE `historique_aliment`; TRUNCATE `clients`;
+TRUNCATE `journal`; TRUNCATE `operations`; TRUNCATE `operation_reglement`; TRUNCATE `historique_aliment`; TRUNCATE `historique_taxe_police`; TRUNCATE `clients`;
 
 Autres lookups similaires
     __lte: Less Than or Equal (moins ou égal).
@@ -38,3 +38,89 @@ Autres lookups similaires
 
 
 
+SELECT DISTINCT polices.id FROM compagnies
+INNER JOIN police_assureurs on compagnies.id=police_assureurs.compagnie_id
+INNER JOIN historique_polices on historique_polices.id=police_assureurs.historique_police_id
+INNER JOIN polices on polices.id=historique_polices.police_id
+WHERE compagnies.id=5;
+
+
+SELECT polices.id, historique_polices.id FROM compagnies
+INNER JOIN police_assureurs on compagnies.id=police_assureurs.compagnie_id and police_assureurs.type_compagnie_id=1
+INNER JOIN historique_polices on historique_polices.id=police_assureurs.historique_police_id
+INNER JOIN polices on polices.id=historique_polices.police_id
+WHERE compagnies.id=5;
+
+
+
+select * from polices where id IN (SELECT polices.id FROM compagnies
+INNER JOIN police_assureurs on compagnies.id=police_assureurs.compagnie_id and police_assureurs.type_compagnie_id=1
+INNER JOIN historique_polices on historique_polices.id=police_assureurs.historique_police_id
+INNER JOIN polices on polices.id=historique_polices.police_id
+WHERE compagnies.id=5);
+
+
+
+
+
+
+SELECT DISTINCT polices.id FROM polices
+INNER JOIN clients on clients.id=polices.client_id
+INNER JOIN historique_polices on historique_polices.police_id=polices.id
+INNER JOIN configurations_user on configurations_user.id=polices.commercial_id
+WHERE configurations_user.id=16;
+
+
+select * from polices where id IN (SELECT polices.id FROM polices
+INNER JOIN clients on clients.id=polices.client_id
+INNER JOIN historique_polices on historique_polices.police_id=polices.id
+INNER JOIN configurations_user on configurations_user.id=polices.commercial_id
+WHERE configurations_user.id=16);
+
+
+select * from polices where id IN (SELECT polices.id FROM polices
+INNER JOIN clients on clients.id=polices.client_id
+INNER JOIN historique_polices on historique_polices.police_id=polices.id
+INNER JOIN configurations_user on configurations_user.id=polices.commercial_id
+WHERE configurations_user.id=16);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    historique_list = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour')[:2]
+
+    dernier_historique = historique_list[0] if len(historique_list) > 0 else None
+    precedent_historique = historique_list[1] if len(historique_list) > 1 else None
+
+
+
+
+
+            if precedent_historique:
+                print('precedent_historique ', precedent_historique.id)
+                prime_ht_n = precedent_historique.prime_ht if precedent_historique else 0
+                total_ht_n += prime_ht_n
+
+
+
+TRUNCATE `quittances`; TRUNCATE `reglements`; TRUNCATE `reglement_compagnie`; TRUNCATE `reglement_facture_compagnie`; TRUNCATE `encaissement_commission`;
+TRUNCATE `journal`; TRUNCATE `operations`; TRUNCATE `operation_reglement`;

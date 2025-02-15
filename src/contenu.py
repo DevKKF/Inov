@@ -1,16 +1,16 @@
-#------------------------PAYS----------------------------------
+#------------------------SECTEUR D'ACTIVITE----------------------------------
 
-class PaysView(PermissionRequiredMixin,TemplateView):
-    template_name = 'pays/pays.html'
-    permission_required = "configurations.view_pays"
-    model = Pays
+class SecteurActiviteView(PermissionRequiredMixin,TemplateView):
+    template_name = 'secteur_activite/secteur_activite.html'
+    permission_required = "configurations.view_secteuractivite"
+    model = SecteurActivite
 
     def get(self, request, *args, **kwargs):
         context_original = self.get_context_data(**kwargs)
 
-        pays = Pays.objects.all().order_by('-id')
+        secteuractivites = SecteurActivite.objects.all().order_by('-id')
 
-        context_perso = {'pays': pays}
+        context_perso = {'secteuractivites': secteuractivites}
 
         context = {**context_original, **context_perso}
 
@@ -29,17 +29,14 @@ class PaysView(PermissionRequiredMixin,TemplateView):
 
 
 @login_required
-def add_pays(request):
+def add_secteur_activite(request):
 
     if request.method == 'POST':
 
-        # Créer une nouveau pays
-        pays_created = Pays.objects.create(
-            code=request.POST.get('code'),
-            nom=request.POST.get('nom'),
-            indicatif=request.POST.get('indicatif'),
-            poligamie=request.POST.get('poligamie'),
-            devise_id=request.POST.get('devise_id'),
+        # Créer une nouveau secteur d'activité
+        secteur_activite_created = SecteurActivite.objects.create(
+            libelle=request.POST.get('libelle'),
+            status=request.POST.get('status'),
             created_at=datetime.now(),
         )
 
@@ -47,8 +44,8 @@ def add_pays(request):
             'statut': 1,
             'message': "Enregistrement effectué avec succès !",
             'data': {
-                'id': pays_created.pk,
-                'libelle': pays_created.libelle,
+                'id': secteur_activite_created.pk,
+                'libelle': secteur_activite_created.libelle,
             }
         }
 
@@ -56,51 +53,47 @@ def add_pays(request):
 
 
 @login_required
-def modifier_pays(request, pays_id):
+def modifier_secteur_activite(request, secteur_activite_id):
 
-    pays = Pays.objects.get(id=pays_id)
+    secteuractivite = SecteurActivite.objects.get(id=secteur_activite_id)
 
     if request.method == 'POST':
         user = User.objects.get(id=request.user.id)
 
-        Pays.objects.filter(id=pays_id).update(
-            code=request.POST.get('code'),
-            nom=request.POST.get('nom'),
-            indicatif=request.POST.get('indicatif'),
-            poligamie=request.POST.get('poligamie'),
-            devise_id=request.POST.get('devise_id'),
+        SecteurActivite.objects.filter(id=secteur_activite_id).update(
+            libelle=request.POST.get('libelle'),
+            status=request.POST.get('status'),
         )
         response = {
             'statut': 1,
             'message': "Modification effectuée avec succès !",
             'data': {
-                'id': pays.pk,
-                'libelle': pays.libelle,
-                'statut': pays.statut,
+                'id': secteuractivite.pk,
+                'libelle': secteuractivite.libelle,
+                'statut': secteuractivite.status,
             }
         }
 
         return JsonResponse(response)
 
     else:
-        devises = Devise.objects.all().order_by('libelle')
-        return render(request, 'payss/modal_modifier_pays.html', {'pays': pays, 'devises': devises})
+        return render(request, 'secteur_activite/modal_modifier_secteur_activite.html', {'secteuractivite': secteuractivite})
 
 
 @login_required
-def supprimer_pays(request, pays_id):
+def supprimer_secteur_activite(request, secteur_activite_id):
     if request.method == "POST":
 
-        pays_id = request.POST.get('pays_id')
-        print("pays id : ", pays_id)
-        pays = Pays.objects.get(id=pays_id)
-        if pays.pk is not None:
+        secteur_activite_id = request.POST.get('secteur_activite_id')
+        print("secteur activite id : ", secteur_activite_id)
+        secteuractivite = SecteurActivite.objects.get(id=secteur_activite_id)
+        if secteuractivite.pk is not None:
 
-            pays.delete()
+            secteuractivite.delete()
 
             response = {
                 'statut': 1,
-                'message': "Pays supprimé avec succès !",
+                'message': "Secteur d'activité supprimé avec succès !",
             }
 
             return JsonResponse(response)
@@ -109,62 +102,106 @@ def supprimer_pays(request, pays_id):
 
             response = {
                 'statut': 0,
-                'message': "Pays non trouvé !",
+                'message': "Secteur d'activité non trouvé !",
             }
 
             return JsonResponse(response)
 
-#------------------------FIN PAYS----------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#------------------------FIN SECTEUR D'ACTIVITE----------------------------------
 
 
 
 
 #
-path('pays/', PaysView.as_view(), name='pays'),
-path('pays/ajouter', views.add_pays, name='add_pays'),
-path('pays/<int:pays_id>/modifier', views.modifier_pays, name='modifier_pays'),
-path('pays/delete/<int:pays_id>/', views.supprimer_pays, name='supprimer_pays'),
+path('secteur_activite/', SecteurActiviteView.as_view(), name='secteur_activite'),
+path('secteur_activite/ajouter', views.add_secteur_activite, name='add_secteur_activite'),
+path('secteur_activite/<int:secteur_activite_id>/modifier', views.modifier_secteur_activite, name='modifier_secteur_activite'),
+path('secteur_activite/delete/<int:secteur_activite_id>/', views.supprimer_secteur_activite, name='supprimer_secteur_activite'),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -2066,17 +2066,37 @@ class ConstantesView(views.APIView):
 def suggestions(request):
     query = request.GET.get('numero', '')
     if query:
-        # Rechercher dans la base les numéros de police correspondant et inclure les informations nécessaires
-        results = (
-            Police.objects.filter(numero__icontains=query)
-            .select_related('client')  # Optimisation pour inclure les données du client
-            .values(
-                'id',  # Pour générer le lien
-                'numero',
-                'client__nom',
-            )[:10]
-        )
+        # Récupérer l'utilisateur
+        user = request.user
+
+        # Vérifier si l'utilisateur a un rôle valide
+        if not (user.is_commercial or user.is_production):
+            return JsonResponse([], safe=False)
+
+        # Recherche des résultats pour les utilisateurs commerciaux ou de production
+        if user.is_commercial:
+            results = (
+                Police.objects.filter(numero__icontains=query, commercial_id=user.id)
+                .select_related('client')  # Optimisation pour inclure les données du client
+                .values(
+                    'id',  # Pour générer le lien
+                    'numero',
+                    'client__nom',
+                )[:10]
+            )
+        else:  # Si l'utilisateur est de type 'production' ou un autre type valide
+            results = (
+                Police.objects.filter(numero__icontains=query)
+                .select_related('client')  # Optimisation pour inclure les données du client
+                .values(
+                    'id',  # Pour générer le lien
+                    'numero',
+                    'client__nom',
+                )[:10]
+            )
+
         print("Police : ", results)
+
         # Ajouter les données formatées pour chaque police
         results_with_links = [
             {
@@ -2086,11 +2106,5 @@ def suggestions(request):
             }
             for item in results
         ]
-        return JsonResponse(results_with_links, safe=False)
-
-    return JsonResponse([], safe=False)
-
-
-
 
 

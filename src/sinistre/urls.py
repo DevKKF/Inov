@@ -152,8 +152,6 @@ urlpatterns = [
     #
     path('ordonnancement/', export_sinistres_ordonnancement, name='export_sinistres_ordonnancement'),
 
-
-
 ]
 
 
