@@ -2065,46 +2065,49 @@ class ConstantesView(views.APIView):
 #Suggestion lors de la recherche des polices
 def suggestions(request):
     query = request.GET.get('numero', '')
-    if query:
-        # Récupérer l'utilisateur
-        user = request.user
 
-        # Vérifier si l'utilisateur a un rôle valide
-        if not (user.is_commercial or user.is_production):
-            return JsonResponse([], safe=False)
+    if not query:
+        return JsonResponse([], safe=False)  # Retourner une liste vide si aucun paramètre 'numero' n'est fourni
 
-        # Recherche des résultats pour les utilisateurs commerciaux ou de production
-        if user.is_commercial:
-            results = (
-                Police.objects.filter(numero__icontains=query, commercial_id=user.id)
-                .select_related('client')  # Optimisation pour inclure les données du client
-                .values(
-                    'id',  # Pour générer le lien
-                    'numero',
-                    'client__nom',
-                )[:10]
-            )
-        else:  # Si l'utilisateur est de type 'production' ou un autre type valide
-            results = (
-                Police.objects.filter(numero__icontains=query)
-                .select_related('client')  # Optimisation pour inclure les données du client
-                .values(
-                    'id',  # Pour générer le lien
-                    'numero',
-                    'client__nom',
-                )[:10]
-            )
+    # Récupérer l'utilisateur
+    user = request.user
 
-        print("Police : ", results)
+    # Vérifier si l'utilisateur a un rôle valide
+    if not (user.is_commercial or user.is_production):
+        return JsonResponse([], safe=False)
 
-        # Ajouter les données formatées pour chaque police
-        results_with_links = [
-            {
-                'numero_police': item['numero'],
-                'client_nom': item['client__nom'],
-                'details_url': reverse('police.details', args=[item['id']])
-            }
-            for item in results
-        ]
+    # Recherche des résultats pour les utilisateurs commerciaux ou de production
+    if user.is_commercial:
+        results = (
+            Police.objects.filter(numero__icontains=query, commercial_id=user.id)
+            .select_related('client')  # Optimisation pour inclure les données du client
+            .values(
+                'id',  # Pour générer le lien
+                'numero',
+                'client__nom',
+            )[:10]
+        )
+    else:  # Si l'utilisateur est de type 'production' ou un autre type valide
+        results = (
+            Police.objects.filter(numero__icontains=query)
+            .select_related('client')  # Optimisation pour inclure les données du client
+            .values(
+                'id',  # Pour générer le lien
+                'numero',
+                'client__nom',
+            )[:10]
+        )
 
+    print("Police : ", results)
 
+    # Ajouter les données formatées pour chaque police
+    results_with_links = [
+        {
+            'numero_police': item['numero'],
+            'client_nom': item['client__nom'],
+            'details_url': reverse('police.details', args=[item['id']])
+        }
+        for item in results
+    ]
+
+    return JsonResponse(results_with_links, safe=False)  # Assurez-vous de toujours retourner une réponse JSON

@@ -116,8 +116,10 @@
                     <td class="">{{ filiale.adresse|default_if_none:"" }}</td>
                     <td class="">{{ filiale.created_at|date:'d/m/Y'|default_if_none:"" }}</td>
                     <td class="text-center">
-                        <span style="cursor:pointer;" class="btn_modifier_filiale badge badge-warning text-white rounded-pill text-center" data-filiale_id="{filiale.id}" data-model_name="filiale" data-modal_title="MODIFICATION D'UNE FILIALE" data-href="{% url 'modifier_filiale' filiale.id %}"><i class="fas fa-edit"></i></span>
-                        <span class="badge badge-danger text-white btn_supprimer_filiale" data-filiale_id="{{ filiale.id }}" data-href="{% url 'supprimer_filiale' filiale.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>
+                        {% if request.user.is_production %}
+                            <span style="cursor:pointer;" class="btn_modifier_filiale badge badge-warning text-white rounded-pill text-center" data-filiale_id="{filiale.id}" data-model_name="filiale" data-modal_title="MODIFICATION D'UNE FILIALE" data-href="{% url 'modifier_filiale' filiale.id %}"><i class="fas fa-edit"></i></span>
+                            <span class="badge badge-danger text-white btn_supprimer_filiale" data-filiale_id="{{ filiale.id }}" data-href="{% url 'supprimer_filiale' filiale.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

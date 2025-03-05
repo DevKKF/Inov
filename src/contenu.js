@@ -1,7 +1,7 @@
-//Création d'un secteur d'activité
-$(document).on('click', "#btn_save_secteuractivite", function () {
+//Création du poste de dommage
+$(document).on('click', "#btn_save_postedommage", function () {
 
-    let formulaire = $('#form_add_secteuractivite');
+    let formulaire = $('#form_add_postedommage');
     let href = formulaire.attr('action');
 
     $.validator.setDefaults({ ignore: [] });
@@ -12,7 +12,7 @@ $(document).on('click', "#btn_save_secteuractivite", function () {
 
         //demander confirmation
         let n = noty({
-            text: "Voulez-vous vraiment enregistrer ce secteur d'activité ?",
+            text: "Voulez-vous vraiment enregistrer ce poste de dommage ?",
             type: 'warning',
             dismissQueue: true,
             layout: 'center',
@@ -57,9 +57,9 @@ $(document).on('click', "#btn_save_secteuractivite", function () {
                                         errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                     }
 
-                                    $('#modal-secteuractivite .alert .message').html(errors_list_to_display);
+                                    $('#modal-postedommage .alert .message').html(errors_list_to_display);
 
-                                    $('#modal-secteuractivite .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                    $('#modal-postedommage .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                         $(this).slideUp(500);
                                     }).removeClass('alert-success').addClass('alert-warning');
 
@@ -106,8 +106,8 @@ $(document).on('click', "#btn_save_secteuractivite", function () {
 
 });
 
-//Modification d'un secteur d'activité
-$(document).on('click', '.btn_modifier_secteuractivite', function () {
+//Modification du poste de dommage
+$(document).on('click', '.btn_modifier_postedommage', function () {
 
     let model_name = $(this).attr('data-model_name');
     let modal_title = $(this).attr('data-modal_title');
@@ -118,19 +118,19 @@ $(document).on('click', '.btn_modifier_secteuractivite', function () {
         //appliquer le mask de saisie sur les champs montant
         AppliquerMaskSaisie();
 
-        $('#modal-modification_secteuractivite').attr('data-backdrop', 'static').attr('data-keyboard', false);
+        $('#modal-modification_postedommage').attr('data-backdrop', 'static').attr('data-keyboard', false);
 
-        $('#modal-modification_secteuractivite').find('.modal-title').text(modal_title);
-        $('#modal-modification_secteuractivite').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
-        $('#modal-modification_secteuractivite').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
+        $('#modal-modification_postedommage').find('.modal-title').text(modal_title);
+        $('#modal-modification_postedommage').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+        $('#modal-modification_postedommage').find('.modal-dialog').addClass('modal-lg').removeClass('modal-xl');
 
         //
-        $('#modal-modification_secteuractivite').modal();
+        $('#modal-modification_postedommage').modal();
 
         //gestion du clique sur valider les modifications
-        $("#btn_save_modification_secteuractivite").on('click', function () {
+        $("#btn_update_postedommage").on('click', function () {
 
-            let formulaire = $('#form_update_secteuractivite');
+            let formulaire = $('#form_update_postedommage');
             let href = formulaire.attr('action');
 
             $.validator.setDefaults({ ignore: [] });
@@ -141,7 +141,7 @@ $(document).on('click', '.btn_modifier_secteuractivite', function () {
 
                 //demander confirmation
                 let n = noty({
-                    text: "Voulez-vous vraiment modifier ce secteur d'activité ?",
+                    text: "Voulez-vous vraiment modifier ce poste de dommage ?",
                     type: 'warning',
                     dismissQueue: true,
                     layout: 'center',
@@ -186,9 +186,9 @@ $(document).on('click', '.btn_modifier_secteuractivite', function () {
                                                 errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                             }
 
-                                            $('#modal-modification_secteuractivite .alert .message').html(errors_list_to_display);
+                                            $('#modal-modification_postedommage .alert .message').html(errors_list_to_display);
 
-                                            $('#modal-modification_secteuractivite .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $('#modal-modification_postedommage .alert ').fadeTo(2000, 500).slideUp(500, function () {
                                                 $(this).slideUp(500);
                                             }).removeClass('alert-success').addClass('alert-warning');
 
@@ -237,12 +237,12 @@ $(document).on('click', '.btn_modifier_secteuractivite', function () {
 
 });
 
-//Suppression d'un secteur d'activité
-$(document).on('click', '.btn_supprimer_secteuractivite', function () {
-    let modereglement_id = $(this).data('modereglement_id');
+//Suppression du poste de dommage
+$(document).on('click', '.btn_supprimer_postedommage', function () {
+    let postedommage_id = $(this).data('postedommage_id');
     let href = $(this).data('href');
     let n = noty({
-        text: "Voulez-vous vraiment supprimer ce secteur d'activité ?",
+        text: "Voulez-vous vraiment supprimer ce poste de dommage ?",
         type: 'warning',
         dismissQueue: true,
         layout: 'center',
@@ -256,7 +256,7 @@ $(document).on('click', '.btn_supprimer_secteuractivite', function () {
                     $.ajax({
                         url: href,
                         type: 'post',
-                        data: { modereglement_id: modereglement_id },
+                        data: { postedommage_id: postedommage_id },
                         success: function (response) {
 
                             notifySuccess(response.message, function () {
@@ -333,205 +333,324 @@ $(document).on('click', '.btn_supprimer_secteuractivite', function () {
 
 
 
-//TODO ANALYSE & CONTRÔLE
-//Création d'un portefeuille par commercial
-$(document).on('click', "#btn_save_portefeuille_commercial", function () {
 
-    let formulaire = $('#form_add_portefeuille_comercial');
-    let href = formulaire.attr('action');
 
-    $.validator.setDefaults({ ignore: [] });
 
-    let formData = new FormData();
 
-    if (formulaire.valid()) {
 
-        //demander confirmation
-        let n = noty({
-            text: 'Voulez-vous vraiment importer le portefeuille ?',
-            type: 'warning',
-            dismissQueue: true,
-            layout: 'center',
-            theme: 'defaultTheme',
-            buttons: [
-                {
-                    addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
-                        $noty.close();
 
-                        //confirmation obtenu
 
-                        let data_serialized = formulaire.serialize();
-                        $.each(data_serialized.split('&'), function (index, elem) {
-                            let vals = elem.split('=');
 
-                            let key = vals[0];
-                            let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
 
-                            formData.append(key, valeur);
 
-                        });
 
-                        $.ajax({
-                            type: 'post',
-                            url: href,
-                            data: formData,
-                            processData: false,
-                            contentType: false,
-                            success: function (response) {
 
-                                if (response.statut == 1) {
 
-                                    let fileContent = response.data.file_base64;
-                                    let filename = response.data.filename;
 
-                                    // Créer un lien de téléchargement
-                                    let link = document.createElement("a");
-                                    link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + fileContent;
-                                    link.download = filename;
 
-                                    // Ajouter le lien temporairement au DOM et le cliquer automatiquement
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
 
-                                    notifySuccess(response.message, function () {
-                                        location.reload();
-                                    });
 
-                                }
-                                if (response.statut == 0){
-                                    notifyWarning(response.message);
-                                }
-                                else {
 
-                                    let errors = JSON.parse(JSON.stringify(response.errors));
-                                    let errors_list_to_display = '';
-                                    for (field in errors) {
-                                        errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//********* FAIRE UN REGLEMENT ***********//
+
+$("#btnOpenDialogAddReglement").on('click', function () {
+
+    let model_name = $(this).data('model_name');
+    let modal_title = $(this).data('modal_title');
+    let href = $(this).data('href');
+
+    $('#olea_std_dialog_box').load(href, function () {
+
+        //appliquer le mask de saisie sur les champs montant
+        AppliquerMaskSaisie();
+
+        $('#modal-reglement').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+        $('#modal-reglement').find('.modal-title').text(modal_title);
+        $('#modal-reglement').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+        $('#modal-reglement').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+        //
+        $('#modal-reglement').modal();
+
+        //gestion des saisies des montants à regler
+        $(document).on('change', '.checkbox_quittance_a_regler', function () {
+            let input_montant_a_regler = $(this).closest('tr').find('.montant_a_regler');
+            let solde_quittance = $(this).closest('tr').find('.solde_quittance').val();
+            let input_solde_apres = $(this).closest('tr').find('.solde_apres');
+
+            let input_montant_courtier_regle = $(this).closest('tr').find('.montant_courtier_regle');
+            let montant_cout_police_courtier = $(this).closest('tr').find('.montant_cout_police_courtier').val();
+            let input_solde_courtier_regle_apres = $(this).closest('tr').find('.solde_courtier_regle_apres');
+
+            calculer_montant_total_a_regler();
+
+            if (this.checked) {
+                input_montant_a_regler.val(solde_quittance);
+                input_solde_apres.val(0);
+                input_montant_a_regler.removeAttr('readonly');
+                input_montant_a_regler.attr('required', true);
+
+                input_montant_courtier_regle.val(montant_cout_police_courtier);
+                input_solde_courtier_regle_apres.val(0);
+                input_montant_courtier_regle.removeAttr('readonly');
+                input_montant_courtier_regle.attr('required', true);
+
+
+                // Déclencher l'événement 'change' manuellement
+                input_montant_a_regler.trigger('change');
+                input_montant_courtier_regle.trigger('change');
+            } else {
+                input_montant_a_regler.val(0);
+                input_solde_apres.val(solde_quittance);
+                input_montant_a_regler.attr('readonly', true);
+                input_montant_a_regler.removeAttr('required');
+
+                input_montant_courtier_regle.val(0);
+                input_solde_courtier_regle_apres.val(0);
+                input_montant_courtier_regle.attr('readonly', true);
+                input_montant_courtier_regle.removeAttr('required');
+
+                // Déclencher l'événement 'change' manuellement
+                input_montant_a_regler.trigger('change');
+                input_montant_courtier_regle.trigger('change');
+            }
+
+        });
+
+        //montant_a_regler
+        $(document).on('change keyup', '.handle_calculer_montant_total_a_regler', function () {
+            console.log('handle_calculer_montant_total_a_regler');
+            calculer_montant_total_a_regler();
+
+        });
+
+        //montant_courtier_regle
+        $(document).on('change keyup', '.handle_calculer_montant_courtier_regle', function () {
+            console.log('handle_calculer_montant_courtier_regle');
+            calculer_montant_total_a_regler();
+
+        });
+
+        //champs obligatoires variables selon le mode de règlement
+        $(document).on('change', '#mode_reglement', function () {
+            //si espèce
+            if ($(this).val() == 1) {
+                $('#numero_piece').removeAttr('required');
+                $('#banque').removeAttr('required');
+                $('#libelle_numero_piece_required').html('');
+                $('#libelle_banque_required').html('');
+            } else {
+                $('#numero_piece').attr('required', true);
+                // $('#banque').attr('required', true);
+                $('#libelle_numero_piece_required').html('*');
+                // $('#libelle_banque_required').html('*');
+            }
+
+        });
+
+        //enregistrement
+        $('#btn_save_reglement').on('click', function () {
+
+            let btn_save_reglement = $(this);
+
+            let formulaire = $('#form_add_reglement');
+            let href = formulaire.attr('action');
+
+            $.validator.setDefaults({ ignore: [] });
+
+            if (formulaire.valid()) {
+
+                //désactiver le bouton Valider, pour empecher une double soumission du formulaire
+                btn_save_reglement.attr('disabled', true);
+
+                //demander confirmation
+                let n = noty({
+                    text: 'Voulez-vous vraiment effectuer ce règlement ?',
+                    type: 'warning',
+                    dismissQueue: true,
+                    layout: 'center',
+                    theme: 'defaultTheme',
+                    buttons: [
+                        {
+                            addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                $noty.close();
+
+                                //confirmation obtenu
+                                $.ajax({
+                                    type: 'post',
+                                    url: href,
+                                    data: formulaire.serialize(),
+                                    success: function (response) {
+
+                                        if (response.statut == 1) {
+
+                                            location.reload();
+
+                                        } else {
+
+                                            let errors = JSON.parse(JSON.stringify(response.errors));
+                                            let errors_list_to_display = '';
+                                            for (field in errors) {
+                                                errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                            }
+
+                                            $('#modal-reglement .alert .message').html(errors_list_to_display);
+
+                                            $('#modal-reglement .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                $(this).slideUp(500);
+                                            }).removeClass('alert-success').addClass('alert-warning');
+
+                                        }
+
+                                    },
+                                    error: function (request, status, error) {
+
+                                        notifyWarning("Erreur lors de l'enregistrement");
+
+                                        btn_save_reglement.removeAttr('disabled');
+
                                     }
 
-                                    $('#modal-commercial .alert .message').html(errors_list_to_display);
+                                });
 
-                                    $('#modal-commercial .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                                        $(this).slideUp(500);
-                                    }).removeClass('alert-success').addClass('alert-warning');
+                                //fin confirmation obtenue
 
-                                }
-
-                            },
-                            error: function (request, status, error) {
-
-                                notifyWarning("Erreur lors de l'enregistrement");
                             }
+                        },
+                        {
+                            addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                //confirmation refusée
+                                $noty.close();
 
-                        });
+                                btn_save_reglement.removeAttr('disabled');
 
-                        //fin confirmation obtenue
+                            }
+                        }
+                    ]
+                });
+                //fin demande confirmation
 
-                    }
-                },
-                {
-                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
-                        //confirmation refusée
-                        $noty.close();
 
-                    }
-                }
-            ]
+            } else {
+
+                $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                let validator = formulaire.validate();
+
+                $.each(validator.errorMap, function (index, value) {
+
+                    console.log('Id: ' + index + ' Message: ' + value);
+
+                });
+
+                notifyWarning('Veuillez renseigner tous les champs obligatoires');
+
+                btn_save_reglement.removeAttr('disabled');
+
+            }
+
+
         });
-        //fin demande confirmation
 
-
-    } else {
-
-        $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
-
-        let validator = formulaire.validate();
-
-        $.each(validator.errorMap, function (index, value) {
-
-            console.log('Id: ' + index + ' Message: ' + value);
-
-        });
-
-        notifyWarning('Veuillez renseigner correctement le forumulaire');
-    }
+    });
 
 });
 
+function calculer_montant_total_a_regler() {
 
+    let montant_total_a_regler = 0;
 
+    $('.montant_a_regler').each(function (element) {
 
-//Récupération des polices
-function chargementPoliceCommercialTable(commercialId) {
-    $("#table_polices_commercial tbody").empty();
-    $("#total_ht").text("");
-    $("#total_ttc").text("");
-    $("#btn_save_portefeuille_commercial").prop("disabled", true);
+        let montant_a_regler = parseFloat($(this).val().replaceAll(' ', ''));
+        let solde_quittance = $(this).closest('tr').find('.solde_quittance').val();
+        let solde_apres = solde_quittance;//init
 
-    $('#message-error').text('').hide();
-    $('#message-warning').text('').hide();
+        if (montant_a_regler > 0 && montant_a_regler <= solde_quittance) {
 
-    if (!commercialId) {
-        $("#polices_commercial").hide();
-        return;
+            console.log(montant_a_regler + ' réglé sur ' + solde_quittance);
+            montant_total_a_regler = montant_total_a_regler + montant_a_regler;
+
+            solde_apres = solde_quittance - montant_a_regler;
+
+            //console.log(montant_total_a_regler);
+
+        } else {
+            solde_apres = solde_quittance;
+            $(this).val('0');
+        }
+
+        $(this).closest('tr').find('.solde_apres').val(solde_apres);
+
+    });
+
+    $('.montant_courtier_regle').each(function (element) {
+
+        let montant_courtier_regle = parseFloat($(this).val().replaceAll(' ', ''));
+        let solde_cout_police_courtier = $(this).closest('tr').find('.montant_cout_police_courtier').val();
+        let solde_courtier_regle_apres = solde_cout_police_courtier;//init
+
+        if (montant_courtier_regle > 0 && montant_courtier_regle <= solde_cout_police_courtier) {
+
+            console.log(montant_courtier_regle + ' réglé sur ' + solde_cout_police_courtier);
+            montant_total_a_regler = montant_total_a_regler + montant_courtier_regle;
+
+            solde_courtier_regle_apres = solde_cout_police_courtier - montant_courtier_regle;
+
+            //console.log(montant_total_a_regler);
+
+        } else {
+            solde_courtier_regle_apres = solde_cout_police_courtier;
+            $(this).val('0');
+        }
+
+        $(this).closest('tr').find('.solde_courtier_regle_apres').val(solde_courtier_regle_apres);
+
+    });
+
+    $('.montant_total_a_regler').val(montant_total_a_regler);
+
+    if (montant_total_a_regler > 0) {
+        $('#btn_save_reglement').removeAttr('disabled');
+    } else {
+        $('#btn_save_reglement').attr('disabled', 'true');
     }
 
-    $.ajax({
-        url: "/analysecontrole/get_client_by_commercial/",
-        type: "GET",
-        data: { comercial_id: commercialId },
-        success: function (data) {
-            if (data && data.polices_par_commercial) {
-                $("#polices_commercial").show();
-                $("#table_polices_commercial tbody").empty();
-
-                let total_ht = 0;
-                let total_ttc = 0;
-
-                for (const [commercial, polices] of Object.entries(data.polices_par_commercial)) {
-                    let commercialHeader = `<tr><td colspan="8" class="fw-bold text-primary">${commercial}</td></tr>`;
-                    $("#table_polices_commercial tbody").append(commercialHeader);
-
-                    polices.forEach(police => {
-                        total_ht += parseFloat(police.prime_ht.replace(/\s/g, '').replace(',', '.')) || 0;
-                        total_ttc += parseFloat(police.prime_ttc.replace(/\s/g, '').replace(',', '.')) || 0;
-
-                        let badgeClass = police.statut.includes("A renouveler") ? "badge-warning" :
-                                         police.statut.includes("NON renouvelé") ? "badge-danger" :
-                                         police.statut.includes("Résilié") ? "badge-yellow" :
-                                         "badge-success";
-
-                        let row = `
-                            <tr>
-                                <td>${police.nom} ${police.prenoms}</td>
-                                <td>${police.numero}</td>
-                                <td>${police.date_fin_effet}</td>
-                                <td><span class="badge ${badgeClass}">${police.statut}</span></td>
-                                <td>${police.date_creation}</td>
-                                <td>${police.date_resiliation}</td>
-                                <td>${police.prime_ht}</td>
-                                <td>${police.prime_ttc}</td>
-                            </tr>
-                        `;
-                        $("#table_polices_commercial tbody").append(row);
-                    });
-                }
-
-                $("#total_ht").text(total_ht.toLocaleString("fr-FR"));
-                $("#total_ttc").text(total_ttc.toLocaleString("fr-FR"));
-                $("#btn_save_portefeuille_commercial").prop("disabled", false);
-            }
-        }
-    });
 }
 
-$("#commercial").change(function () {
-    let commercialId = $(this).find(":selected").data("comercial_id");
+//********* FIN FAIRE UN REGLEMENT ***********//
 
-    if (commercialId) {
-        chargementPoliceCommercialTable(commercialId);
-    } else {
-        $("#polices_commercial").hide(); // Masquer le bloc si aucun compercial n'est sélectionnée
-    }
-});
+
+
+

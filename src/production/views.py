@@ -36,6 +36,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from django.utils.safestring import mark_safe
 
 import openpyxl
 import pandas as pd
@@ -50,7 +51,7 @@ from django.core.files.base import File
 from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Sum, Q, ExpressionWrapper, F, DurationField, Max
+from django.db.models import Sum, Q, ExpressionWrapper, F, DurationField, Max, Case, When, Value
 from django.forms import model_to_dict
 from django.http import JsonResponse, HttpResponse, FileResponse
 from django.shortcuts import redirect, render, get_object_or_404
@@ -81,7 +82,7 @@ from django.db import transaction
 from configurations.models import Compagnie, MarqueVehicule, Pays, Civilite, QualiteBeneficiaire, Profession, \
     Produit, Formule, GarantieBranche, GarantieFormule, ConditionsAssurance, MoyensTransport, \
     Territorialite, ModeCalcul, Duree, TicketModerateur, TypeCarosserie, User, Fractionnement, ModeReglement, \
-    Regularisation, Bureau, BusinessUnit, TypeCompagnie, Groupe, \
+    Regularisation, Bureau, BusinessUnit, TypeCompagnie, Groupe, PosteDommage, TypeSinistre, TypeIntervenant, Responsabilite, Circonstance, \
     Devise, Taxe, BureauTaxe, Apporteur, BaseCalcul, TypeQuittance, NatureQuittance, TypeClient, TypePersonne, Langue, \
     Branche, ParamProduitCompagnie, CategorieVehicule, Banque, Carburant, Usage, Carosserie, \
     NatureOperation, TypeTarif, Prestataire, Acte, Rubrique, ReseauSoin, Periodicite, PrescripteurPrestataire, \
@@ -100,7 +101,7 @@ from production.models import FormuleRubriquePrefinance, ModePrefinancement, Mot
     OperationReglement, HistoriquePolice, HistoriqueApporteurPolice, HistoriqueTaxePolice, Marchandise, HistoriqueAliment, \
     HistoriquePoliceGarantie
 from production.templatetags.my_filters import money_field, convertir_date_multiformat, supprimer_espaces, convertir_date_jj_mm_aaaa, format_montant, money_format_mille, \
-    rendre_html
+    rendre_html, arrondis_nombre
 from shared.enum import StatutIncorporation, StatutValidite, StatutSinistre, StatutEnrolement, StatutTraitement, \
     StatutReversementCompagnie, StatutValiditeQuittance, Confidentialite
 from shared.helpers import generer_qrcode_carte, generate_numero_famille, generate_numero_carte, render_pdf, \
@@ -742,6 +743,7 @@ def add_police(request, client_id):
             garantie_reponse = request.POST.get('garantie')
             date_debut_effet = request.POST.get('date_debut_effet')
             date_fin_effet = request.POST.get('date_fin_effet')
+            date_fin_police = request.POST.get('date_fin_police')
             preavis_de_resiliation = request.POST.get('preavis_de_resiliation')
             mode_renouvellement = request.POST.get('mode_renouvellement')
             fractionnement_id = request.POST.get('fractionnement')
@@ -835,8 +837,9 @@ def add_police(request, client_id):
                 production_id=production_id,
                 numero=numero,
                 date_souscription=datetime.now(),
-                date_debut_effet=date_debut_effet,
+                date_debut_effet=date_debut_effet if date_debut_effet else None,
                 date_fin_effet=date_fin_effet if date_fin_effet else None,
+                date_fin_police=date_fin_police if date_fin_police else None,
                 preavis_de_resiliation=preavis_de_resiliation,
                 date_prochaine_facture=date_prochaine_facture if date_prochaine_facture else None,
                 participation=participation,
@@ -911,12 +914,13 @@ def add_police(request, client_id):
                 produit_id=produit.id,
                 commercial_id=commercial_id,
                 gestionnaire_id=gestionnaire_id,
-                numero=numero,
+                numero=police.numero,
                 apporteur=apporteur,
                 garantie=garantie_reponse,
                 date_souscription=datetime.now(),
-                date_debut_effet=date_debut_effet,
+                date_debut_effet=police.date_debut_effet,
                 date_fin_effet=date_fin_effet if date_fin_effet else None,
+                date_fin_police=date_fin_police if date_fin_police else None,
                 preavis_de_resiliation=preavis_de_resiliation,
                 mode_renouvellement=mode_renouvellement,
                 fractionnement_id=fractionnement_id,
@@ -1329,7 +1333,6 @@ def modifier_police(request, police_id):
         if police_produit_id:
             produit = Produit.objects.filter(id=police_produit_id).first()
 
-        print('produit : ', produit)
         compagnie = Compagnie.objects.get(id=request.POST.get('compagnie'))
         typecompagnie_prin = TypeCompagnie.objects.get(id=1)
         typecompagnie = request.POST.get('typecompagnie')
@@ -1343,6 +1346,7 @@ def modifier_police(request, police_id):
         garantie_reponse = request.POST.get('garantie')
         date_debut_effet = request.POST.get('date_debut_effet')
         date_fin_effet = request.POST.get('date_fin_effet')
+        date_fin_police = request.POST.get('date_fin_police')
         preavis_de_resiliation = request.POST.get('preavis_de_resiliation')
         mode_renouvellement = request.POST.get('mode_renouvellement')
         fractionnement_id = request.POST.get('fractionnement')
@@ -1357,9 +1361,9 @@ def modifier_police(request, police_id):
         prime_ttc = request.POST.get('prime_ttc').replace(' ', '')
         if prime_ttc == "": prime_ttc = 0
         taxe = request.POST.get('taxe').replace(' ', '')
-        if taxe == "": taxe = 0
+        #if taxe == "": taxe = 0
         autres_taxes = request.POST.get('autres_taxes').replace(' ', '')
-        if autres_taxes == "": autres_taxes = 0
+        #if autres_taxes == "": autres_taxes = 0
         taux_com_courtage = request.POST.get('taux_com_courtage').replace(' ', '')
         if taux_com_courtage == "": taux_com_courtage = 0
         taux_com_courtage_terme = request.POST.get('taux_com_courtage_terme').replace(' ', '')
@@ -1461,11 +1465,6 @@ def modifier_police(request, police_id):
             i = 0
             for apporteur_id in intermediaires:
 
-                print("apporteur_id :", apporteur_id)
-                print("base_calcul_taux_retrocession :", base_calcul_taux_retrocession)
-                print("taux_com_affaire_nouvelle ", taux_com_affaire_nouvelle)
-                print("taux_com_renouvelement ", taux_com_renouvelement)
-
                 apporteur_id = int('0' + apporteur_id)
 
                 taux_retro_str = base_calcul_taux_retrocession[i].strip()
@@ -1514,14 +1513,6 @@ def modifier_police(request, police_id):
 
         # Historique taxe police
         taxes_old = TaxePolice.objects.filter(police_id=police_id)
-        for taxe in taxes_old:
-            HistoriqueTaxePolice.objects.create(
-                montant=taxe.montant,
-                taxe=taxe.taxe,
-                historique_police_id=dernier_historique.id,
-                created_at=taxe.created_at,
-                updated_at=taxe.updated_at,
-            )
 
         # enregistrer les autres taxes
         taxes = request.POST.get('liste_autres_taxes_modification')
@@ -1719,6 +1710,8 @@ def modifier_police(request, police_id):
                                         updated_by_id=request.user.id,
                                     ).save()
 
+        print('autres_taxes ', autres_taxes)
+
         # Créer l'historique avant la mise à jour
         histtorique_police = HistoriquePolice.objects.create(
             police=police_old,
@@ -1736,6 +1729,7 @@ def modifier_police(request, police_id):
             date_souscription=date_debut_effet if date_debut_effet else None,
             date_debut_effet=date_debut_effet if date_debut_effet else None,
             date_fin_effet=date_fin_effet if date_fin_effet else None,
+            date_fin_police=date_fin_police if date_fin_police else None,
             preavis_de_resiliation=preavis_de_resiliation,
             mode_renouvellement=mode_renouvellement,
             fractionnement_id=fractionnement_id,
@@ -1772,6 +1766,9 @@ def modifier_police(request, police_id):
             numero=numero,
             date_souscription=datetime.now(),
             preavis_de_resiliation=preavis_de_resiliation,
+            date_debut_effet=date_debut_effet if date_debut_effet else None,
+            date_fin_effet=date_fin_effet if date_fin_effet else None,
+            date_fin_police=date_fin_police if date_fin_police else None,
             date_prochaine_facture=date_prochaine_facture if date_prochaine_facture else None,
             participation=participation,
             taux_participation=taux_participation,
@@ -3293,40 +3290,38 @@ class DetailsPoliceView(TemplateView):
 
             dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
 
-            # duree_police = dernier_historique.date_fin_effet - dernier_historique.date_debut_effet
-            # duree_police_en_jours = duree_police.days
-
             duree = 0
-            if dernier_historique.date_debut_effet and dernier_historique.date_fin_effet:
-
-                # Calculer la différence en mois
-                '''duree_police_en_mois = (dernier_historique.date_fin_effet.year - dernier_historique.date_debut_effet.year) * 12 + (
-                        dernier_historique.date_fin_effet.month - dernier_historique.date_debut_effet.month)
-
-                duree = str(duree_police_en_mois) + ' mois'
-
-                if duree_police_en_mois == 0:
-                    duree = str((dernier_historique.date_fin_effet - dernier_historique.date_debut_effet).days) + ' jours'
-                '''
+            if dernier_historique.date_debut_effet:
 
                 #nouveau
-                duree_police_en_mois = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').annotate(
-                    duree_police_en_mois=ExpressionWrapper(
-                        F('date_fin_effet') - F('date_debut_effet'),
-                        output_field=DurationField()
+                duree_police_data = (
+                    HistoriquePolice.objects.filter(police_id=police.id)
+                    .order_by('-date_du_jour')
+                    .annotate(
+                        duree_police_en_mois=ExpressionWrapper(
+                            Case(
+                                When(date_fin_effet__isnull=False, then=F('date_fin_effet') - F('date_debut_effet')),
+                                When(date_fin_police__isnull=False, then=F('date_fin_police') - F('date_debut_effet')),
+                            ),
+                            output_field=DurationField()  # ✅ Assure que la sortie est bien une durée
+                        )
                     )
-                ).values('id', 'duree_police_en_mois').first()['duree_police_en_mois']
+                    .values('id', 'duree_police_en_mois')
+                    .first()
+                )
 
+                # Vérifier si une durée a été trouvée
+                duree_police_en_mois = duree_police_data['duree_police_en_mois'] if duree_police_data else None
 
-                nombre_total_mois = duree_police_en_mois.days // 30
+                # Calcul de la durée en mois uniquement si une durée est définie
+                if duree_police_en_mois:
+                    nombre_total_mois = duree_police_en_mois.days // 30
+                    duree = f"{nombre_total_mois} mois"
+                else:
+                    duree = "Indéfini"
 
-                duree = f"{nombre_total_mois} {'mois'}"
+                print('Durée de la police :', duree)
 
-
-            # etat police = dernier motif
-            etat_police = "" #MouvementPolice.objects.filter(police_id=police_id).order_by('-id')[:1].get().motif.libelle
-
-            #mouvement_police = MouvementPolice.objects.filter(police_id=police_id).order_by('-id')[:1].get()
             mouvement_police = MouvementPolice.objects.filter(police_id=police_id, statut_validite=StatutValidite.VALIDE).order_by('-id').first()
 
             apporteurs_police = ApporteurPolice.objects.filter(police_id=police_id, statut_validite=StatutValidite.VALIDE)
@@ -3334,8 +3329,7 @@ class DetailsPoliceView(TemplateView):
             assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id, type_compagnie_id=1).first()
             autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id).exclude(type_compagnie_id=1).first()
 
-            print("dernière historisation : ", dernier_historique)
-            context_perso = {'police': police, 'etat_police': etat_police, 'duree_police': duree,
+            context_perso = {'police': police, 'duree_police': duree,
                              'mouvement_police': mouvement_police, 'dernier_historique': dernier_historique, 'assureur_police': assureur_police, 'autre_assureur_police': autre_assureur_police,
                              'apporteurs_police': apporteurs_police, 'reseaux_soins': reseaux_soins, }
             context = {**context_original, **context_perso}
@@ -3362,17 +3356,19 @@ class DetailsHistoriquePoliceView(TemplateView):
     def get(self, request, *args, **kwargs):
         context_original = self.get_context_data(**kwargs)
 
-        hist_police_id = kwargs['police_id']
+        police_id = kwargs['police_id']
+        hist_police_id = kwargs['historique_police_id']
         hist_polices = HistoriquePolice.objects.filter(id=hist_police_id)
+        detail_police = Police.objects.filter(id=police_id)
+
         if hist_polices:
             hist_police = hist_polices.first()
-            #dd(police)
+            police = detail_police.first()
+
             reseaux_soins = ReseauSoin.objects.filter(bureau=hist_police.bureau)
 
-            # duree_police = police.date_fin_effet - police.date_debut_effet
-            # duree_police_en_jours = duree_police.days
-
-            if hist_police.date_debut_effet and hist_police.date_fin_effet:
+            duree = 0
+            if hist_police.date_debut_effet:
 
                 # Calculer la différence en mois
                 '''duree_police_en_mois = (police.date_fin_effet.year - police.date_debut_effet.year) * 12 + (
@@ -3385,29 +3381,44 @@ class DetailsHistoriquePoliceView(TemplateView):
                 '''
 
                 #nouveau
-                duree_police_en_mois = HistoriquePolice.objects.filter(id=hist_police.id).annotate(
-                    duree_police_en_mois=ExpressionWrapper(
-                        F('date_fin_effet') - F('date_debut_effet'),
-                        output_field=DurationField()
+                duree_police_data = (
+                    HistoriquePolice.objects.filter(id=hist_police_id)
+                    .annotate(
+                        duree_police_en_mois=ExpressionWrapper(
+                            Case(
+                                When(date_fin_effet__isnull=False, then=F('date_fin_effet') - F('date_debut_effet')),
+                                When(date_fin_police__isnull=False, then=F('date_fin_police') - F('date_debut_effet')),
+                            ),
+                            output_field=DurationField()  # ✅ Assure que la sortie est bien une durée
+                        )
                     )
-                ).values('id', 'duree_police_en_mois').first()['duree_police_en_mois']
+                    .values('id', 'duree_police_en_mois')
+                    .first()
+                )
+
+                # Vérifier si une durée a été trouvée
+                duree_police_en_mois = duree_police_data['duree_police_en_mois'] if duree_police_data else None
+
+                # Calcul de la durée en mois uniquement si une durée est définie
+                if duree_police_en_mois:
+                    nombre_total_mois = duree_police_en_mois.days // 30
+                    duree = f"{nombre_total_mois} mois"
+                else:
+                    duree = "Indéfini"  # Gérer le cas où il n'y a pas de durée valide
+
+                print('Durée de la police :', duree)
 
 
-                nombre_total_mois = duree_police_en_mois.days // 30
-
-                duree = f"{nombre_total_mois} {'mois'}"
-
-
-            # etat police = dernier motif
-            etat_police = "" #MouvementPolice.objects.filter(police_id=police_id).order_by('-id')[:1].get().motif.libelle
-
-            #mouvement_police = MouvementPolice.objects.filter(police_id=police_id).order_by('-id')[:1].get()
+            etat_police = ""
             hist_mouvement_police = MouvementPolice.objects.filter(historique_police_id=hist_police_id, statut_validite=StatutValidite.VALIDE).order_by('-id').first()
 
             hist_apporteurs_police = HistoriqueApporteurPolice.objects.filter(historique_police_id=hist_police_id)
 
-            context_perso = {'police': hist_police, 'etat_police': etat_police, 'duree_police': duree,
-                             'mouvement_police': hist_mouvement_police,
+            assureur_police = PoliceAssureur.objects.filter(historique_police_id=hist_police_id, type_compagnie_id=1).first()
+            autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=hist_police_id).exclude(type_compagnie_id=1).first()
+
+            context_perso = {'police': police, 'historiquepolice': hist_police, 'etat_police': etat_police, 'duree_police': duree,
+                             'mouvement_police': hist_mouvement_police, 'assureur_police': assureur_police, 'autre_assureur_police': autre_assureur_police,
                              'apporteurs_police': hist_apporteurs_police, 'reseaux_soins': reseaux_soins, }
             context = {**context_original, **context_perso}
 
@@ -3614,6 +3625,7 @@ def add_quittance(request, police_id):
                                             taxe=taxe,
                                             autres_taxes=autres_taxes,
                                             prime_ttc=prime_ttc,
+                                            montant_cout_police_courtier_regle=0,
                                             montant_regle=0,
                                             solde=solde,
                                             #taux_euro=get_taux_euro_by_devise(devise.code) if devise else None,
@@ -3810,16 +3822,27 @@ def add_reglement(request, police_id):
 
                     if montant_regle > 0 and quittance is not None:
 
+                        cout_police_courtier = quittance.cout_police_courtier
+                        # Calcul du montant courtier à payer sur le règlement
+                        montant_police_courtier = arrondis_nombre((cout_police_courtier * montant_regle) / quittance.solde)
+
+                        print('Coût courtier restant : ',cout_police_courtier)
+
                         # Caclculer le pourcentage des coms qui se trouvent sur la quittance pour déterminer les montants des coms sur les règlements
 
-                        tx_com_courtage = (quittance.commission_courtage * 100) / quittance.prime_ttc
+                        tx_com_courtage = (67500 * 100) / quittance.prime_ttc
                         tx_com_intermediaire = (quittance.commission_intermediaires * 100) / quittance.prime_ttc
 
-                        montant_com_courtage = (tx_com_courtage / 100) * montant_regle
-                        montant_com_intermediaire = (tx_com_intermediaire / 100) * montant_regle
-                        montant_compagnie = montant_regle - montant_com_courtage
+                        montant_com_courtage = arrondis_nombre((tx_com_courtage / 100) * montant_regle)
+                        montant_com_intermediaire = arrondis_nombre((tx_com_intermediaire / 100) * montant_regle)
+                        montant_compagnie = arrondis_nombre(montant_regle - (montant_com_courtage + montant_police_courtier))
 
-                        pprint('tx_com_courtage' + str(tx_com_courtage) + 'montant_com_courtage' + str(montant_com_courtage))
+                        print('tx_com_courtage : ', tx_com_courtage)
+                        print('tx_com_intermediaire : ', tx_com_intermediaire)
+                        print('montant_com_courtage : ', montant_com_courtage)
+                        print('montant_com_intermediaire : ', montant_com_intermediaire)
+                        print('montant_compagnie : ', montant_compagnie)
+                        print('montant_police_courtier : ', montant_police_courtier)
 
                         reglement = Reglement.objects.create(quittance_id=quittance_regle_id,
                                                              montant=montant_regle,
@@ -3832,6 +3855,7 @@ def add_reglement(request, police_id):
                                                              numero_piece=numero_piece,
                                                              montant_com_courtage=montant_com_courtage,
                                                              montant_com_intermediaire=montant_com_intermediaire,
+                                                             montant_police_courtier=montant_police_courtier,
                                                              mode_reglement_id=mode_reglement,
                                                              date_paiement=date_paiement,
                                                              created_by=request.user,
@@ -3842,6 +3866,8 @@ def add_reglement(request, police_id):
                         reglement.save()
 
                         # mise à jour du solde de la quittance
+                        quittance.montant_cout_police_courtier_regle = quittance.montant_cout_police_courtier_regle + montant_police_courtier
+                        quittance.cout_police_courtier = quittance.cout_police_courtier - montant_police_courtier
                         quittance.montant_regle = quittance.montant_regle + montant_regle
                         quittance.solde = quittance.solde - montant_regle
                         if quittance.solde == 0: quittance.statut = StatutQuittance.PAYE
@@ -3901,7 +3927,6 @@ def imprimer_recu_reglement(request, quittance_id, reglement_id):
     reglement = Reglement.objects.get(id=reglement_id)
     police = quittance.police
 
-    print('client : ', police.client.nom, police.client.prenoms)
     # Récupérer le dernier historique de la police
     dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
 
@@ -3915,6 +3940,8 @@ def imprimer_recu_reglement(request, quittance_id, reglement_id):
 
     # Charger le document Word
     document = WordDocument(doc_path)
+
+    user = request.user
 
     # Définir les remplacements de base
     base_replacements = {
@@ -3940,7 +3967,7 @@ def imprimer_recu_reglement(request, quittance_id, reglement_id):
         '$QUITTANCE_PRIMETOTALE': f"{num2words(reglement.montant, lang='fr').capitalize()} {reglement.quittance.police.client.pays.devise.code}",
         'QUITTANCE_PRIMETOTALE$$': f"{format_montant(reglement.montant)} {reglement.quittance.police.client.pays.devise.code}",
         'PAIEMENT_LIBELLE_MODEREG': reglement.mode_reglement.libelle if reglement.mode_reglement else '',
-        'PAIEMENT_BANQUE_CLIENT': reglement.banque.libelle if reglement.banque else '',
+        'PAIEMENT_BANQUE_CLIENT': reglement.banque_emettrice if reglement.banque_emettrice else '',
         'PAIEMENT_NUMERO_CHEQUE': reglement.compte_tresorerie.code if reglement.compte_tresorerie else '',
         'POLICE_NUMÉRO': reglement.quittance.police.numero,
         'POLICE_NOMPRODUIT': reglement.quittance.police.produit.nom,
@@ -4032,10 +4059,9 @@ def imprimer_recu_reglement(request, quittance_id, reglement_id):
         return response
 
     # Remplacement du logo
-    if reglement.quittance.police.client.logo and hasattr(reglement.quittance.police.client.logo,
-                                                          'path') and os.path.isfile(
-            reglement.quittance.police.client.logo.path):
-        logo_path = reglement.quittance.police.client.logo.path
+    if user.bureau.logo and hasattr(user.bureau.logo, 'path') and os.path.isfile(
+            user.bureau.logo.path):
+        logo_path = user.bureau.logo.path
         replace_logo_in_document(document, logo_path)
     else:
         # Fonction pour remplacer le texte tout en conservant le format
@@ -4171,7 +4197,7 @@ def add_lettrage(request, police_id):
                         tx_com_intermediaire = (quittance_existe.commission_intermediaires * 100) / quittance_existe.prime_ttc
                         montant_com_courtage = (tx_com_courtage / 100) * quittance_existe.montant_regle
                         montant_com_intermediaire = (tx_com_intermediaire / 100) * quittance_existe.montant_regle
-                        montant_compagnie = quittance_existe.montant_regle - montant_com_courtage
+                        montant_compagnie = quittance_existe.montant_regle - (montant_com_courtage + quittance_existe.cout_police_courtier)
 
                         # Création de la ligne de règlement
                         reglement = Reglement.objects.create(quittance_id=quittance_existe.id,
@@ -4288,9 +4314,6 @@ class PoliceAvenantsView(TemplateView):
 
             # etat police = dernier motif
             etat_police = police.etat_police
-
-            pprint("(((((( ETAT POLICE )))))")
-            pprint(etat_police)
 
             if etat_police != "Suspendu":
                 # Retirer mise en vigueur (REMVIG) sauf cas de suspention
@@ -4458,8 +4481,42 @@ class PoliceSinistresView(TemplateView):
             # Récupération de client
             client = Client.objects.filter(id=police.client_id).first()
 
-            context_perso = {'police': police, 'client': client, 'etat_police': etat_police, 'dossiers_sinistres': None,
-                             'sinistres': None, 'prestataires': prestataires}
+            # Récupérer le dernier historique
+            dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+            # Récupérer les assureurs associés à l'historique
+            assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id, type_compagnie_id=1).first() if dernier_historique else []
+            today = datetime.now(tz=timezone.utc)
+
+            postedommages = PosteDommage.objects.filter(statut=1).order_by('libelle')
+            mouvements = Mouvement.objects.filter(type_mouvement_id=2).order_by('libelle')
+            typesinistres = TypeSinistre.objects.filter(statut=1).order_by('libelle')
+            typeintervenants = TypeIntervenant.objects.filter(statut=1).order_by('libelle')
+            typedocuments = TypeDocument.objects.filter(is_sinistre=1).order_by('libelle')
+            responsabilites = Responsabilite.objects.filter(statut=1).order_by('libelle')
+            circonstances = Circonstance.objects.filter(statut=1).order_by('libelle')
+
+            aliments = AlimentPolice.objects.filter(police_id=police.id)
+
+            context_perso = {
+                'police': police,
+                'client': client,
+                'etat_police': etat_police,
+                'dossiers_sinistres': None,
+                'sinistres': None,
+                'dernier_historique': dernier_historique,
+                'assureur_police': assureur_police,
+                'today': today,
+                'postedommages': postedommages,
+                'mouvements': mouvements,
+                'typesinistres': typesinistres,
+                'typeintervenants': typeintervenants,
+                'typedocuments': typedocuments,
+                'responsabilites': responsabilites,
+                'circonstances': circonstances,
+                'aliments': aliments,
+                'prestataires': prestataires
+            }
 
             context = {**context_original, **context_perso}
 
@@ -8331,12 +8388,16 @@ def clients_datatable(request):
 
     user = request.user
 
+    queryset = Client.objects.filter(statut=Statut.ACTIF, bureau_id=user.bureau_id)
+
+    """
     if user.is_commercial:
         queryset = Client.objects.filter(statut=Statut.ACTIF, bureau_id=user.bureau_id, commercial_id=user.id)
     elif user.is_production:
         queryset = Client.objects.filter(statut=Statut.ACTIF, bureau_id=user.bureau_id)
     else:
         queryset = Client.objects.none()
+    """
 
     if search_nom:
         queryset = queryset.filter(
@@ -8422,9 +8483,11 @@ def add_client(request):
         if date_naissance:
             date_naissance = datetime.strptime(date_naissance, '%Y-%m-%d').date()
         else:
-            date_naissance = None
-
-        print("Commercial ID : ", request.POST.get('commercial'))
+            date_creation = request.POST.get('date_creation')
+            if date_creation:
+                date_naissance = datetime.strptime(date_creation, '%Y-%m-%d').date()
+            else:
+                date_naissance = None
 
         client_created = Client.objects.create(bureau_id=67,
                                        nom=request.POST.get('nom'),
@@ -8500,13 +8563,15 @@ def modifier_client(request, client_id):
     if request.method == 'POST':
         user = User.objects.get(id=request.user.id)
 
-        date_naissance = request.POST.get('date_naissance', None)
+        date_naissance = request.POST.get('date_naissance')
         if date_naissance:
             date_naissance = datetime.strptime(date_naissance, '%Y-%m-%d').date()
         else:
-            date_naissance = None
-
-        print('commercial_id : ', request.POST.get('commercial_id'))
+            date_creation = request.POST.get('date_creation')
+            if date_creation:
+                date_naissance = datetime.strptime(date_creation, '%Y-%m-%d').date()
+            else:
+                date_naissance = None
 
         Client.objects.filter(id=client_id).update(nom=request.POST.get('nom'),
                                                    prenoms=request.POST.get('prenoms'),
@@ -8736,7 +8801,7 @@ class PoliceClientView(TemplateView):
             for user in utilisateur:
                 if user.is_production:
                     productions.append(user)
-
+            print('commercial id ', client.commercial_id)
             context_perso = {'client': client, 'contacts': contacts, 'polices': polices, 'quittances': quittances,
                              'acomptes': acomptes, 'typecompagnie': typecompagnie,
                              'filiales': filiales, 'documents': documents, 'types_documents': types_documents,
@@ -9321,7 +9386,7 @@ class GEDClientView(TemplateView):
 
             statut_contrat = "CONTRAT"
 
-            typedocuments = TypeDocument.objects.filter(is_sinistre=0, is_police_quittante_clt=0)
+            typedocuments = TypeDocument.objects.filter(is_sinistre=0, is_production=1)
 
             documents = Document.objects.filter(client_id=client_id)
 
@@ -11430,12 +11495,16 @@ def polices_en_cours_datatable(request):
     in_90_days = today + timedelta(days=90)
 
     user = request.user
+    queryset = Police.objects.filter(Q(date_fin_effet__gt=today) | Q(date_fin_police__gt=today))
+
+    """
     if user.is_commercial:
         queryset = Police.objects.filter(date_fin_effet__gt=today, commercial_id=user.id)
     elif user.is_production:
         queryset = Police.objects.filter(date_fin_effet__gt=today)
     else:
         queryset = Police.objects.none
+    """
 
     if search_client:
         queryset = queryset.filter(
@@ -11550,12 +11619,19 @@ def polices_arrivant_echeance_datatable(request):
     in_90_days = today + timedelta(days=90)
 
     user = request.user
+    queryset = Police.objects.filter(
+        (Q(date_fin_effet__lte=in_90_days) & Q(date_fin_effet__gt=today)) |
+        (Q(date_fin_police__lte=in_90_days) & Q(date_fin_police__gt=today))
+    )
+
+    """
     if user.is_commercial:
         queryset = Police.objects.filter(date_fin_effet__lte=in_90_days, date_fin_effet__gt=today, commercial_id=user.id)
     elif user.is_production:
         queryset = Police.objects.filter(date_fin_effet__lte=in_90_days, date_fin_effet__gt=today)
     else:
         queryset = Police.objects.none
+    """
 
     if search_client:
         queryset = queryset.filter(
@@ -11666,12 +11742,16 @@ def polices_non_renouvellees_resiliees_datatable(request):
     in_90_days = today + timedelta(days=90)
 
     user = request.user
+    queryset = Police.objects.filter(Q(date_fin_effet__lt=today) | Q(date_fin_police__lt=today))
+
+    """
     if user.is_commercial:
-        queryset = Police.objects.filter(date_fin_effet__lt=today, commercial_id=user.id)
+        queryset = Police.objects.filter(Q(date_fin_effet__lt=today) | Q(date_fin_police__lt=today) , commercial_id=user.id)
     elif user.is_production:
         queryset = Police.objects.filter(date_fin_effet__lt=today)
     else:
         queryset = Police.objects.none
+    """
 
     if search_client:
         queryset = queryset.filter(

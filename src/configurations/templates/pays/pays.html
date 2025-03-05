@@ -44,21 +44,27 @@
                         </tr>
                       </thead>
                       <tbody>
-                      {% for p in pays %}
-                        <tr>
-                             <td class="d-none"></td>
-                             <td>{{ p.nom|default_if_none:"" }}</td>
-                             <td>{{ p.code|default_if_none:"" }}</td>
-                             <td>{{ p.indicatif|default_if_none:"" }}</td>
-                             <td>{{ p.poligamie|default_if_none:"" }}</td>
-                             <td>{{ p.devise.libelle|default_if_none:"" }}</td>
-                             <td>{{ p.created_at|date:"d/m/Y" }}</td>
-                             <td class="text-center">
-                                 <span style="cursor:pointer;" class="btn_modifier_pays badge btn-sm btn-modifier rounded-pill text-center" data-pays_id="{p.id}" data-model_name="pays" data-modal_title="MODIFICATION D'UN PAYS" data-href="{% url 'modifier_pays' p.id %}"><i class="fas fa-edit"></i> {{_('Modifier')}}</span>
-                                 <span class="badge badge-danger btn_supprimer_pays" data-pays_id="{{p.id}}" data-href="{% url 'supprimer_pays' p.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;
-                            </td>
-                        </tr>
-                      {% endfor %}
+                          {% for p in pays %}
+                            <tr>
+                                 <td class="d-none"></td>
+                                 <td>{{ p.nom|default_if_none:"" }}</td>
+                                 <td>{{ p.code|default_if_none:"" }}</td>
+                                 <td>{{ p.indicatif|default_if_none:"" }}</td>
+                                 <td>
+                                     {% if p.poligamie %}
+                                         <span class="badge badge-success">OUI</span>
+                                     {% else %}
+                                        <span class="badge badge-danger">NON</span>
+                                     {% endif %}
+                                 </td>
+                                 <td>{{ p.devise.libelle|default_if_none:"" }}</td>
+                                 <td>{{ p.created_at|date:"d/m/Y" }}</td>
+                                 <td class="text-center">
+                                     <span style="cursor:pointer;" class="btn_modifier_pays badge btn-sm btn-modifier rounded-pill text-center" data-pays_id="{p.id}" data-model_name="pays" data-modal_title="MODIFICATION D'UN PAYS" data-href="{% url 'modifier_pays' p.id %}"><i class="fas fa-edit"></i> {{_('Modifier')}}</span>
+                                     <span class="badge badge-danger btn_supprimer_pays" data-pays_id="{{p.id}}" data-href="{% url 'supprimer_pays' p.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;
+                                </td>
+                            </tr>
+                          {% endfor %}
                       </tbody>
                   </table>
               </div>

@@ -8,8 +8,9 @@ from .views import PrestatairesView, DetailsPrestatairesView, GroupePermissionsV
     DetailsReseauSoinView, WsBobyView, WsBobyCreateView, WsBobyEditeView, ActesView, ConnectedUsersView, BusinessUnitView, \
     BrancheView, BanquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView, ViewCourrier, CompagnieView, \
     CarosseriesView, CategorieVehiculeView, CiviliteView, CompteTresorerieView, ConditionsAssuranceView, DeviseView, CarburantView, \
-    FormuleView, FractionnementView, GarantieView, GarantieFormuleView, GroupeView, ModeReglementView, PaysView, SecteurActiviteView
-
+    FormuleView, FractionnementView, GarantieView, GarantieFormuleView, GroupeView, ModeReglementView, PaysView, SecteurActiviteView, \
+    TypeDocumentView, CirconstanceView, ResponsabiliteView, TypeIntervenantView, TypeMouvementView, TypeSinistreView, MouvementView, \
+    MotifView, PosteDommageView
 
 
 urlpatterns = [
@@ -21,7 +22,7 @@ urlpatterns = [
     path('recalculer_parts_sinistres_sucaf/', views.recalculer_parts_sinistres_sucaf, name='recalculer_parts_sinistres_sucaf'),
     path('corriger_param_produit_compagnie/', views.corriger_param_produit_compagnie, name='corriger_param_produit_compagnie'),
     path('update_matricule/', views.update_matricule, name='update_matricule'),
-
+    #
     #path('openai_complete/', openai_complete, name='openai_complete'),
     path('disponibilite_upd/', views.disponibilite_upd, name='disponibilite_upd'),
     path('set_bureau/', views.set_bureau, name='set_bureau'),
@@ -37,7 +38,7 @@ urlpatterns = [
     path('reseausoin/<int:reseau_soin_id>/joindre_prestataire_reseau/<int:prestataire_id>/', views.joindre_prestataire_reseau, name='joindre_prestataire_reseau'),
     path('reseausoin/<int:reseau_soin_id>/retirer_prestataire_reseau/<int:prestataire_id>/', views.retirer_prestataire_reseau, name='retirer_prestataire_reseau'),
     path('reseausoin/<int:reseau_soin_id>/prestataires_restants', views.reseau_soin_prestataires_restants_datatable, name='reseau_soin_prestataires_restants_datatable'),
-
+    #
     path('prestataire/', PrestatairesView.as_view(), name='prestataires'),
     path('prestataires_datatable/', views.prestataires_datatable, name='prestataires_datatable'),
     path('export_prestaitaires/', views.export_prestaitaires, name='export_prestaitaires'),
@@ -48,7 +49,6 @@ urlpatterns = [
     path('generate_modele_tarifs_bureau/', views.generate_modele_tarifs_bureau, name='generate_modele_tarifs_bureau'),
     path('import_tarifs_bureau/', views.import_tarifs_bureau, name='import_tarifs_bureau'),
     #
-
     path('affection/', affectionsView.as_view(), name='affections'),
     #
     path('apporteur/', ApporteurView.as_view(), name='apporteurs'),
@@ -69,6 +69,11 @@ urlpatterns = [
     path('categorievehicule/ajouter', views.add_categorievehicule, name='add_categorievehicule'),
     path('categorievehicule/<int:categorievehicule_id>/modifier', views.modifier_categorievehicule, name='modifier_categorievehicule'),
     path('categorievehicule/delete/<int:categorievehicule_id>/', views.supprimer_categorievehicule, name='supprimer_categorievehicule'),
+    #
+    path('circonstance/', CirconstanceView.as_view(), name='circonstance'),
+    path('circonstance/ajouter', views.add_circonstance, name='add_circonstance'),
+    path('circonstance/<int:circonstance_id>/modifier', views.modifier_circonstance, name='modifier_circonstance'),
+    path('circonstance/delete/<int:circonstance_id>/', views.supprimer_circonstance, name='supprimer_circonstance'),
     #
     path('civilite/', CiviliteView.as_view(), name='civilite'),
     path('civilite/ajouter', views.add_civilite, name='add_civilite'),
@@ -145,21 +150,61 @@ urlpatterns = [
     path('pays/<int:pays_id>/modifier', views.modifier_pays, name='modifier_pays'),
     path('pays/delete/<int:pays_id>/', views.supprimer_pays, name='supprimer_pays'),
     #
+    path('responsabilite/', ResponsabiliteView.as_view(), name='responsabilite'),
+    path('responsabilite/ajouter', views.add_responsabilite, name='add_responsabilite'),
+    path('responsabilite/<int:responsabilite_id>/modifier', views.modifier_responsabilite, name='modifier_responsabilite'),
+    path('responsabilite/delete/<int:responsabilite_id>/', views.supprimer_responsabilite, name='supprimer_responsabilite'),
+    #
     path('courriers/', ViewCourrier.as_view(), name='courrier'),
     path('courrier/add_courrier', views.add_courrier, name='add_courrier'),
     path('courrier/<int:courrier_id>/modifier_courrier', views.modifier_courrier, name='modifier_courrier'),
     path("courrier/delete", views.supprimer_courrier, name='supprimer_courrier'),
     #
-
     path('compagnie/', CompagnieView.as_view(), name='compagnie'),
     path('compagnie/add_compagnie', views.add_compagnie, name='add_compagnie'),
+    path('compagnie/<int:compagnie_id>/taux', views.taux_compagnie, name='taux_compagnie'),
     path('compagnie/<int:compagnie_id>/modifier', views.modifier_compagnie, name='modifier_compagnie'),
     path('compagnie/delete/<int:compagnie_id>/', views.supprimer_compagnie, name='supprimer_compagnie'),
+    #
+    path('typeintervenant/', TypeIntervenantView.as_view(), name='typeintervenant'),
+    path('typeintervenant/ajouter', views.add_typeintervenant, name='add_typeintervenant'),
+    path('typeintervenant/<int:type_intervenant_id>/modifier', views.modifier_typeintervenant, name='modifier_typeintervenant'),
+    path('typeintervenant/delete/<int:type_intervenant_id>/', views.supprimer_typeintervenant, name='supprimer_typeintervenant'),
+    #
+    path('typemouvement/', TypeMouvementView.as_view(), name='typemouvement'),
+    path('typemouvement/ajouter', views.add_typemouvement, name='add_typemouvement'),
+    path('typemouvement/<int:type_mouvement_id>/modifier', views.modifier_typemouvement, name='modifier_typemouvement'),
+    path('typemouvement/delete/<int:type_mouvement_id>/', views.supprimer_typemouvement, name='supprimer_typemouvement'),
+    #
+    path('typesinistre/', TypeSinistreView.as_view(), name='typesinistre'),
+    path('typesinistre/ajouter', views.add_typesinistre, name='add_typesinistre'),
+    path('typesinistre/<int:type_sinistre_id>/modifier', views.modifier_typesinistre, name='modifier_typesinistre'),
+    path('typesinistre/delete/<int:type_sinistre_id>/', views.supprimer_typesinistre, name='supprimer_typesinistre'),
     #
     path('secteuractivite/', SecteurActiviteView.as_view(), name='secteur_activite'),
     path('secteuractivite/ajouter', views.add_secteur_activite, name='add_secteur_activite'),
     path('secteur_activite/<int:secteur_activite_id>/modifier', views.modifier_secteur_activite, name='modifier_secteur_activite'),
     path('secteur_activite/delete/<int:secteur_activite_id>/', views.supprimer_secteur_activite, name='supprimer_secteur_activite'),
+    #
+    path('types_documents/', TypeDocumentView.as_view(), name='types_documents'),
+    path('types_documents/ajouter', views.add_types_documents, name='add_types_documents'),
+    path('types_documents/<int:type_document_id>/modifier', views.modifier_types_documents, name='modifier_types_documents'),
+    path('types_documents/delete/<int:type_document_id>/', views.supprimer_types_documents, name='supprimer_types_documents'),
+    #
+    path('mouvements/', MouvementView.as_view(), name='mouvements'),
+    path('mouvements/ajouter', views.add_mouvement, name='add_mouvement'),
+    path('mouvements/<int:mouvement_id>/modifier', views.modifier_mouvement, name='modifier_mouvement'),
+    path('mouvements/delete/<int:mouvement_id>/', views.supprimer_mouvement, name='supprimer_mouvement'),
+    #
+    path('motifs/', MotifView.as_view(), name='motifs'),
+    path('motifs/ajouter', views.add_motif, name='add_motif'),
+    path('motifs/<int:motif_id>/modifier', views.modifier_motif, name='modifier_motif'),
+    path('motifs/delete/<int:motif_id>/', views.supprimer_motif, name='supprimer_motif'),
+    #
+    path('postedommage/', PosteDommageView.as_view(), name='postedommage'),
+    path('postedommage/ajouter', views.add_postedommage, name='add_postedommage'),
+    path('postedommage/<int:postedommage_id>/modifier', views.modifier_postedommage, name='modifier_postedommage'),
+    path('postedommage/delete/<int:postedommage_id>/', views.supprimer_postedommage, name='supprimer_postedommage'),
     #
     path('acte/', ActesView.as_view(), name='acte'),
     path('actes_datatable/', views.actes_datatable, name='actes_datatable'),
@@ -168,7 +213,7 @@ urlpatterns = [
     #
     path('acte/<int:acte_id>/add_acte_tarif', views.add_acte_tarif, name='add_acte_tarif'),
     path('acte/<int:acte_id>/desactiver_tarif_acte/<int:tarif_id>', views.desactiver_tarif_acte, name='desactiver_tarif_acte'),
-   #
+    #
     path('update_acte/<int:acte_id>', views.update_acte, name='update_acte'),
     path('popup_modifier_acte/<int:acte_id>', views.popup_modifier_acte, name='popup_modifier_acte'),
     #
@@ -205,26 +250,24 @@ urlpatterns = [
     path('import_apporteur_veos_sans_contrat/', veos.import_apporteurs_manuellement_sans_contrat, name='import_apporteur_veos_sans_contrat'),
     path('updt_mvquittances/', veos.updt_mvquittances, name='updt_mvquittances'),
     path('import_periode_veos/', veos.import_periode_veos_manuellement, name='import_periode_veos'),
-
-
+    #
     path('generate_modele_tarifs_excel/<int:prestataire_id>', views.generate_modele_tarifs_excel, name='generate_modele_tarifs_excel'),
     path('import_tarif_pestataire/<int:prestataire_id>', views.import_tarif_pestataire, name='import_tarif_pestataire'),
     path('tarifs_prestataire_datatable/<int:prestataire_id>', views.tarifs_prestataire_datatable, name='tarifs_prestataire_datatable'),
     path('change_prestataire_status/<int:prestataire_id>', views.change_prestataire_status, name='change_prestataire_status'),
-
+    #
     path('ws_bobys/', WsBobyView.as_view(), name='ws_bobys'),
     path('ws_boby_datatable/', views.ws_boby_datatable, name='ws_boby_datatable'),
-
+    #
     path('ws_bobys/new/', WsBobyCreateView.as_view(), name='ws_boby_create'),
     path('ws_bobys/<int:ws_boby_id>/edite/', WsBobyEditeView.as_view(), name='ws_boby_edite'),
-    
+    #
     path('verify-code/', views.verify_code, name='verify_code'),
-
     #
     path('download-background-query-result/<int:query_id>', views.download_background_query_result, name='download_background_query_result'),
-
+    #
     path('connectedusers/', ConnectedUsersView.as_view(), name='connectedusers'),
     path('logoutuser/<int:user_id>', views.logout_user, name='logoutuser'),
-
+    #
     path('db-super-admin-query/', views.DbSuperAdminQueryView.as_view(), name='db_super_admin_query'),
 ]

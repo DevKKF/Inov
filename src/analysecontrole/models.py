@@ -11,7 +11,6 @@ from production.models import Client
 from shared.enum import TypePortefeuille
 
 
-
 def upload_fichier_portefeuille(instance, filename):
     filebase, extension = filename.rsplit('.', 1)
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
@@ -36,3 +35,21 @@ class AnalysePortefeuille(models.Model):
         verbose_name_plural = 'Analyse portefeuille'
 
 
+def upload_fichier_commission(instance, filename):
+    filebase, extension = filename.rsplit('.', 1)
+    file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    return 'commissions/fichiers/%s.%s' % (file_name, extension)
+
+
+class ControleCommission(models.Model):
+    fichier = models.ImageField(upload_to=upload_fichier_commission, null=True, blank=True, )
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, related_name="controle_commision_created_by", blank=True, null=True, default=None, on_delete=models.RESTRICT)
+
+    def __str__(self):
+        return f'{self.created_by} {self.fichier} ({self.created_at})'
+
+    class Meta:
+        db_table = 'controle_commission'
+        verbose_name = 'Contrôle commissions'
+        verbose_name_plural = 'Contrôle commissions'

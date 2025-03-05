@@ -19,7 +19,6 @@
 						<li class="nav-item"><a class="nav-link active" id="infos_quittance-tab" data-toggle="tab" href="#infos_quittance" role="tab" aria-controls="infos_quittance" aria-selected="true">{{_("INFORMATIONS DE LA QUITTANCE")}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="reglements-tab" data-toggle="tab" href="#reglements" role="tab" aria-controls="reglements" aria-selected="false">{{_("LISTE DES REGLEMENTS")}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="ged_beneficiaire-tab" data-toggle="tab" href="#ged_beneficiaire" role="tab" aria-controls="ged" aria-selected="false">{{_('GED')}}</a></li>
-
 					</ul>
 					<div class="tab-content" id="myTabContent">
 
@@ -150,7 +149,7 @@
 											  <tr>
 												<td>{{ reglement.numero|default_if_none:"" }}</td>
 												<td>{{ reglement.numero_piece|default_if_none:"" }}</td>
-												<td>{{ reglement.banque.libelle|default_if_none:"" }}</td>
+												<td>{{ reglement.banque_emettrice|default_if_none:"" }}</td>
 												<td>{{ reglement.mode_reglement|default_if_none:"" }}</td>
 												<td class="text-right">{{ reglement.montant|money_field }}</td>
 												<td>{{ reglement.devise.code|default_if_none:"" }}</td>
@@ -170,7 +169,6 @@
 								  </table>
 								</div>
 							</div>
-
 						</div>
 						<!-- FIN REGLEMENTS QUITTANCE -->
 

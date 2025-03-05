@@ -378,23 +378,110 @@ $(document).ready(function () {
 //TODO validation / Téléchargement de fichier / suppression session
 $(document).ready(function() {
 
-    $("#btn_save_modification_police").on("click", function() {
-        let btn_submit = $(this);
+    function isValidDate(dateStr) {
+        return dateStr && !isNaN(Date.parse(dateStr));
+    }
 
-        let police_date_debut = $("#modal-modification_police #date_debut_effet").val();
-        let police_date_fin = $("#modal-modification_police #date_fin_effet").val();
+    function manage_mode_renouvellement() {
+        let mode_renouvellement = $('#mode_renouvellement').val();
 
-        console.log("Début :", police_date_debut, "Fin :", police_date_fin); // Vérification dans la console
+        // Cacher tous les champs et enlever les attributs required
+        $('.tacide_reconduction, .sans_tacide_reconduction').hide();
+        $('.tacide_reconduction input, .sans_tacide_reconduction input').removeAttr('required');
 
-        if (police_date_debut && police_date_fin) {
-            if (new Date(police_date_debut) >= new Date(police_date_fin)) {
-                notifyWarning("La date de fin de la police doit être strictement postérieure à la date de début.");
-                return;
+        if (mode_renouvellement === "Tacite Reconduction") {
+            $('.tacide_reconduction').show();
+            $('.tacide_reconduction input').attr('required', 'required');
+        } else if (mode_renouvellement === "Sans Tacite Reconduction") {
+            $('.sans_tacide_reconduction').show();
+        }
+    }
+
+    function validateDates() {
+        let police_date_debut = $('#date_debut_effet').val();
+        let police_date_fin_effet = $('#date_fin_effet').val();
+        let police_date_fin_police = $('#date_fin_police').val();
+        let mode_renouvellement = $('#mode_renouvellement').val();
+        let btn_submit = $('#btn_save_police');
+
+        // Réactiver le bouton avant vérification
+        btn_submit.removeAttr('disabled');
+
+        if (isValidDate(police_date_debut)) {
+            if (mode_renouvellement === "Tacite Reconduction" && isValidDate(police_date_fin_effet)) {
+                if (new Date(police_date_debut) >= new Date(police_date_fin_effet)) {
+                    notifyWarning('La date de renouvellement doit être strictement postérieure à la date de début.');
+                    btn_submit.attr('disabled', 'disabled');
+                    return false;
+                }
+            } else if (mode_renouvellement === "Sans Tacite Reconduction" && isValidDate(police_date_fin_police)) {
+                if (new Date(police_date_debut) >= new Date(police_date_fin_police)) {
+                    notifyWarning('La date de fin du contrat doit être strictement postérieure à la date de début.');
+                    btn_submit.attr('disabled', 'disabled');
+                    return false;
+                }
             }
         }
 
-        // Continue avec le traitement normal si les dates sont valides
-        console.log("Dates valides, on peut continuer...");
+        return true; // Validation réussie
+    }
+
+    // Fonction pour la validation des dates dans le modal de modification
+    function validateDatesModification() {
+        let police_date_debut = $("#modal-modification_police #date_debut_effet").val();
+        let police_date_fin = $("#modal-modification_police #date_fin_effet").val();
+        let police_date_fin_police = $("#modal-modification_police #date_fin_police").val();
+        let mode_renouvellement = $("#modal-modification_police #mode_renouvellement").val();
+        let btn_submit = $("#btn_save_modification_police");
+
+        // Réactiver le bouton avant vérification
+        btn_submit.removeAttr('disabled');
+
+        if (isValidDate(police_date_debut)) {
+            if (mode_renouvellement === "Tacite Reconduction" && isValidDate(police_date_fin)) {
+                if (new Date(police_date_debut) >= new Date(police_date_fin)) {
+                    notifyWarning("La date de renouvellement doit être strictement postérieure à la date de début.");
+                    btn_submit.attr('disabled', 'disabled');
+                    return false;
+                }
+            } else if (mode_renouvellement === "Sans Tacite Reconduction" && isValidDate(police_date_fin_police)) {
+                if (new Date(police_date_debut) >= new Date(police_date_fin_police)) {
+                    notifyWarning("La date de fin du contrat doit être strictement postérieure à la date de début.");
+                    btn_submit.attr('disabled', 'disabled');
+                    return false;
+                }
+            }
+        }
+
+        return true; // Validation réussie
+    }
+
+    // Exécuter au chargement de la page
+    $(document).ready(function () {
+        manage_mode_renouvellement();
+        validateDates();
+        validateDatesModification();
+    });
+
+    // Déclencher la gestion des modes et la validation des dates
+    $(document).on('change', "#mode_renouvellement, #date_debut_effet, #date_fin_effet, #date_fin_police", function () {
+        manage_mode_renouvellement();
+        validateDates();
+    });
+
+    $(document).on('change', "#modal-modification_police #mode_renouvellement, #modal-modification_police #date_debut_effet, #modal-modification_police #date_fin_effet, #modal-modification_police #date_fin_police", function () {
+        validateDatesModification();
+    });
+
+    // Gestion du bouton de modification avec validation des dates
+    $(document).ready(function() {
+        $("#btn_save_modification_police").on("click", function() {
+            if (!validateDatesModification()) {
+                return; // Empêcher la soumission si la validation échoue
+            }
+
+            console.log("Dates valides, on peut continuer...");
+        });
     });
 
     // Pour le téléchargement du fichier modèle de création d'aliment
@@ -567,6 +654,7 @@ $(document).ready(function () {
                     $('#marchandise-tab_modification').removeClass('d-none');
                     $('.marchandise_champ_obligatoire_modification').attr('required', true);
                 } else {
+                    $('#garantie-tab_modification').removeClass('d-none');
                     $('#risque-tab_modification').removeClass('d-none');
                     $('.marchandise_champ_obligatoire_modification').attr('required', false);
                     $('.aliment_champ_obligatoire_modification').attr('required', false);
@@ -833,58 +921,8 @@ $(document).ready(function () {
 });
 
 
-/*
+
 //TODO chanrgement des produits de la branche
-$(document).ready(function() {
-    function loadProduits(branche_id, branche_code) {
-
-        $.ajax({
-            type: 'get',
-            url: '/production/modification_ajax_produits/' + branche_id,
-            dataType: 'json',
-            success: function(produits) {
-                $('#produit_modification').html('').append('<option value="">Choisir un produit</option>');
-
-                produits.forEach(function(produit) {
-                    $('#produit_modification').append('<option value="' + produit.pk + '">' + produit.fields.nom + '</option>');
-                });
-
-                // Sélectionner le produit associé à la police
-                let selectedProduitId = $('#police_produit_id').val();
-
-                console.log('Initial Branche ID:', initialBrancheId);
-                console.log('Initial Branche Code:', initialBrancheCode);
-                console.log('Selected Produit ID:', selectedProduitId);
-
-                if (selectedProduitId) {
-                    $('#produit_modification').val(selectedProduitId);
-                }
-            },
-            error: function() {
-                console.log('Erreur loading produits ');
-            }
-        });
-    }
-
-    // Charger les produits de la branche sélectionnée au chargement de la page
-    let initialBrancheId = $('#branche_modification').val();
-    let initialBrancheCode = $('#branche_modification').find('option:selected').data('modification_code');
-    if (initialBrancheId) {
-        loadProduits(initialBrancheId, initialBrancheCode);
-    }
-
-    // Gérer le changement de branche
-    $('#branche_modification').on('change', function() {
-        let branche_id = $(this).val();
-        let branche_code = $(this).find('option:selected').data('modification_code');
-        loadProduits(branche_id, branche_code);
-    });
-
-    // Déclencher manuellement l'événement 'change' au chargement de la page
-    $('#branche_modification').trigger('change');
-});
-*/
-
 $(document).ready(function () {
     function loadProduits(branche_id) {
         if (!branche_id) return; // Vérification pour éviter des appels inutiles

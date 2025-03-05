@@ -89,7 +89,7 @@
 											<select class="form-control tags-multiple" name="commercial_id" id="commercials_id">
 												<option value="">{{_('Choisir')}}</option>
 												{% for comm in commercials %}
-													<option value="{{comm.id}}">{{comm.first_name}} {{comm.last_name}}</option>
+													<option value="{{comm.id}}" {% if client.commercial_id == comm.id %} selected {% endif %}>{{comm.first_name}} {{comm.last_name}}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -104,15 +104,31 @@
 								<div class="vl"></div>
 								<div class="col-md-6" style="border-left:0px;margin-left:-10px;padding-left:20px;">
 									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Mode renouvellement")}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<select class="form-control" name="mode_renouvellement" id="mode_renouvellement" autocomplete="off" required>
+												<option selected value="">{{_('Choisir')}}</option>
+												<option value="{{ mode_renouvellement.TACITE_RECONDUCTION }}">{{ mode_renouvellement.TACITE_RECONDUCTION }}</option>
+												<option value="{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}">{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}</option>
+											</select>
+										</div>
+									</div>
+									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Date début")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
 											<input type="date" class="form-control" name="date_debut_effet" id="date_debut_effet" autocomplete="off" value="" required/>
 										</div>
 									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Date Fin période garantie")}}</label>
+									<div class="form-group row tacide_reconduction">
+										<label class="col-sm-5 col-form-label">{{_("Date de renouvellement")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
 											<input type="date" class="form-control" name="date_fin_effet" id="date_fin_effet" autocomplete="off" value="">
+										</div>
+									</div>
+									<div class="form-group row sans_tacide_reconduction">
+										<label class="col-sm-5 col-form-label">{{_("Date fin contrat")}}</label>
+										<div class="col-sm-7">
+											<input type="date" class="form-control" name="date_fin_police" id="date_fin_police" autocomplete="off" value="">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -131,16 +147,6 @@
 										</div>
 									</div>
 
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Mode renouvellement")}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control" name="mode_renouvellement" autocomplete="off" required>
-												<option selected value="">{{_('Choisir')}}</option>
-												<option value="{{ mode_renouvellement.TACITE_RECONDUCTION }}">{{ mode_renouvellement.TACITE_RECONDUCTION }}</option>
-												<option value="{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}">{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}</option>
-											</select>
-										</div>
-									</div>
 									<div class="form-group row box_typecompagnie">
 										<label class="col-sm-5 col-form-label">{{_("Autre assureur")}}</label>
 										<div class="col-sm-7">
@@ -882,7 +888,7 @@
 									<!--div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Autres Taxes")}} <span class="required"></span></label>
 										<div class="col-sm-6" style="padding-right:0px;">
-											<input style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field calculs_handler_police" name="autres_taxes" id="autres_taxes" autocomplete="off" value="0" readonly/>
+											<input style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field calculs_handler_police" name="" id="autres_taxes" autocomplete="off" value="0" readonly/>
 										</div>
 										<div class="col-sm-1" style="padding-left:0px;">
 											<span class="btn " style="background:gray;color:white;border-top-left-radius:0px;border-bottom-left-radius:0px;" data-toggle="modal" data-target="#modal-autres_taxes">+</span>

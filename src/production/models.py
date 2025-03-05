@@ -1,11 +1,14 @@
 # from msilib.schema import Property
 import datetime
 from datetime import date
+from multiprocessing import Value
 from pprint import pprint
+
+from Cython.Plex import Case
 from django.utils import timezone
 
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, When
 from django.utils.safestring import mark_safe
 from django_dump_die.middleware import dd
 from django.db.models import F, ExpressionWrapper, DurationField
@@ -15,7 +18,7 @@ from configurations.models import Banque, Bureau, Civilite, Compagnie, Fractionn
     Regularisation, Territorialite, TicketModerateur, User, Langue, Pays, Produit, TypeClient, TypePersonne, TypeCompagnie, \
     QualiteBeneficiaire, TypeAssurance, Devise, Profession, ModeCalcul, Taxe, Apporteur, BaseCalcul, TypeQuittance, \
     NatureQuittance, TypeCarosserie, CategorieVehicule, MarqueVehicule, NatureOperation, Prestataire, TypeTarif, Acte, \
-    Rubrique, Periodicite, RegroupementActe, SousRubrique, TypePrefinancement, ReseauSoin, CompteTresorerie, \
+    Rubrique, Periodicite, RegroupementActe, SousRubrique, TypePrefinancement, ReseauSoin, CompteTresorerie, TypeMouvement, \
     SousRegroupementActe, Secteur, GroupeInter, Carosserie, Formule, Usage, Carburant, BusinessUnit, Garantie, ConditionsAssurance, MoyensTransport, TypeCourrier, Groupe
 from shared.enum import Genre, Statut, StatutRelation, StatutFamilial, OptionYesNo, PlacementEtGestion, \
     ModeRenouvellement, TypeEncaissementCommission, TypeMajorationContrat, CalculTM, StatutContrat, StatutPolice, \
@@ -390,9 +393,16 @@ class Police(models.Model):
 
         return nombre_sortis
 
+    @property
+    def police_dernier_historique(self):
+
+        historique = HistoriquePolice.objects.filter(police_id=self.id).order_by('-date_du_jour').first()
+
+        return historique
+
 
 class HistoriquePolice(models.Model):
-    police = models.ForeignKey(Police, related_name='historiques', on_delete=models.RESTRICT)
+    police = models.ForeignKey(Police, related_name="historique_polices", on_delete=models.RESTRICT)
 
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     updated_by = models.ForeignKey(User, related_name="historique_police_updated_by", null=True, on_delete=models.RESTRICT)
@@ -457,13 +467,6 @@ class HistoriquePolice(models.Model):
     def __str__(self):
         return f'{self.numero}'
 
-    """
-    def save(self, *args, **kwargs):
-        type_assurance_olea_sante = TypeAssurance.objects.get(id=1)
-        self.type_assurance = type_assurance_olea_sante
-        super(HistoriquePolice, self).save(*args, **kwargs)
-    """
-
     class Meta:
         db_table = 'historique_polices'
         verbose_name = 'Historique Police'
@@ -471,16 +474,30 @@ class HistoriquePolice(models.Model):
 
     @property
     def duree_police_en_mois(self):
-        duree_police = Police.objects.filter(id=self.id).annotate(
-            duree_police_en_mois=ExpressionWrapper(
-                F('date_fin_effet') - F('date_debut_effet'),
-                output_field=DurationField()
+        duree_police_data = (
+            Police.objects.filter(id=self.id)
+            .annotate(
+                duree_police_en_mois=ExpressionWrapper(
+                    Case(
+                        When(date_fin_effet__isnull=False, then=F('date_fin_effet') - F('date_debut_effet')),
+                        When(date_fin_police__isnull=False, then=F('date_fin_police') - F('date_debut_effet')),
+                        default=Value(0),  # Si les deux sont vides, durée = 0
+                    ),
+                    output_field=DurationField()
+                )
             )
-        ).values('id', 'duree_police_en_mois').first()['duree_police_en_mois']
+            .values('duree_police_en_mois')
+            .first()
+        )
 
-        nombre_total_mois = duree_police.days // 30
+        # Vérifier si une durée a été trouvée
+        duree_police_en_mois = duree_police_data['duree_police_en_mois'] if duree_police_data else None
 
-        return nombre_total_mois
+        # Calcul de la durée en mois uniquement si une durée est définie
+        if duree_police_en_mois:
+            return duree_police_en_mois.days // 30
+
+        return 0  # Retourne 0 si aucune durée valide n'est trouvée
 
 
 class PoliceClient(models.Model):
@@ -538,7 +555,7 @@ class HistoriquePoliceGarantie(models.Model):
 
 class PoliceAssureur(models.Model):
     client = models.ForeignKey(Client, on_delete=models.RESTRICT, null=True)
-    historique_police = models.ForeignKey(HistoriquePolice, on_delete=models.RESTRICT, null=True)
+    historique_police = models.ForeignKey(HistoriquePolice, on_delete=models.RESTRICT, null=True, related_name="police_assureurs")
     type_compagnie = models.ForeignKey(TypeCompagnie, on_delete=models.RESTRICT, null=True)
     compagnie = models.ForeignKey(Compagnie, on_delete=models.RESTRICT, null=True)
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
@@ -1448,7 +1465,7 @@ class ApporteurPolice(models.Model):
 
     def com_affaire_nouvelle(self):
         # Récupérer le dernier historique lié à cette police
-        dernier_historique = self.police.historiques.order_by('-date_du_jour').first()
+        dernier_historique = self.police.historique_polices.order_by('-date_du_jour').first()
 
         # Vérifier si un historique existe
         if not dernier_historique:
@@ -1536,6 +1553,7 @@ class Carte(models.Model):
 
 
 class Mouvement(models.Model):
+    type_mouvement = models.ForeignKey(TypeMouvement, on_delete=models.RESTRICT, null=True, blank=True)
     libelle = models.CharField(max_length=100, blank=True, null=True)
     code = models.CharField(max_length=25, blank=True, null=True)
     type = models.CharField(max_length=50, blank=True, null=True)
@@ -1555,6 +1573,7 @@ class Motif(models.Model):
     mouvement = models.ForeignKey(Mouvement, on_delete=models.RESTRICT)
     libelle = models.CharField(max_length=50, blank=True, null=True)
     etat_police = models.CharField(max_length=50, blank=True, null=True)
+    etat_sinistre = models.CharField(max_length=50, blank=True, null=True)
     code = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1641,6 +1660,7 @@ class Quittance(models.Model):
     commission_courtage = models.BigIntegerField(null=True)
     commission_gestion = models.BigIntegerField(null=True)
     commission_intermediaires = models.BigIntegerField(null=True)
+    montant_cout_police_courtier_regle = models.BigIntegerField(null=True)
     montant_regle = models.BigIntegerField(null=True)
     solde = models.BigIntegerField(null=True)
     taux_euro = models.FloatField(blank=True, default=None, null=True)
@@ -1648,10 +1668,8 @@ class Quittance(models.Model):
     date_emission = models.DateField(blank=True, null=True)
     date_debut = models.DateField(blank=True, null=True)
     date_fin = models.DateField(blank=True, null=True)
-    statut = models.fields.CharField(choices=StatutQuittance.choices, default=StatutQuittance.IMPAYE, max_length=15,
-                                     null=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
-                                              max_length=15, null=True)
+    statut = models.fields.CharField(choices=StatutQuittance.choices, default=StatutQuittance.IMPAYE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
     observation = models.CharField(max_length=255, blank=True, null=True)
     import_stats = models.BooleanField(default=False, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1757,12 +1775,11 @@ class Reglement(models.Model):
     banque = models.ForeignKey(Banque, null=True, on_delete=models.RESTRICT)
     banque_emettrice = models.CharField(max_length=255, blank=True, null=True)
     compte_tresorerie = models.ForeignKey(CompteTresorerie, null=True, on_delete=models.RESTRICT)
-    quittance = models.ForeignKey(Quittance, on_delete=models.RESTRICT, related_name="ses_quittances",
-                                  related_query_name="quittance")
-    compagnie = models.ForeignKey(Compagnie, null=True, on_delete=models.RESTRICT, related_name="reglements",
-                                  related_query_name="reglement")
+    quittance = models.ForeignKey(Quittance, on_delete=models.RESTRICT, related_name="ses_quittances", related_query_name="quittance")
+    compagnie = models.ForeignKey(Compagnie, null=True, on_delete=models.RESTRICT, related_name="reglements", related_query_name="reglement")
     devise = models.ForeignKey(Devise, null=True, on_delete=models.CASCADE)
     montant = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
+    montant_police_courtier = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
     montant_compagnie = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
     montant_com_courtage = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
     montant_com_gestion = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
@@ -1770,17 +1787,10 @@ class Reglement(models.Model):
     date_paiement = models.DateField(blank=True, null=True)
     observation = models.CharField(max_length=255, null=True)
     motif_annulation = models.CharField(max_length=255, null=True)
-    statut_reversement_compagnie = models.fields.CharField(choices=StatutReversementCompagnie.choices,
-                                                           default=StatutReversementCompagnie.NON_REVERSE,
-                                                           max_length=15, null=True)
-    statut_commission = models.fields.CharField(choices=StatutEncaissementCommission.choices,
-                                                default=StatutEncaissementCommission.NON_ENCAISSEE, max_length=15,
-                                                null=True)
-    statut_reglement_apporteurs = models.fields.CharField(choices=StatutReglementApporteurs.choices,
-                                                          default=StatutReglementApporteurs.NON_REGLE, max_length=15,
-                                                          null=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
-                                              max_length=15, null=True)
+    statut_reversement_compagnie = models.fields.CharField(choices=StatutReversementCompagnie.choices, default=StatutReversementCompagnie.NON_REVERSE, max_length=15, null=True)
+    statut_commission = models.fields.CharField(choices=StatutEncaissementCommission.choices, default=StatutEncaissementCommission.NON_ENCAISSEE, max_length=15, null=True)
+    statut_reglement_apporteurs = models.fields.CharField(choices=StatutReglementApporteurs.choices, default=StatutReglementApporteurs.NON_REGLE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
     date_reversement_compagnie = models.DateTimeField(null=True)
     date_encaissement_commission = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now=True)
@@ -1951,7 +1961,7 @@ class Acompte(models.Model):
 class TypeDocument(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
     is_sinistre = models.BooleanField(default=False)
-    is_police_quittante_clt = models.BooleanField(default=False)
+    is_production = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

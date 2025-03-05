@@ -33,19 +33,21 @@
               <table class="table table-bordered table-striped dataTable dtr-inline" id="table_formules">
                   <thead>
                     <tr>
+                      <th class="d-none"></th>
                       <th scope="col">{{_('Code')}}</th>
                       <th scope="col">{{_('Nom')}}</th>
-                        <th scope="col">{{_("Date d'ajout et heure")}}</th>
-                        <th scope="col">{{_("Statut")}}</th>
+                      <th scope="col">{{_("Date d'ajout et heure")}}</th>
+                      <th scope="col">{{_("Statut")}}</th>
                       <th scope="col" class="text-center">{{_('Actions')}}</th>
                     </tr>
                   </thead>
                   <tbody>
                   {% for branche in branches %}
                     <tr>
+                        <td class="d-none"></td>
                         <td>{{ branche.code|default_if_none:"" }}</td>
-                         <td>{{ branche.nom|default_if_none:"" }}</td>
-                         <td>{{ branche.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>{{ branche.nom|default_if_none:"" }}</td>
+                        <td>{{ branche.created_at|date:"d/m/Y H:i" }}</td>
                         <td>
                             {% if branche.status %}
                                 <span class="badge badge-success">Actif</span>

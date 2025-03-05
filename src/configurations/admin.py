@@ -1198,6 +1198,13 @@ admin.site.register(User, CustomUserAdmin)
 admin.site.register(Groupe, GroupeAdmin)
 admin.site.register(BureauTaxe, BureauTaxeAdmin)
 admin.site.register(RisqueProduit, RisqueProduitAdmin)
+admin.site.register(TypeSinistre)
+admin.site.register(TypeIntervenant)
+admin.site.register(Responsabilite)
+admin.site.register(TypeMouvement)
+admin.site.register(Circonstance)
+admin.site.register(PosteDommage)
+#admin.site.register(TypeDocument,TypeDocumentAdmin)
 #admin.site.register(SecteurActivite, SecteurActiviteAdmin)
 #admin.site.register(KeyValueData, KeyValueDataAdmin)
 #admin.site.register(Tarif, TarifAdmin)
@@ -1320,6 +1327,5 @@ admin.site.register(RisqueProduit, RisqueProduitAdmin)
 #admin.site.register(TypeCarosserie) #à réactiver plus tard
 
 
-#admin.site.register(TypeDocument,TypeDocumentAdmin) #à réactiver plus tard
 #admin.site.register(Mouvement) #à réactiver plus tard
 #admin.site.register(Motif, MotifAdmin) #à réactiver plus tard

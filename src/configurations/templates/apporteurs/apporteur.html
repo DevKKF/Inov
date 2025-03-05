@@ -33,6 +33,7 @@
               <table class="table table-bordered table-striped dataTable dtr-inline" id="table_formules">
                   <thead>
                     <tr>
+                      <th class="d-none"></th>
                       <th scope="col">{{_('Code')}}</th>
                       <th scope="col">{{_('Nom & Prénoms')}}</th>
                       <th scope="col">{{_('Téléphone')}}</th>
@@ -45,6 +46,7 @@
                   <tbody>
                   {% for apporteur in apporteurs %}
                     <tr>
+                        <td class="d-none"></td>
                         <td>{{ apporteur.code|default_if_none:"" }}</td>
                         <td>{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</td>
                         <td>{{ apporteur.telephone|default_if_none:"" }}</td>
@@ -77,10 +79,10 @@
 {% block extrajs %}
 <script>
     $(document).ready(function() {
-        $('#courrier').removeClass('o-bg-primary');
-        $('#courrier').addClass('o-active');
+        $('#apporteur').removeClass('o-bg-primary');
+        $('#apporteur').addClass('o-active');
     } );
 </script>
 
-{% include 'apporteur/modal_apporteur.html' %}
+{% include 'apporteurs/modal_apporteur.html' %}
 {% endblock %}

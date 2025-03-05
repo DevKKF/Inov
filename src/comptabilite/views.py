@@ -3146,16 +3146,13 @@ class ReversesementCompagniesView(TemplateView):
 @login_required
 def ajax_reglements_a_reverser_compagnie(request, compagnie_id):
 
-    # Récupérer les assureurs associés à l'historique
-    assureur_police = PoliceAssureur.objects.filter(compagnie_id=compagnie_id, type_compagnie_id=1).first()
-
-    polices = Police.objects.filter(id=assureur_police.historique_police.police_id)
+    polices = Police.objects.filter(
+        historique_polices__id__in=PoliceAssureur.objects.filter(
+            compagnie_id=compagnie_id, type_compagnie_id=1
+        ).values('historique_police_id')
+    ).distinct()
 
     reglements_compagnies = (ReglementReverseCompagnie.objects.filter(quittance__police__in=polices, statut_reversement_compagnie=StatutReversementCompagnie.NON_REVERSE, statut_validite=StatutValidite.VALIDE).exclude(quittance__nature_quittance__code="Ristourne").exclude(quittance__type_quittance__code="HONORAIRE"))
-
-    print('assureur_police', assureur_police.compagnie.nom)
-    print('polices', polices)
-    print('reglements_compagnies', reglements_compagnies)
 
     return render(request, 'reglements_a_reverser_by_compagnie.html', {'reglements_compagnies':reglements_compagnies})
 
@@ -3236,14 +3233,11 @@ def add_reglement_compagnie(request):
         devises = Devise.objects.all()
         modes_reglements = ModeReglement.objects.all()
         banques = Banque.objects.filter(bureau=request.user.bureau).order_by('libelle')
-        comptes_tresoreries = CompteTresorerie.objects.filter(code__in=["REGCIE","BANQUE"]).order_by('libelle')
+        comptes_tresoreries = CompteTresorerie.objects.filter(code__in=["REGCIE","REGAXIS"]).order_by('libelle')
         reglements_compagnies = Reglement.objects.filter(statut_reversement_compagnie=StatutReversementCompagnie.NON_REVERSE, statut_validite=StatutValidite.VALIDE)
 
         compagnies = Compagnie.objects.filter(bureau=request.user.bureau).order_by('nom')
 
-        print('Mode de règlement : ', modes_reglements)
-        print('Nature opération : ', natures_operations)
-        print('Compte de trésorerie : ', comptes_tresoreries)
         print('Règlement compagnie : ', reglements_compagnies)
 
         for compagnie in compagnies:
@@ -3268,12 +3262,14 @@ def generer_bordereau_reglement_compagnie_pdf(request, operation_id):
     total_montant_compagnie = 0
     total_montant_com_courtage = 0
     #total_montant_com_gestion = 0
+    total_montant_cout_police_courtier = 0
     total_montant_com_intermediaire = 0
 
     for option_reglement in option_reglements:
         total_montant_compagnie += option_reglement.reglement.montant_compagnie
         total_montant_com_courtage += option_reglement.reglement.montant_com_courtage
         #total_montant_com_gestion += option_reglement.reglement.montant_com_gestion
+        total_montant_cout_police_courtier += option_reglement.reglement.montant_police_courtier if option_reglement.reglement.montant_police_courtier else 0
         total_montant_com_intermediaire += option_reglement.reglement.montant_com_intermediaire
 
     site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
@@ -3287,6 +3283,7 @@ def generer_bordereau_reglement_compagnie_pdf(request, operation_id):
         'total_montant_compagnie': total_montant_compagnie,
         'total_montant_com_courtage': total_montant_com_courtage,
         #'total_montant_com_gestion': total_montant_com_gestion,
+        'total_montant_cout_police_courtier': total_montant_cout_police_courtier,
         'total_montant_com_intermediaire': total_montant_com_intermediaire,
         'site_logo_url': site_logo_url,
     }
@@ -3385,7 +3382,11 @@ class EncaissementCommissionsCourtGestView(TemplateView):
 @login_required
 def ajax_encaissement_commissions(request, compagnie_id):
 
-    polices = Police.objects.filter(compagnie_id=compagnie_id)
+    polices = Police.objects.filter(
+        historique_polices__id__in=PoliceAssureur.objects.filter(
+            compagnie_id=compagnie_id, type_compagnie_id=1
+        ).values('historique_police_id')
+    ).distinct()
 
     reglements_compagnies = ReglementReverseCompagnie.objects.filter(quittance__police__in=polices, statut_reversement_compagnie=StatutReversementCompagnie.NON_REVERSE, statut_validite=StatutValidite.VALIDE)
 
@@ -3395,7 +3396,11 @@ def ajax_encaissement_commissions(request, compagnie_id):
 @login_required
 def ajax_reglements_reverses(request, compagnie_id):
 
-    polices = Police.objects.filter(compagnie_id=compagnie_id)
+    polices = Police.objects.filter(
+        historique_polices__id__in=PoliceAssureur.objects.filter(
+            compagnie_id=compagnie_id, type_compagnie_id=1
+        ).values('historique_police_id')
+    ).distinct()
 
     reglements_compagnies = ReglementReverseCompagnie.objects.filter(quittance__police__in=polices, statut_reversement_compagnie=StatutReversementCompagnie.REVERSE, statut_validite=StatutValidite.VALIDE).exclude(statut_commission=StatutEncaissementCommission.ENCAISSEE)
 
@@ -3552,11 +3557,6 @@ def add_encaissement_commission(request):
 
         comptes_exercices = CompteComptable.objects.all()
 
-        print('Mode de règlement : ', modes_reglements)
-        print('Nature opération : ', natures_operations)
-        print('Compte de trésorerie : ', comptes_tresoreries)
-        print('Règlement compagnie : ', reglements_compagnies)
-
         for compagnie in compagnies:
             if compagnie.nombre_reglements_a_recevoir_com == 0:
                 compagnies = compagnies.exclude(id=compagnie.id)
@@ -3569,19 +3569,16 @@ def add_encaissement_commission(request):
 
 @login_required
 def ajax_reglements_reverses_court_gest(request, compagnie_id, type):
-    
-    # Récupérer les assureurs associés à l'historique
-    assureur_police = PoliceAssureur.objects.filter(compagnie_id=compagnie_id, type_compagnie_id=1).first()
 
-    polices = Police.objects.filter(id=assureur_police.historique_police.police_id)
+    polices = Police.objects.filter(
+        historique_polices__id__in=PoliceAssureur.objects.filter(
+            compagnie_id=compagnie_id, type_compagnie_id=1
+        ).values('historique_police_id')
+    ).distinct()
 
     reglements_compagnies = ReglementReverseCompagnie.objects.filter(quittance__police__in=polices, statut_reversement_compagnie=StatutReversementCompagnie.REVERSE, statut_validite=StatutValidite.VALIDE).exclude(statut_commission=StatutEncaissementCommission.ENCAISSEE)
 
     for reglement_compagnie in reglements_compagnies:
-        #dd(reglement_compagnie)
-        #reglements_compagnies.exclude(id=reglement_compagnie.id)
-        #print(f"view 1 - {reglement_compagnie.montant_com_courtage_solde()}")
-        #print(f"view 2 - {reglement_compagnie.montant_journal_debit() - reglement_compagnie.montant_journal_credit()}")
         if type == "courtage":
             if reglement_compagnie.montant_com_courtage_solde() != 0 and reglement_compagnie.montant_com_courtage_solde() != (reglement_compagnie.montant_journal_debit_courtage() - reglement_compagnie.montant_journal_credit_courtage()):
                 pass
@@ -3592,8 +3589,6 @@ def ajax_reglements_reverses_court_gest(request, compagnie_id, type):
                 pass
             else:
                 reglements_compagnies = reglements_compagnies.exclude(id=reglement_compagnie.id)
-
-    # pprint(reglements_compagnies)
 
     return render(request, 'reglements_reverses_court_gest.html', {'reglements_compagnies':reglements_compagnies, 'type':type})
 
@@ -3763,11 +3758,6 @@ def add_encaissement_com_court_gest(request, type):
         compagnies = Compagnie.objects.filter(bureau=request.user.bureau).order_by('nom')
 
         comptes_exercices = CompteComptable.objects.all()
-
-        print('Mode de règlement : ', modes_reglements)
-        print('Nature opération : ', natures_operations)
-        print('Compte de trésorerie : ', comptes_tresoreries)
-        print('Règlement compagnie : ', reglements_compagnies)
 
         for compagnie in compagnies:
             if type == "courtage" and compagnie.nombre_reglements_a_recevoir_com_court == 0:

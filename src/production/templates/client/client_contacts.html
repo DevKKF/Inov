@@ -118,8 +118,10 @@
                                 <td class="">{{ contact.telephone|default_if_none:"" }}</td>
                                 <td class="">{{ contact.email|default_if_none:"" }}</td>
                                 <td class="text-center">
-                                    <span style="cursor:pointer;" class="btn_modifier_contact badge badge-warning text-white rounded-pill text-center" data-contact_id="{contact.id}" data-model_name="contact" data-modal_title="MODIFICATION D'UN CONTACT" data-href="{% url 'modifier_contact' contact.id %}"><i class="fas fa-edit"></i></span>
-                                    <span class="badge badge-danger text-white btn_supprimer_contact" data-contact_id="{{ contact.id }}" data-href="{% url 'supprimer_contact' contact.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>
+                                    {% if request.user.is_production %}
+                                        <span style="cursor:pointer;" class="btn_modifier_contact badge badge-warning text-white rounded-pill text-center" data-contact_id="{contact.id}" data-model_name="contact" data-modal_title="MODIFICATION D'UN CONTACT" data-href="{% url 'modifier_contact' contact.id %}"><i class="fas fa-edit"></i></span>
+                                        <span class="badge badge-danger text-white btn_supprimer_contact" data-contact_id="{{ contact.id }}" data-href="{% url 'supprimer_contact' contact.id %}" style="cursor:pointer;"><i class="fa fa-trash"></i></span>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}

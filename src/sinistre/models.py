@@ -1059,28 +1059,6 @@ class DocumentDossierSinistre(models.Model):
         verbose_name_plural = 'Documents prises en charge'
 
 
-# class BordereauSinistre(models.Model):
-#     bordereau = models.ForeignKey(BordereauDossierSinistre, related_name="sinistres", on_delete=models.RESTRICT)
-#     sinistre = models.ForeignKey(Sinistre, on_delete=models.RESTRICT)
-#     periode_comptable = models.ForeignKey(PeriodeComptable, null=True, on_delete=models.RESTRICT)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-#
-#     class Meta:
-#         db_table = 'bordereaux_sinistres'
-#         verbose_name = 'Bordereau sinistre'
-#         verbose_name_plural = 'Bordereaux sinistres'
-
-
-#permissions perso
-'''content_type = ContentType.objects.get_for_model(Sinistre)
-permission = Permission.objects.create(
-    codename='review_sinistre',
-    name='Can review sinistre',
-    content_type=content_type,
-)'''
-
-
 class ControlePlafond(models.Model):
     session_pec = models.CharField(max_length=255, blank=True, null=True)
     plafond_conso_famille = models.CharField(max_length=255, blank=True, null=True)

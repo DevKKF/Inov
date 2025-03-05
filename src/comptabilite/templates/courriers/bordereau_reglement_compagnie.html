@@ -1,7 +1,7 @@
 {% load my_filters %}
 <html>
 <head>
-<title>{{_('BORDEREAU_COMPAGNIE_DES_QUITTANCES_REGLEES')}}</title>
+<title>{{_("BORDEREAU COMPAGNIE DES QUITTANCES REGLEES")}}</title>
 <style>
     @page {
         size: a4 landscape;
@@ -134,7 +134,8 @@
                   <th scope="col">{{_("Mt Reg clt")}}</th>
                   <th scope="col">{{_("Mt CIE")}}</th>
                   <th scope="col">{{_("Com court")}}</th>
-                  <th scope="col">{{_("Com Apport")}}</th>
+                  <th scope="col">{{_("Coût police courtier")}}</th>
+                  <!--th scope="col">{{_("Com Apport")}}</th-->
                   <th scope="col">{{_("Date Reg clt")}}</th>
                 </tr>
             </thead>
@@ -150,7 +151,8 @@
                       <td class="text-right">{{ option_reglement.reglement.montant|money_field }}</td>
                       <td class="text-right">{{ option_reglement.reglement.montant_compagnie|money_field }}</td>
                       <td class="text-right">{{ option_reglement.reglement.montant_com_courtage|money_field }}</td>
-                      <td class="text-right">{{ option_reglement.reglement.montant_com_intermediaire|money_field }}</td>
+                      <td class="text-right">{{ option_reglement.reglement.montant_police_courtier|money_field }}</td>
+                      <!--td class="text-right">{{ option_reglement.reglement.montant_com_intermediaire|money_field }}</td-->
                       <td>{{ option_reglement.reglement.date_paiement|date:'d/m/Y'|default_if_none:"" }}</td>
                 </tr>
                 {% endfor %}
@@ -161,7 +163,8 @@
                 <td><b>{{ operation.montant_total|money_field }}</b></td>
                 <td><b>{{ total_montant_compagnie|money_field }}</b></td>
                 <td><b>{{ total_montant_com_courtage|money_field }}</b></td>
-                <td><b>{{ total_montant_com_intermediaire|money_field }}</b></td>
+                <td><b>{{ total_montant_cout_police_courtier|money_field }}</b></td>
+                <!--td><b>{{ total_montant_com_intermediaire|money_field }}</b></td-->
                 </tr>
             </tfoot>
         </table>

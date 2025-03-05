@@ -7,6 +7,7 @@ from datetime import datetime, timezone, timedelta
 from datetime import date
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+import math
 
 from django import template
 from django.contrib.humanize.templatetags.humanize import intcomma
@@ -20,6 +21,7 @@ def money_field(montant):
     money = intcomma(int(montant))
     money = money.replace(',', ' ')# remplacer la virgule quand le systeme est anglais
     return money
+
 
 @register.filter
 def round_value(value, decimal_places=0):
@@ -38,9 +40,11 @@ def multiply(a, b):
 def diviser(a, b):
     return a / b
 
+
 @register.filter
 def today_utc():
     return datetime.datetime.now(tz=datetime.timezone.utc)
+
 
 @register.filter(name='subtract')
 def subtract(value, arg):
@@ -49,16 +53,17 @@ def subtract(value, arg):
     else:
         return value
 
+
 @register.filter(name='addition')
 def addition(value, arg):
     value = value if value is not None else 0
     arg = arg if arg is not None else 0
     return value + arg
 
+
 @register.filter
 def with_user(total_part_compagnie_medicament, user):
     return total_part_compagnie_medicament(user)
-
 
 
 @register.filter
@@ -85,6 +90,7 @@ def truncate_last_word(value, max_length):
 def index(List, i):
     return List[int(i)]
 
+
 @register.filter
 def entry_num_array(List):
     return range(len(List))
@@ -93,6 +99,7 @@ def entry_num_array(List):
 @register.filter
 def replace_espace(value):
     return value.replace(' ', '-')
+
 
 @register.filter
 def replace_custom(value, arg):
@@ -104,15 +111,6 @@ def date_heure_locale(date_heure_gmt, fuseau_horaire):
     dhl = date_heure_gmt + timedelta(hours=fuseau_horaire)
     return dhl
 
-
-# code pour éviter erreur (fuseau horaire tunisien{GMT+1}) : [ unsupported type for timedelta hours component: NoneType ]
-
-#   @register.filter
-#   def date_heure_locale(date_heure_gmt, fuseau_horaire):
-#       if fuseau_horaire is None:
-#           return date_heure_gmt
-#       dhl = date_heure_gmt + timedelta(hours=fuseau_horaire)
-#       return dhl
 
 @register.filter
 def nombre_en_lettre(nombre):
@@ -217,12 +215,28 @@ def convertir_date_jj_mm_aaaa(date_str):
 
 
 @register.filter
-def rendre_html(contenu):
-    """
-    Marque le contenu HTML comme sûr pour être interprété dans les templates.
-    """
-    if not contenu:
+def rendre_html(value):
+    if not value:
         return ''
-    return mark_safe(contenu)
+    return mark_safe(value)
 
 
+def arrondis_nombre(value: float) -> int:
+    """
+    Arrondit un nombre à l'entier supérieur ou inférieur en fonction des décimales.
+
+    - Si la partie décimale est >= 0.5, arrondit à l'entier supérieur.
+    - Sinon, arrondit à l'entier inférieur.
+
+    Args:
+        value (float): Le nombre à arrondir.
+
+    Returns:
+        int: Le nombre arrondi.
+    """
+    integer_part = math.floor(value)  # Partie entière
+    decimal_part = value - integer_part  # Partie décimale
+
+    if decimal_part >= 0.5:
+        return math.ceil(value)  # Arrondi à l'entier supérieur
+    return integer_part  # Arrondi à l'entier inférieur

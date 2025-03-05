@@ -1208,8 +1208,8 @@ class AnnulerBordereauOrdonnancementView(TemplateView):
 
 # model 2
 @method_decorator(login_required, name='dispatch')
-class SaisiePrestationGestionnairesView(TemplateView):
-    template_name = 'form_saisie_prestation_gestionnaires.html'
+class SaisieSinistreView(TemplateView):
+    template_name = 'form_saisie_sinistre.html'
     model = Sinistre
 
     def get(self, request, prestataire_id=None, *args, **kwargs):
@@ -1218,20 +1218,13 @@ class SaisiePrestationGestionnairesView(TemplateView):
         prestataires_executants = Prestataire.objects.filter(id=prestataire_id)
         prestataire_executant = prestataires_executants.first() if prestataires_executants else None
 
-        prestataires = Prestataire.objects.filter(bureau=request.user.bureau, status=True).exclude(
-            type_prestataire__code="PRES02").exclude(type_prestataire__code__isnull=True)  # exclure les pharmacies
+        prestataires = Prestataire.objects.filter(bureau=request.user.bureau, status=True).exclude(type_prestataire__code="PRES02").exclude(type_prestataire__code__isnull=True)  # exclure les pharmacies
         centres_prescripteurs = Prestataire.objects.filter(bureau=request.user.bureau, type_prestataire__code__in=["PRES01", "PRES04"], status=True)
-        # prescripteurs = [p for p in Prescripteur.objects.all() if p.prescripteurprestataire_set.filter(prestataire=request.user.prestataire).exists()]
-        #prescripteurs = [p for p in Prescripteur.objects.all() if p.prescripteurprestataire_set.filter(prestataire=prestataire_executant).exists()]
         pps = PrescripteurPrestataire.objects.filter(prestataire=prestataire_executant, statut_validite=StatutValidite.VALIDE)
         prescripteurs = Prescripteur.objects.filter(id__in=[pp.prescripteur_id for pp in pps]).order_by('nom')
-        # prescripteurs = [pp.prescripteur for pp in pps]
-
 
         rubriques = Rubrique.objects.filter()
         types_priseencharges = TypePriseencharge.objects.filter(statut_selectable=True)
-        # si centre optique, charger optique uniquement, ainsi de suite
-        # dd(prestataire_executant.type_prestataire)
         if prestataire_executant:
             if prestataire_executant.type_prestataire.code == "PRES01":
                 types_priseencharges = TypePriseencharge.objects.filter(statut_selectable=True).exclude(code='OPTIQUE')
@@ -8133,11 +8126,6 @@ def details_bordereau_prestataire_datatable(request, bordereau_id, *args, **kwar
         "selectedItems": data_ids,
     })
 
-# def details_bordereau_prestataire_datatable():
-#     pass
-#     # detail_sinistre_url = reverse('popup_details_sinistre', args=[c.id])  # URL to the detail view# URL to the detail view
-    # actions_html = f'<span title="Traiter le remboursement" data-href ="{detail_sinistre_url}" class="btn badge btn-sm btn-details rounded-pill btn-popup_details_sinistre" >Traiter</span>'
-
 
 def facture_pdf(request):
     data = Sinistre.objects.filter(id__in=['1154767', '1154766', '1154765', '1154764', '1154763', '1154762', '1154761', '1154760', '1154759', '1154758', '1154757', '1154756', '1154755', '1154754', '1154753', '1154752', '1154751', '1154750', '1154749', '1154748', '1154747', '1154746',1154736, 1154735, 1154734, 1154733, 1154732])
@@ -8473,9 +8461,6 @@ def submit_generate_bordereau(request):
 
         else:
             return JsonResponse({'statut': 0, 'message': 'Aucun sinistre sélectionné'})
-
-# except Exception as e:
-#    return JsonResponse({'error': str(e)}, status=500)
 
 
 def borderau_validation_pdf_old(request, liste_sinistre, beneficiaire, par_compagnie=False):
@@ -9880,6 +9865,7 @@ def get_facture_br_ordonnancement(request):
 
         return JsonResponse(data_response, safe=False)
 
+
 def get_periode_br_ordonnancement(request):
     if request.method == 'GET':
         prestataire_id = request.GET.get('prestataire_id')
@@ -10271,6 +10257,7 @@ def bordereau_ordonnancement_pdf(request):
     pdf = borderau_ordonnancement_rd_assure_pdf(request, liste_sinistre, bordereau.assure)
     return HttpResponse(File(pdf), content_type='application/pdf')
 
+
 @method_decorator(login_required, name='dispatch')
 class BordereauOrdonnancementView(TemplateView):
     template_name = 'liste_bordereau_ordonnancement.html'
@@ -10522,7 +10509,6 @@ def bordereau_ordonnancement_paye_datatable(request):
         "recordsFiltered": paginator.count,
         "draw": int(request.GET.get('draw', 1)),
     })
-
 
 
 @method_decorator(login_required, name='dispatch')
@@ -11071,215 +11057,6 @@ def verif_background_requete_excel(request):
     }, status=404)
 
 
-#
-# @method_decorator(login_required, name='dispatch')
-# class ExecutionRequeteExcelView(TemplateView):
-#     template_name = 'execution_requete_excel.html'
-#     model = Sinistre
-#
-#     def get(self, request, args, *kwargs):
-#         #TODO , filtrer sur le bureau : prestataire__bureau=request.user.bureau
-#         periode_comptable = PeriodeComptable.objects.all()
-#         query_datas = [
-#             {
-#                 "query_label": "LISTE DE SINISTRES ORDONNANCÉS",
-#                 "query_name": "SIN_ORDONNANCES",
-#                 "query_param_data": periode_comptable,
-#                 "query_param_label" :"Période comptable",
-#                 "query_param_name" :"period_comptable",
-#                 "query_param_type" :"select",
-#                 "query_param_isRequired" : False
-#             },
-#         ]
-#
-#         # liste_sinistres_bordereau = [x for x in Sinistre.objects.filter(facture_prestataire__isnull=False) if x.is_processed]
-#         prestataires = [x.prestataire for x in
-#                         BordereauOrdonnancement.objects.filter(prestataire__bureau=request.user.bureau)]
-#         # Load distinct prestataires
-#         prestataires = reduce(lambda re, x: re + [x] if x not in re else re, prestataires, [])
-#
-#         context = self.get_context_data(**kwargs)
-#         context['query_datas'] = query_datas
-#         context['periode_comptable'] = periode_comptable
-#         context['prestataires'] = prestataires
-#
-#         return self.render_to_response(context)
-#
-#     def post(self, request, args, *kwargs):
-#         print("----- fn= post -----")
-#         print(request.POST)
-#         query_name = request.POST.get('query_name')
-#         period_comptable = request.POST.get("period_comptable")
-#         prestataire = request.POST.get("prestataire")
-#         # dates = request.POST.get("dates").split(" - ")
-#         # date_debut = datetime.datetime.strptime(dates[0], "%d/%m/%Y").date()
-#         # date_fin = datetime.datetime.strptime(dates[1], "%d/%m/%Y").date() + datetime.timedelta(days=1)
-#         # print(dates)
-#         # print(date_debut)
-#         # print(date_fin)
-#         print(query_name)
-#         print(period_comptable)
-#         print(prestataire)
-#
-#         if query_name == "SIN_ORDONNANCES":
-#             # queryset = Sinistre.objects.filter(bordereau_ordonnancement__isnull=False).order_by('-id')
-#             queryset = Sinistre.objects.filter(bordereau_ordonnancement__isnull=False, police__bureau=request.user.bureau, bordereau_ordonnancement__periode_comptable=int(period_comptable), bordereau_ordonnancement__prestataire=int(prestataire)).order_by('-id')
-#             print("queryset")
-#             print(queryset)
-#             # Exportation excel
-#             response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-#             response['Content-Disposition'] = 'attachment; filename="mydata.xlsx"'
-#
-#             workbook = openpyxl.Workbook()
-#             worksheet = workbook.active
-#             worksheet.title = 'LISTE DE SINISTRES ORDONNANCÉS'
-#
-#             # Write header row
-#
-#             header = [
-#                 'NOM_CLIENT',
-#                 'ID_SIN',
-#                 'NUMERO_DOSSIER',
-#                 'NUMERO_POLICE',
-#                 'DATS_SIN',
-#                 'DATE_EFFET',
-#                 'DATE_ECHEANCE',
-#                 'NOM_CIE',
-#                 'ADHERENT_PRINCIPAL',
-#                 'NUMERO_FAMILLE',
-#                 'FORMULE',
-#                 'NUMERO_CARTE',
-#                 'NOM_PATIENT',
-#                 'PRENOM_PATIENT',
-#                 'DATE_NAISSANCE_PATIENT',
-#                 'LIEN_PATIENT',
-#                 'DATE_SINISTRE',
-#                 'DATE_SAISIE',
-#                 'SAISI_PAR',
-#                 'ACTE',
-#                 'LIB_AFFECTION',
-#                 'CODE_CIMDIS',
-#                 'LIB_REGROUPEMENT',
-#                 'PRESTATAIRE',
-#                 'FRAIS_REEL',
-#                 'PART_INOV',
-#                 'PART_ASSURE',
-#                 'DEPASSEMENT/EXCLUSION',
-#                 'TICKET PREFINANCE',
-#                 'PART COMPAGNIE',
-#                 'REJET',
-#                 'NET_REGLE',
-#                 'DATE_REGLEMENT',
-#                 'NUMERO_BORDEREAU',
-#                 'BENEFICIAIRE_DU_REMB',
-#                 'STATUT_PEC',
-#                 'STATUT_DEMAND_REMB',
-#                 'STATUT_SINISTRE',
-#                 'DATE RECEPTION FACTURE',
-#                 'PERIODE COMPTABLE',
-#                 'DATE_GENERATION_BORDEREAU',
-#             ]
-#             for col_num, column_title in enumerate(header, 1):
-#                 cell = worksheet.cell(row=1, column=col_num)
-#                 cell.value = column_title
-#
-#             # Write data rows
-#             data = []
-#             for c in queryset:
-#                 if not c.aliment:
-#                     c.aliment.nom = ''
-#                 if not c.aliment:
-#                     c.aliment.prenoms = ''
-#
-#                 total_facture = c.total_frais_reel if c.total_frais_reel else 0
-#                 total_part_assure = 0 if c.tm_prefinanced else c.total_part_assure
-#                 total_base_remb = c.total_frais_reel if c.tm_prefinanced else c.total_part_compagnie
-#                 total_rejet = c.montant_remb_refuse if c.montant_remb_refuse else 0
-#                 total_net_payer = c.montant_remb_accepte if c.montant_remb_accepte else 0
-#
-#                 # collecte des montants totaux
-#
-#                 cartes = c.aliment.cartes.filter(statut=Statut.ACTIF) if c.aliment else None
-#                 numero_carte = cartes.first().numero if cartes else None
-#                 # ['Période comptable', 'Date soin', 'N˚ Sinistre', 'N˚ Bon', 'Prestataire', 'Bénéficiaire du soin', 'Matricule', 'Montant facturé', 'Par assuré', 'Base remb.', 'Rejet', 'Net à payer']
-#                 # data_iten = [
-#                 #     c.bordereau_ordonnancement.periode_comptable.libelle if c.bordereau_ordonnancement.periode_comptable else "",
-#                 #     c.date_survenance.strftime("%d/%m/%Y %H:%M") if c.date_survenance else '',
-#                 #     c.numero,
-#                 #     c.dossier_sinistre.numero,
-#                 #     c.prestataire.name,
-#                 #     c.aliment.nom + ' ' + c.aliment.prenoms,
-#                 #     numero_carte,
-#                 #     money_field(total_facture),
-#                 #     money_field(total_part_assure),
-#                 #     money_field(total_base_remb),
-#                 #     money_field(total_rejet),
-#                 #     money_field(total_net_payer),
-#                 # ]
-#
-#                 data_iten = [
-#                     c.police.client.nom if c.police.client.nom else '' + ' ' + c.police.client.prenoms if c.police.client.prenoms else '',
-#                     c.numero,
-#                     c.dossier_sinistre.numero,
-#                     c.police.numero,
-#                     c.date_survenance.strftime("%d/%m/%Y %H:%M") if c.date_survenance else '',
-#                     c.police.date_debut_effet.strftime("%d/%m/%Y") if c.police.date_debut_effet else '',
-#                     c.police.date_fin_effet.strftime("%d/%m/%Y") if c.police.date_fin_effet else '',
-#                     c.police.compagnie.nom,
-#                     c.aliment.adherent_principal.nom + ' ' + c.aliment.adherent_principal.prenoms,
-#                     c.aliment.adherent_principal.numero_famille,
-#                     c.formulegarantie.libelle,
-#                     numero_carte,
-#                     c.aliment.nom,
-#                     c.aliment.prenoms,
-#                     c.aliment.date_naissance.strftime("%d/%m/%Y") if c.aliment.date_naissance else '',
-#                     c.aliment.qualite_beneficiaire.libelle,
-#                     c.date_survenance.strftime("%d/%m/%Y") if c.date_survenance else '',
-#                     c.created_at.strftime("%d/%m/%Y") if c.created_at else '',
-#                     c.created_by.first_name + ' ' + c.created_by.last_name,
-#                     c.acte.libelle,
-#                     c.affection.libelle if c.affection else '',
-#                     c.affection.code_cim_10 if c.affection else '',
-#                     c.acte.regroupement_acte.libelle if c.acte.regroupement_acte else '',
-#                     c.prestataire.name,
-#                     total_facture,
-#                     total_base_remb,
-#                     total_part_assure,
-#                     c.depassement if c.depassement else 0,
-#                     c.total_part_assure if c.tm_prefinanced else 0, # 'TICKET PREFINANCE' a discuter,
-#                     total_net_payer,
-#                     total_rejet,
-#                     total_net_payer,
-#                     c.bordereau_ordonnancement.created_at.strftime("%d/%m/%Y") if c.bordereau_ordonnancement.created_at else '',
-#                     c.bordereau_ordonnancement.numero,
-#                     c.bordereau_ordonnancement.ordre_de,
-#                     c.statut,
-#                     c.statut_remboursement,
-#                     c.statut_validite,
-#                     c.facture_prestataire.created_at.strftime("%d/%m/%Y") if c.facture_prestataire.created_at else '',
-#                     c.bordereau_ordonnancement.periode_comptable.libelle if c.bordereau_ordonnancement.periode_comptable else "",
-#                     c.bordereau_ordonnancement.created_at.strftime("%d/%m/%Y") if c.bordereau_ordonnancement.created_at else '',
-#                 ]
-#                 data.append(data_iten)
-#
-#             for row_num, row in enumerate(data, 1):
-#                 for col_num, cell_value in enumerate(row, 1):
-#                     cell = worksheet.cell(row=row_num + 1, column=col_num)
-#                     cell.value = cell_value
-#
-#             workbook.save(response)
-#             return response
-#         else:
-#             return JsonResponse({
-#                 "message": "La requête n'est pas prise en charge"
-#             }, status=404)
-#
-#     def get_context_data(self, **kwargs):
-#         return {
-#             **super().get_context_data(**kwargs),
-#             **admin.site.each_context(self.request),
-#             "opts": self.model._meta,
-#         }
-#
+
 
 

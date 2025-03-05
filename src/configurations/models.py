@@ -1373,8 +1373,8 @@ class TypeProduit(models.Model):
 
     class Meta:
         db_table = 'type_produit'
-        verbose_name = 'Type Produit'
-        verbose_name_plural = 'Type Produit'
+        verbose_name = 'Type de produit'
+        verbose_name_plural = 'Type de produit'
 
 
 class RisqueProduit(models.Model):
@@ -1674,6 +1674,7 @@ class User(AbstractUser):
         #Return a list of group names the user belongs to.
         return (group.name for group in self.groups.all())
     """
+
 
 class ParamActe(models.Model):
     created_by = models.ForeignKey(User, related_name="pa_created_by", null=True, on_delete=models.RESTRICT)
@@ -2651,3 +2652,99 @@ class Groupe(models.Model):
         db_table = 'groupes'
         verbose_name = 'Groupes'
         verbose_name_plural = 'Groupes'
+
+
+class TypeSinistre(models.Model):
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    statut = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'type_sinistre'
+        verbose_name = 'Type de sinistre'
+        verbose_name_plural = 'Type de sinistre'
+
+
+class TypeIntervenant(models.Model):
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    statut = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'type_intervenant'
+        verbose_name = "Type d'intervenant"
+        verbose_name_plural = "Type d'intervenant"
+
+
+class Responsabilite(models.Model):
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    taux_responsabilite = models.FloatField(null=True, )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    statut = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.libelle} - {self.taux_responsabilite} - {self.statut} - {self.created_at}'
+
+    class Meta:
+        db_table = 'responsabilite'
+        verbose_name = "Responsabilités"
+        verbose_name_plural = "Responsabilités"
+
+
+class TypeMouvement(models.Model):
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    statut = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'type_mouvement'
+        verbose_name = "Type de mouvement"
+        verbose_name_plural = "Type de mouvement"
+
+
+class Circonstance(models.Model):
+    branche = models.ForeignKey(Branche, null=True, on_delete=models.RESTRICT, blank=True)
+    code = models.CharField(max_length=100, blank=True, null=True)
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    statut = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'circonstance'
+        verbose_name = "Circonstances"
+        verbose_name_plural = "Circonstances"
+
+
+class PosteDommage(models.Model):
+    code = models.CharField(max_length=100, blank=True, null=True)
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    statut = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'poste_dommage'
+        verbose_name = "Postes de dommages"
+        verbose_name_plural = "Postes de dommages"
+
+

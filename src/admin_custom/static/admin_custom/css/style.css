@@ -714,4 +714,20 @@ label:not(.form-check-label):not(.custom-file-label) {
     color:#000;
 }
 
+.text-inov{
+    color:#F16623;
+}
+
+.text-inov_green{
+    background:#639A88;
+    text-align:center;
+    color:#fff;
+    font-weight:bold;
+}
+
+.fw-bold{
+    text-transform:uppercase;
+    font-weight:bold;
+}
+
 

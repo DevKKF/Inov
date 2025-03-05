@@ -67,13 +67,13 @@
 							<div class="form-group row">
 								<label class="col-sm-5 col-form-label">{{_("Montant HT")}}<span class="required"></span></label>
 								<div class="col-sm-7">
-									<input type="text" class="form-control money_field calculs_handler_police" name="prime_ht" id="prime_ht" value="{{ dernier_historique.prime_ht }}" />
+									<input type="text" class="form-control money_field calculs_handler_police" name="prime_ht" id="prime_ht" value="{{ police.police_dernier_historique.prime_ht }}" />
 								</div>
 							</div>
 							<div class="form-group row">
 								<label class="col-sm-5 col-form-label">{{_("Coût police Cie")}} <span class="required"></span></label>
 								<div class="col-sm-7">
-									<input type="text" class="form-control money_field_negative calculs_handler_police" name="cout_police_compagnie" id="cout_police_compagnie" value="{{ dernier_historique.cout_police_compagnie }}" />
+									<input type="text" class="form-control money_field_negative calculs_handler_police" name="cout_police_compagnie" id="cout_police_compagnie" value="{{ police.police_dernier_historique.cout_police_compagnie }}" />
 								</div>
 							</div>
 						</div>
@@ -83,19 +83,25 @@
 							<div class="form-group row">
 								<label class="col-sm-5 col-form-label">{{_("Coût police courtier")}}<span class="required"></span></label>
 								<div class="col-sm-7">
-									<input type="text" class="form-control money_field_negative calculs_handler_police" name="cout_police_courtier" id="cout_police_courtier" value="{{ dernier_historique.cout_police_courtier }}" />
+									<input type="text" class="form-control money_field_negative calculs_handler_police" name="cout_police_courtier" id="cout_police_courtier" value="{{ police.police_dernier_historique.cout_police_courtier }}" />
 								</div>
 							</div>
 							<div class="form-group row">
 								<label class="col-sm-5 col-form-label">{{_('Taxe')}} <span class="required"></span></label>
 								<div class="col-sm-7">
-									<input type="text" class="form-control money_field_negative calculs_handler_police" name="taxe" id="taxe" value="{{ dernier_historique.taxe }}" />
+									<input type="text" class="form-control money_field_negative calculs_handler_police" name="taxe" id="taxe" value="{{ police.police_dernier_historique.taxe }}" />
 								</div>
 							</div>
 							<div class="form-group row">
+								<label class="col-sm-5 col-form-label">{{_('Autres Taxes')}} <span class="required"></span></label>
+								<div class="col-sm-7">
+									<input type="text" class="form-control money_field_negative calculs_handler_police" name="autres_taxes" id="autres_taxes" value="{{ police.police_dernier_historique.autres_taxes }}" readonly>
+								</div>
+							</div>
+							<div class="form-group row d-none">
 								<label class="col-sm-5 col-form-label">{{_("Autres Taxes")}} <span class="required"></span></label>
 								<div class="col-sm-6" style="padding-right:0px;">
-									<input style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field calculs_handler_police" name="autres_taxes" id="autres_taxes" value="{{ dernier_historique.autres_taxes }}" readonly/>
+									<input style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field calculs_handler_police" name="" id="" value="{{ police.police_dernier_historique.autres_taxes }}" readonly/>
 								</div>
 								<div class="col-sm-1" style="padding-left:0px;">
 									<span class="btn " style="background:gray;color:white;border-top-left-radius:0px;border-bottom-left-radius:0px;" data-toggle="modal" data-target="#modal-autres_taxes_quittance">+</span>
@@ -104,35 +110,27 @@
 							<div class="form-group row">
 								<label class="col-sm-5 col-form-label">{{_("Montant TTC")}} <span class="required"></span></label>
 								<div class="col-sm-7">
-									<input type="text" class="form-control money_field" name="prime_ttc" id="prime_ttc" value="{{ dernier_historique.prime_ttc }}" readonly/>
+									<input type="text" class="form-control money_field" name="prime_ttc" id="prime_ttc" value="{{ police.police_dernier_historique.prime_ttc }}" readonly/>
 								</div>
 							</div>
 							<div class="form-group row show_if_nature_quittance_comptant">
-								<label class="col-sm-5 col-form-label">Com Courtage ({{police.taux_com_courtage|default_if_none:""}}%)<span class="required"></span></label>
+								<label class="col-sm-5 col-form-label">Com Courtage <b>({{police.police_dernier_historique.taux_com_courtage|default_if_none:""}}%)</b><span class="required"></span></label>
 								<div class="col-sm-7">
-									<input type="hidden" class="form-control" name="taux_com_courtage" id="taux_com_courtage" value="{{dernier_historique.taux_com_courtage|default_if_none:''}}" readonly/>
-									<input type="text" class="form-control money_field_negative" name="commission_courtage" id="commission_courtage" value="{% if dernier_historique.taux_com_courtage %}{{ dernier_historique.taux_com_courtage|diviser:100|multiply:dernier_historique.prime_ht }}{% endif %}" data-value_from_police="{{ dernier_historique.commission_courtage }} " readonly/>
-								</div>
-							</div>
-							<div class="form-group row show_if_nature_quittance_terme" style="display:none;">
-								<label class="col-sm-5 col-form-label">Com C. Terme({{dernier_historique.taux_com_courtage_terme|default_if_none:""}}%)<span class="required"></span></label>
-								<div class="col-sm-7">
-									<input type="hidden" class="form-control" name="taux_com_courtage_terme" id="taux_com_courtage_terme" value="{{dernier_historique.taux_com_courtage_terme|default_if_none:''}}" readonly/>
-									<input type="text" class="form-control money_field_negative" name="commission_courtage_terme" id="commission_courtage_terme" value="{% if dernier_historique.taux_com_courtage_terme %}{{ dernier_historique.taux_com_courtage_terme|diviser:100|multiply:dernier_historique.prime_ht }}{% endif %}" data-value_from_police="{{ dernier_historique.commission_courtage }} " readonly/>
+									<input type="hidden" class="form-control" name="taux_com_courtage" id="taux_com_courtage" value="{{police.police_dernier_historique.taux_com_courtage|default_if_none:''}}" readonly/>
+									<input type="text" class="form-control money_field_negative" name="commission_courtage" id="commission_courtage" value="{% if police.police_dernier_historique.taux_com_courtage %}{{ police.police_dernier_historique.taux_com_courtage|diviser:100|multiply:police.police_dernier_historique.prime_ht }}{% endif %}" data-value_from_police="{{ police.police_dernier_historique.commission_courtage }} " readonly/>
 								</div>
 							</div>
 
 							<div class="form-group row">
 								<label class="col-sm-5 col-form-label">{{_("Retrocession Apporteur")}}<span class="required"></span></label>
 								<div class="col-sm-7">
-									<input type="text" class="form-control money_field_negative" name="commission_intermediaire" id="total_commission_intermediaire" value="{{ dernier_historique.commission_intermediaires }}" readonly/>
+									<input type="text" class="form-control money_field_negative" name="commission_intermediaire" id="total_commission_intermediaire" value="{{ police.police_dernier_historique.commission_intermediaires }}" readonly/>
 								</div>
 							</div>
 
 						</div>
 					</div>
-
-					<table id="table_apporteurs_police" style="width:100%;display:none;" class="table table-bordered table-striped dataTable_ dtr-inline">
+					<table id="table_apporteurs_police" style="width:100%;display:none" class="table table-bordered table-striped dataTable_ dtr-inline">
 						<thead>
 							<tr>
 								<th style="width:;">{{_('Apporteur')}}</th>
@@ -155,7 +153,7 @@
 									{{ ap.base_calcul.libelle }}
 								</td>
 								<td style="vertical-align:middle;padding:5px;">
-									<input maxlength="2" type="text" class="form-control money_field calculs_handler_police taux_com_affaire_nouvelle" name="taux_com_affaire_nouvelle" value="{{ap.taux_com_affaire_nouvelle}}" readonly/>
+									<input maxlength="2" type="text" class="form-control money_field calculs_handler_police taux_com_affaire_nouvelle" name="taux_com_affaire_nouvelle" id="taux_com_affaire_nouvelle" value="{{ap.taux_com_affaire_nouvelle}}" readonly/>
 								</td>
 								<td style="vertical-align:middle;padding:5px;">
 									<input maxlength="2" type="text" class="form-control money_field calculs_handler_police taux_com_renouvelement" name="taux_com_renouvelement" value="{{ap.taux_com_renouvellement}}" readonly/>

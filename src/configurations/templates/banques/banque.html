@@ -33,6 +33,7 @@
               <table class="table table-bordered table-striped dataTable dtr-inline" id="table_formules">
                   <thead>
                     <tr>
+                      <th class="d-none"></th>
                       <th scope="col">{{_('Code')}}</th>
                       <th scope="col">{{_('Libelle')}}</th>
                       <th scope="col">{{_("Nom complet")}}</th>
@@ -44,10 +45,11 @@
                   <tbody>
                   {% for banque in banques %}
                     <tr>
+                        <td class="d-none"></td>
                         <td>{{ banque.code|default_if_none:"" }}</td>
-                         <td>{{ banque.libelle|default_if_none:"" }}</td>
-                         <td>{{ banque.nom_complet|default_if_none:"" }}</td>
-                         <td>{{ banque.created_at|date:"d/m/Y" }}</td>
+                        <td>{{ banque.libelle|default_if_none:"" }}</td>
+                        <td>{{ banque.nom_complet|default_if_none:"" }}</td>
+                        <td>{{ banque.created_at|date:"d/m/Y" }}</td>
                         <td>
                             {% if banque.status %}
                                 <span class="badge badge-success">Actif</span>

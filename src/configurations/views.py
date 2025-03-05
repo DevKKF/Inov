@@ -43,11 +43,11 @@ from configurations.models import ActionLog, Prescripteur, PrescripteurPrestatai
     PrestataireReseauSoin, WsBoby, ParamWsBoby, Affection, BackgroundQueryTask, ParamProduitCompagnie, Compagnie, \
     AlimentMatricule, ParamActe, TypeApporteur, TypePersonne, Pays, TypeCompagnie, TypeGarant, RisqueProduit, Carosserie, \
     CategorieVehicule, Civilite, CompteTresorerie, ConditionsAssurance, Carburant, Formule, Fractionnement, Garantie, GarantieFormule, \
-    Groupe, ModeReglement
+    Groupe, ModeReglement, Circonstance, Responsabilite, TypeIntervenant, TypeMouvement, TypeSinistre, PosteDommage
 from inov import settings
 # Create your views here.
 from production.models import TarifPrestataireClient, Client, Aliment, AlimentFormule, Mouvement, MouvementAliment, \
-    Carte, Quittance, Reglement, Courrier, Produit, SecteurActivite
+    Carte, Quittance, Reglement, Courrier, Produit, SecteurActivite, TypeDocument, Mouvement, Motif
 from production.templatetags.my_filters import money_field
 from shared.enum import PasswordType, Statut, StatutValidite, BaseCalculTM, StatutPaiementSinistre, \
     SatutBordereauDossierSinistres, StatutSinistre
@@ -4201,7 +4201,7 @@ class affectionsView(PermissionRequiredMixin, TemplateView):
 #------------------------APPORTEUR----------------------------------
 
 class ApporteurView(PermissionRequiredMixin, TemplateView):
-        template_name = 'apporteur/apporteur.html'
+        template_name = 'apporteurs/apporteur.html'
         permission_required = "configurations.view_apporteur"
         model = Apporteur
 
@@ -4306,7 +4306,7 @@ def modifier_apporteur(request, apporteur_id):
         types_personnes = TypePersonne.objects.all()
         pays = Pays.objects.order_by('-nom')
 
-        return render(request, 'apporteur/modal_modifier_apporteur.html',
+        return render(request, 'apporteurs/modal_modifier_apporteur.html',
                       {'apporteur': apporteur, 'types_apporteur': types_apporteur, 'types_personnes': types_personnes, 'pays': pays})
 
 
@@ -4431,6 +4431,29 @@ def add_compagnie(request):
         }
 
         return JsonResponse(response)
+
+
+@login_required
+def taux_compagnie(request, compagnie_id):
+    compagnie = Compagnie.objects.get(id=compagnie_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+
+        response = {
+            'statut': 1,
+            'message': "Taux modifié avec succès !",
+            'data': {}
+        }
+
+        return JsonResponse(response)
+
+    else:
+        param_produit_compagnie = ParamProduitCompagnie.objects.filter(compagnie_id=compagnie.id)
+
+        return render(request, 'compagnies/modal_taux_compagnie.html',
+                      {'compagnie': compagnie, 'param_produit_compagnie': param_produit_compagnie})
 
 
 @login_required
@@ -4735,6 +4758,142 @@ def supprimer_categorievehicule(request, categorievehicule_id):
         return JsonResponse(response)
 
 #---------------------FIN CATEGORIE VEHICULE---------------------------------------------
+
+
+#------------------------CIRCONSTANCE----------------------------------
+
+class CirconstanceView(PermissionRequiredMixin,TemplateView):
+    template_name = 'circonstances/circonstance.html'
+    permission_required = "configurations.view_circonstance"
+    model = Circonstance
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        circonstances = Circonstance.objects.all().order_by('-id')
+        branches = Branche.objects.filter(status=1).order_by('nom')
+
+        context_perso = {'circonstances': circonstances, 'branches': branches}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+# Générer le code pour la circonstance
+def generate_circonstance_code():
+
+    # Trouver le dernier code créé dans la base de données
+    last_code = Circonstance.objects.aggregate(Max('code'))['code__max']
+    
+    # Extraire le numéro incrémental du dernier code
+    if last_code:
+        last_number = int(last_code[3:])  # Ex: "CIR001" -> 001
+        new_number = last_number + 1
+    else:
+        new_number = 1  # Si aucun code n'existe encore
+
+    # Formatage du nouveau numéro pour garder 3 chiffres
+    new_code = f"CIR{str(new_number).zfill(3)}"
+
+    return new_code
+
+
+@login_required
+def add_circonstance(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau circonstance
+        circonstance_created = Circonstance.objects.create(
+            branche_id=request.POST.get('branche_id'),
+            libelle=request.POST.get('libelle'),
+            code=generate_circonstance_code(),
+            statut=request.POST.get('statut'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': circonstance_created.pk,
+                'libelle': circonstance_created.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_circonstance(request, circonstance_id):
+
+    circonstance = Circonstance.objects.get(id=circonstance_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Circonstance.objects.filter(id=circonstance_id).update(
+            branche_id=request.POST.get('branche_id'),
+            libelle=request.POST.get('libelle'),
+            statut=request.POST.get('statut'),
+            updated_at=datetime.now(),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': circonstance.pk,
+                'libelle': circonstance.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        branches = Branche.objects.filter(status=1).order_by('nom')
+        return render(request, 'circonstances/modal_modifier_circonstance.html', {'circonstance': circonstance, 'branches': branches})
+
+
+@login_required
+def supprimer_circonstance(request, circonstance_id):
+    if request.method == "POST":
+
+        circonstance_id = request.POST.get('circonstance_id')
+        print("circonstance id : ", circonstance_id)
+        circonstance = Circonstance.objects.get(id=circonstance_id)
+        if circonstance.pk is not None:
+
+            circonstance.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Circonstance supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Circonstance non trouvée !",
+            }
+
+            return JsonResponse(response)
+
+#------------------------FIN CIRCONSTANCE----------------------------------
 
 
 #------------------------CIVILITE----------------------------------
@@ -6090,7 +6249,7 @@ def add_pays(request):
             'message': "Enregistrement effectué avec succès !",
             'data': {
                 'id': pays_created.pk,
-                'libelle': pays_created.libelle,
+                'libelle': pays_created.nom,
             }
         }
 
@@ -6117,8 +6276,7 @@ def modifier_pays(request, pays_id):
             'message': "Modification effectuée avec succès !",
             'data': {
                 'id': pays.pk,
-                'libelle': pays.libelle,
-                'statut': pays.statut,
+                'libelle': pays.nom,
             }
         }
 
@@ -6126,7 +6284,7 @@ def modifier_pays(request, pays_id):
 
     else:
         devises = Devise.objects.all().order_by('libelle')
-        return render(request, 'payss/modal_modifier_pays.html', {'pays': pays, 'devises': devises})
+        return render(request, 'pays/modal_modifier_pays.html', {'pays': pays, 'devises': devises})
 
 
 @login_required
@@ -6157,6 +6315,120 @@ def supprimer_pays(request, pays_id):
             return JsonResponse(response)
 
 #------------------------FIN PAYS----------------------------------
+
+
+#------------------------RESPONSABILITE----------------------------------
+
+class ResponsabiliteView(PermissionRequiredMixin,TemplateView):
+    template_name = 'responsabilites/responsabilite.html'
+    permission_required = "configurations.view_responsabilite"
+    model = Responsabilite
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        responsabilites = Responsabilite.objects.all().order_by('-id')
+
+        context_perso = {'responsabilites': responsabilites}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_responsabilite(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau responsabilité
+        responsabilite_created = Responsabilite.objects.create(
+            libelle=request.POST.get('libelle'),
+            taux_responsabilite=request.POST.get('taux_responsabilite'),
+            statut=request.POST.get('statut'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': responsabilite_created.pk,
+                'libelle': responsabilite_created.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_responsabilite(request, responsabilite_id):
+
+    responsabilite = Responsabilite.objects.get(id=responsabilite_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Responsabilite.objects.filter(id=responsabilite_id).update(
+            libelle=request.POST.get('libelle'),
+            taux_responsabilite=request.POST.get('taux_responsabilite'),
+            statut=request.POST.get('statut'),
+            updated_at=datetime.now(),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': responsabilite.pk,
+                'libelle': responsabilite.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'responsabilites/modal_modifier_responsabilite.html', {'responsabilite': responsabilite})
+
+
+@login_required
+def supprimer_responsabilite(request, responsabilite_id):
+    if request.method == "POST":
+
+        responsabilite_id = request.POST.get('responsabilite_id')
+        print("responsabilite id : ", responsabilite_id)
+        responsabilite = Responsabilite.objects.get(id=responsabilite_id)
+        if responsabilite.pk is not None:
+
+            responsabilite.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Responsabilité supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Responsabilité non trouvée !",
+            }
+
+            return JsonResponse(response)
+
+#------------------------FIN RESPONSABILITE----------------------------------
 
 
 #------------------------SECTEUR D'ACTIVITE----------------------------------
@@ -6271,6 +6543,825 @@ def supprimer_secteur_activite(request, secteur_activite_id):
 #------------------------FIN SECTEUR D'ACTIVITE----------------------------------
 
 
+#------------------------TYPE DE DOCUMENT----------------------------------
+
+class TypeDocumentView(PermissionRequiredMixin,TemplateView):
+    template_name = 'typesdocuments/type_document.html'
+    permission_required = "configurations.view_types_documents"
+    model = TypeDocument
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        typedocuments = TypeDocument.objects.all().order_by('-id')
+
+        context_perso = {'typedocuments': typedocuments}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_types_documents(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau type de document
+        typedocument_created = TypeDocument.objects.create(
+            libelle=request.POST.get('libelle'),
+            is_sinistre=request.POST.get('is_sinistre'),
+            is_production=request.POST.get('is_production'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': typedocument_created.pk,
+                'libelle': typedocument_created.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_types_documents(request, type_document_id):
+
+    typedocument = TypeDocument.objects.get(id=type_document_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        TypeDocument.objects.filter(id=type_document_id).update(
+            libelle=request.POST.get('libelle'),
+            is_sinistre=request.POST.get('is_sinistre'),
+            is_production=request.POST.get('is_production'),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': typedocument.pk,
+                'libelle': typedocument.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'typesdocuments/modal_modifier_type_document.html', {'typedocument': typedocument})
+
+
+@login_required
+def supprimer_types_documents(request, type_document_id):
+    if request.method == "POST":
+
+        type_document_id = request.POST.get('type_document_id')
+        print("type de documemnt id : ", type_document_id)
+        typedocument = TypeDocument.objects.get(id=type_document_id)
+        if typedocument.pk is not None:
+
+            typedocument.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Type de document supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Type de document non trouvé !",
+            }
+
+            return JsonResponse(response)
+
+#------------------------FIN TYPE DE DOCUMENT----------------------------------
+
+#------------------------TYPE D'INTERVENANT----------------------------------
+
+class TypeIntervenantView(PermissionRequiredMixin,TemplateView):
+    template_name = 'typeintervenants/typeintervenant.html'
+    permission_required = "configurations.view_type_intervenant"
+    model = TypeIntervenant
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        typeintervenants = TypeIntervenant.objects.all().order_by('-id')
+
+        context_perso = {'typeintervenants': typeintervenants}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_typeintervenant(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau type d'intervenant
+        typeintervenant_created = TypeIntervenant.objects.create(
+            libelle=request.POST.get('libelle'),
+            statut=request.POST.get('statut'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': typeintervenant_created.pk,
+                'libelle': typeintervenant_created.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_typeintervenant(request, type_intervenant_id):
+
+    typeintervenant = TypeIntervenant.objects.get(id=type_intervenant_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        TypeIntervenant.objects.filter(id=type_intervenant_id).update(
+            libelle=request.POST.get('libelle'),
+            statut=request.POST.get('statut'),
+            updated_at=datetime.now(),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': typeintervenant.pk,
+                'libelle': typeintervenant.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'typeintervenants/modal_modifier_typeintervenant.html', {'typeintervenant': typeintervenant})
+
+
+@login_required
+def supprimer_typeintervenant(request, type_intervenant_id):
+    if request.method == "POST":
+
+        type_intervenant_id = request.POST.get('type_intervenant_id')
+        print("type d'intervenant id : ", type_intervenant_id)
+        typeintervenant = TypeIntervenant.objects.get(id=type_intervenant_id)
+        if typeintervenant.pk is not None:
+
+            typeintervenant.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Type d'intervenant supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Type d'intervenant non trouvé !",
+            }
+
+            return JsonResponse(response)
+
+#------------------------FIN TYPE D'INTERVENANT----------------------------------
+
+
+#------------------------TYPE DE MOUVEMENT----------------------------------
+
+class TypeMouvementView(PermissionRequiredMixin,TemplateView):
+    template_name = 'typemouvements/typemouvement.html'
+    permission_required = "configurations.view_type_mouvement"
+    model = TypeMouvement
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        typemouvements = TypeMouvement.objects.all().order_by('-id')
+
+        context_perso = {'typemouvements': typemouvements}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_typemouvement(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau type de mouvement
+        typemouvement_created = TypeMouvement.objects.create(
+            libelle=request.POST.get('libelle'),
+            statut=request.POST.get('statut'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': typemouvement_created.pk,
+                'libelle': typemouvement_created.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_typemouvement(request, type_mouvement_id):
+
+    typemouvement = TypeMouvement.objects.get(id=type_mouvement_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        TypeMouvement.objects.filter(id=type_mouvement_id).update(
+            libelle=request.POST.get('libelle'),
+            statut=request.POST.get('statut'),
+            updated_at=datetime.now(),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': typemouvement.pk,
+                'libelle': typemouvement.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'typemouvements/modal_modifier_typemouvement.html', {'typemouvement': typemouvement})
+
+
+@login_required
+def supprimer_typemouvement(request, type_mouvement_id):
+    if request.method == "POST":
+
+        type_mouvement_id = request.POST.get('type_mouvement_id')
+        print("type de mouvement id : ", type_mouvement_id)
+        typemouvement = TypeMouvement.objects.get(id=type_mouvement_id)
+        if typemouvement.pk is not None:
+
+            typemouvement.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Type de mouvement supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Type de mouvement non trouvé !",
+            }
+
+            return JsonResponse(response)
+
+#------------------------FIN TYPE DE MOUVEMENT----------------------------------
+
+
+#------------------------TYPE DE SINISTRE----------------------------------
+
+class TypeSinistreView(PermissionRequiredMixin,TemplateView):
+    template_name = 'typesinistres/typesinistre.html'
+    permission_required = "configurations.view_type_sinistre"
+    model = TypeSinistre
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        typesinistres = TypeSinistre.objects.all().order_by('-id')
+
+        context_perso = {'typesinistres': typesinistres}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_typesinistre(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau type de sinistre
+        typesinistre_created = TypeSinistre.objects.create(
+            libelle=request.POST.get('libelle'),
+            statut=request.POST.get('statut'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': typesinistre_created.pk,
+                'libelle': typesinistre_created.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_typesinistre(request, type_sinistre_id):
+
+    typesinistre = TypeSinistre.objects.get(id=type_sinistre_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        TypeSinistre.objects.filter(id=type_sinistre_id).update(
+            libelle=request.POST.get('libelle'),
+            statut=request.POST.get('statut'),
+            updated_at=datetime.now(),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': typesinistre.pk,
+                'libelle': typesinistre.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'typesinistres/modal_modifier_typesinistre.html', {'typesinistre': typesinistre})
+
+
+@login_required
+def supprimer_typesinistre(request, type_sinistre_id):
+    if request.method == "POST":
+
+        type_sinistre_id = request.POST.get('type_sinistre_id')
+        print("type de sinistre id : ", type_sinistre_id)
+        typesinistre = TypeSinistre.objects.get(id=type_sinistre_id)
+        if typesinistre.pk is not None:
+
+            typesinistre.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Type de sinistre supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Type de sinistre non trouvé !",
+            }
+
+            return JsonResponse(response)
+
+#------------------------FIN TYPE DE SINISTRE----------------------------------
+
+
+#------------------------MOUVEMENT----------------------------------
+
+class MouvementView(PermissionRequiredMixin,TemplateView):
+    template_name = 'mouvements/mouvement.html'
+    permission_required = "configurations.view_mouvements"
+    model = Mouvement
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        mouvements = Mouvement.objects.all().order_by('-id')
+        typemouvements = TypeMouvement.objects.filter(statut=1).order_by('libelle')
+
+        context_perso = {'mouvements': mouvements, 'typemouvements': typemouvements}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_mouvement(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau mouvement
+        mouvement_created = Mouvement.objects.create(
+            type_mouvement_id=request.POST.get('type_mouvement_id'),
+            libelle=request.POST.get('libelle'),
+            code=request.POST.get('code'),
+            type=request.POST.get('type'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': mouvement_created.pk,
+                'libelle': mouvement_created.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_mouvement(request, mouvement_id):
+
+    mouvement = Mouvement.objects.get(id=mouvement_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Mouvement.objects.filter(id=mouvement_id).update(
+            type_mouvement_id=request.POST.get('type_mouvement_id'),
+            libelle=request.POST.get('libelle'),
+            code=request.POST.get('code'),
+            type=request.POST.get('type'),
+            updated_at=datetime.now(),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': mouvement.pk,
+                'libelle': mouvement.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        typemouvements = TypeMouvement.objects.filter(statut=1).order_by('libelle')
+
+        return render(request, 'mouvements/modal_modifier_mouvement.html', {'mouvement': mouvement, 'typemouvements': typemouvements})
+
+
+@login_required
+def supprimer_mouvement(request, mouvement_id):
+    if request.method == "POST":
+
+        mouvement_id = request.POST.get('mouvement_id')
+        print("mouvement id : ", mouvement_id)
+        mouvement = Mouvement.objects.get(id=mouvement_id)
+        if mouvement.pk is not None:
+
+            mouvement.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Mouvement supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Mouvement non trouvé !",
+            }
+
+            return JsonResponse(response)
+
+#------------------------FIN MOUVEMENT----------------------------------
+
+
+#------------------------MOTIF----------------------------------
+
+class MotifView(PermissionRequiredMixin,TemplateView):
+    template_name = 'motifs/motif.html'
+    permission_required = "configurations.view_motifs"
+    model = Motif
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        motifs = Motif.objects.all().order_by('-id')
+        mouvements = Mouvement.objects.order_by('libelle')
+
+        context_perso = {'motifs': motifs, 'mouvements': mouvements}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_motif(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau motif
+        motif_created = Motif.objects.create(
+            mouvement_id=request.POST.get('mouvement_id'),
+            libelle=request.POST.get('libelle'),
+            etat_police=request.POST.get('etat_police'),
+            etat_sinistre=request.POST.get('etat_sinistre'),
+            code=request.POST.get('code'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': motif_created.pk,
+                'libelle': motif_created.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_motif(request, motif_id):
+
+    motif = Motif.objects.get(id=motif_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        Motif.objects.filter(id=motif_id).update(
+            mouvement_id=request.POST.get('mouvement_id'),
+            libelle=request.POST.get('libelle'),
+            etat_police=request.POST.get('etat_police'),
+            etat_sinistre=request.POST.get('etat_sinistre'),
+            code=request.POST.get('code'),
+            updated_at=datetime.now(),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': motif.pk,
+                'libelle': motif.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        mouvements = Mouvement.objects.order_by('libelle')
+        return render(request, 'motifs/modal_modifier_motif.html', {'motif': motif, 'mouvements': mouvements})
+
+
+@login_required
+def supprimer_motif(request, motif_id):
+    if request.method == "POST":
+
+        motif_id = request.POST.get('motif_id')
+        print("motif id : ", motif_id)
+        motif = Motif.objects.get(id=motif_id)
+        if motif.pk is not None:
+
+            motif.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Motif supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Motif non trouvé !",
+            }
+
+            return JsonResponse(response)
+
+#------------------------FIN MOTIF----------------------------------
+
+
+#------------------------POSTE DE DOMMAGE----------------------------------
+
+class PosteDommageView(PermissionRequiredMixin,TemplateView):
+    template_name = 'postedommages/postedommage.html'
+    permission_required = "configurations.view_poste_dommage"
+    model = PosteDommage
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        postedommages = PosteDommage.objects.all().order_by('-id')
+
+        context_perso = {'postedommages': postedommages}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+# Générer le code pour le poste de dommage
+def generate_postedommage_code():
+
+    # Trouver le dernier code créé dans la base de données
+    last_code = PosteDommage.objects.aggregate(Max('code'))['code__max']
+    
+    # Extraire le numéro incrémental du dernier code
+    if last_code:
+        last_number = int(last_code[4:])  # Ex: "CIR001" -> 001
+        new_number = last_number + 1
+    else:
+        new_number = 1  # Si aucun code n'existe encore
+
+    # Formatage du nouveau numéro pour garder 3 chiffres
+    new_code = f"PDOM{str(new_number).zfill(3)}"
+
+    return new_code
+
+
+@login_required
+def add_postedommage(request):
+
+    if request.method == 'POST':
+
+        # Créer une nouveau poste de dommage
+        postedommage_created = PosteDommage.objects.create(
+            libelle=request.POST.get('libelle'),
+            code=generate_postedommage_code(),
+            statut=request.POST.get('statut'),
+            created_at=datetime.now(),
+        )
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectué avec succès !",
+            'data': {
+                'id': postedommage_created.pk,
+                'libelle': postedommage_created.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_postedommage(request, postedommage_id):
+
+    postedommage = PosteDommage.objects.get(id=postedommage_id)
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        PosteDommage.objects.filter(id=postedommage_id).update(
+            libelle=request.POST.get('libelle'),
+            statut=request.POST.get('statut'),
+            updated_at=datetime.now(),
+        )
+        response = {
+            'statut': 1,
+            'message': "Modification effectuée avec succès !",
+            'data': {
+                'id': postedommage.pk,
+                'libelle': postedommage.libelle,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+        return render(request, 'postedommages/modal_modifier_postedommage.html', {'postedommage': postedommage})
+
+
+@login_required
+def supprimer_postedommage(request, postedommage_id):
+    if request.method == "POST":
+
+        postedommage_id = request.POST.get('postedommage_id')
+        print("postedommage id : ", postedommage_id)
+        postedommage = PosteDommage.objects.get(id=postedommage_id)
+        if postedommage.pk is not None:
+
+            postedommage.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Poste de dommage supprimé avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Poste de dommage non trouvé !",
+            }
+
+            return JsonResponse(response)
+
+#------------------------FIN POSTE DE DOMMAGE----------------------------------
+
+
 #--------------------------------------APPORTEUR INTERNAL----------------------------------------------------------
 
 class ApporteurinternationalView(PermissionRequiredMixin, TemplateView):
@@ -6298,7 +7389,6 @@ class ApporteurinternationalView(PermissionRequiredMixin, TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
-
 
 
 #--------------------------------------CategorieAffection--------------------------------------------------
@@ -6331,7 +7421,7 @@ class CategorieView(PermissionRequiredMixin, TemplateView):
 
 
 class ViewCourrier(PermissionRequiredMixin, TemplateView):
-    template_name = 'courriers.html'
+    template_name = 'courriers/courrier.html'
     permission_required = "configurations.view_courrier"
     model = Courrier
 
@@ -6437,10 +7527,7 @@ def modifier_courrier(request, courrier_id):
 
     else:
         courriers = Courrier.objects.all()  # Options pour les services et statuts
-        return render(request, 'modal_courrier_update.html', {
-            'courrier': courrier,
-
-        })
+        return render(request, 'courriers/modal_courrier_update.html', {'courrier': courrier})
 
 
 @login_required()

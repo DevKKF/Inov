@@ -27,6 +27,7 @@
 												{% for commercial in commercials %}
 													<option value="{{ commercial.id }}" data-commercial_id="{{ commercial.id }}">{{ commercial.first_name }} {{ commercial.last_name }}</option>
 												{% endfor %}
+												<option value="AUCUN" data-commercial_id="AUCUN">Aucun commercial</option>
 												<option value="TOUT" data-commercial_id="TOUT">Toute les commerciaux</option>
 											</select>
 										</div>
@@ -52,21 +53,21 @@
 												<tr>
 													<th>{{_("Client")}}</th>
 													<th>{{_("Numero")}}</th>
-													<th width="10%">{{_("Date d'échéance")}}</th>
+													<th width="10%">{{_("Date échéance")}}</th>
 													<th width="7%">{{_("Statut")}}</th>
-													<th width="10%">{{_("Date de création")}}</th>
-													<th width="12%">{{_("Date de résiliation")}}</th>
+													<th width="10%">{{_("Date création")}}</th>
+													<th width="12%">{{_("Date résiliation")}}</th>
 													<th>{{_("Prime HT")}}</th>
-													<th>{{_("Prime TTC")}}</th>
+													<th>{{_("Com Courtage")}}</th>
 												</tr>
 											</thead>
 											<tbody>
 											</tbody>
 											<tfoot>
 												<tr>
-													<td colspan="6" class="text-right f-bold">TOTAL :</td>
-													<td class="f-bold"><span class="form-control money_field readonly" id="com_total_ht" style="background: rgb(240, 220, 200); border: rgb(240, 220, 200); text-align: right; color:#000;"></span></td>
-													<td class="f-bold"><span class="form-control money_field readonly" id="com_total_ttc" style="background: rgb(240, 220, 200); border: rgb(240, 220, 200); text-align: right; color:#000;"></span></td>
+													<td colspan="6" class="text-right f-bold">TOTAL GENERAL :</td>
+													<td class="f-bold"><span class="form-control money_field readonly" id="com_total_ht" style="background: rgb(240, 220, 200); border: rgb(240, 220, 200); text-align: right; color:#000; font-weight:bold"></span></td>
+													<td class="f-bold"><span class="form-control money_field readonly" id="com_total_com_courtage" style="background: rgb(240, 220, 200); border: rgb(240, 220, 200); text-align: right; color:#000; font-weight:bold"></span></td>
 												</tr>
 											</tfoot>
 										</table>

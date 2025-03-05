@@ -85,6 +85,34 @@ INNER JOIN configurations_user on configurations_user.id=polices.commercial_id
 WHERE configurations_user.id=16);
 
 
+select * from polices
+inner join clients on clients.id=polices.client_id
+inner join business_unit on business_unit.id=clients.business_unit_id
+inner join historique_polices on historique_polices.police_id=polices.id
+where business_unit.id=1;
+
+
+select * from polices where id IN (select polices.id from polices
+inner join clients on clients.id=polices.client_id
+inner join business_unit on business_unit.id=clients.business_unit_id
+inner join historique_polices on historique_polices.police_id=polices.id
+where business_unit.id=2);
+
+
+select * from polices where id IN (SELECT polices.id FROM compagnies
+INNER JOIN police_assureurs on compagnies.id=police_assureurs.compagnie_id and police_assureurs.type_compagnie_id=1
+INNER JOIN historique_polices on historique_polices.id=police_assureurs.historique_police_id
+INNER JOIN polices on polices.id=historique_polices.police_id
+INNER JOIN produit on produit.id=polices.produit_id
+INNER JOIN branche on branche.id=produit.branche_id
+WHERE compagnies.id=5);
+
+
+polices_qs = Police.objects.filter(
+    historiques__id__in=PoliceAssureur.objects.filter(
+        compagnie_id=compagnie.id, type_compagnie_id=1
+    ).values('historique_police_id')
+).distinct()
 
 
 
@@ -96,31 +124,9 @@ WHERE configurations_user.id=16);
 
 
 
+PoliceSinistresView
 
 
 
 
 
-
-
-
-
-
-    historique_list = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour')[:2]
-
-    dernier_historique = historique_list[0] if len(historique_list) > 0 else None
-    precedent_historique = historique_list[1] if len(historique_list) > 1 else None
-
-
-
-
-
-            if precedent_historique:
-                print('precedent_historique ', precedent_historique.id)
-                prime_ht_n = precedent_historique.prime_ht if precedent_historique else 0
-                total_ht_n += prime_ht_n
-
-
-
-TRUNCATE `quittances`; TRUNCATE `reglements`; TRUNCATE `reglement_compagnie`; TRUNCATE `reglement_facture_compagnie`; TRUNCATE `encaissement_commission`;
-TRUNCATE `journal`; TRUNCATE `operations`; TRUNCATE `operation_reglement`;

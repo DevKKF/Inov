@@ -124,7 +124,7 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">{{_("Date fin")}}</label>
+                        <label class="col-sm-6 col-form-label">{{_("Date de renouvellement")}}</label>
                         <div class="col-sm-6">
                         <span class="form-control">{{ police.avenant_encours.date_fin_periode_garantie|date:'d/m/Y' }}</span>
                         </div>
@@ -151,7 +151,7 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">{{_("Date fin police")}}</label>
+                        <label class="col-sm-6 col-form-label">{{_("Date fin du contrat")}}</label>
                         <div class="col-sm-6">
                         <span class="form-control">{{ dernier_historique.date_fin_police|date:'d/m/Y' }}</span>
                         </div>
@@ -163,12 +163,6 @@
             <hr>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <div class="form-group row d-none">
-                        <label class="col-sm-6 col-form-label">{{_("Dévise")}}</label>
-                        <div class="col-sm-6">
-                        <span class="form-control">{{police.bureau.pays.devise.code|default_if_none:""}}</span>
-                        </div>
-                    </div>
                     <div class="form-group row">
                         <label class="col-sm-6 col-form-label">{{_('Fractionnement')}}</label>
                         <div class="col-sm-6">

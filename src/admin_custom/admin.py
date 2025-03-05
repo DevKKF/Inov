@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.timezone import now
 from datetime import timedelta
+from django.db.models import Q
 
 from api.serializers import BureauSerializer
 from configurations.models import Affection, Rubrique, Prescripteur, Prestataire, User, Bureau, TypeRemboursement, \
@@ -41,6 +42,7 @@ class CustomAdminSite(admin.AdminSite):
         count_polices_a_echeance = 0
         count_polices_non_renouvelees_resilies = 0
 
+        """
         if user.is_commercial:
             count_polices_en_cours = Police.objects.filter(date_fin_effet__gt=today, commercial_id=user.id).count()
             count_polices_a_echeance = Police.objects.filter(date_fin_effet__lte=in_90_days, date_fin_effet__gt=today, commercial_id=user.id).count()
@@ -53,6 +55,15 @@ class CustomAdminSite(admin.AdminSite):
             count_polices_en_cours = 0
             count_polices_a_echeance = 0
             count_polices_non_renouvelees_resilies = 0
+        """
+
+        count_polices_en_cours = Police.objects.filter(Q(date_fin_effet__gt=today) | Q(date_fin_police__gt=today)).count()
+        #count_polices_a_echeance = Police.objects.filter(date_fin_effet__lte=in_90_days, date_fin_effet__gt=today).count()
+        count_polices_a_echeance = Police.objects.filter(
+            (Q(date_fin_effet__lte=in_90_days) & Q(date_fin_effet__gt=today)) |
+            (Q(date_fin_police__lte=in_90_days) & Q(date_fin_police__gt=today))
+        ).count()
+        count_polices_non_renouvelees_resilies = Police.objects.filter(Q(date_fin_effet__lt=today) | Q(date_fin_police__lt=today)).count()
 
         # Ajout au contexte
         extra_context['count_polices_en_cours'] = count_polices_en_cours

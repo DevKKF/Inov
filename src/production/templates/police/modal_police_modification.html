@@ -101,7 +101,7 @@
 												<select class="form-control tags-multiple" name="commercial_id" id="commercials_id">
 													<option value="">{{_('Choisir')}}</option>
 													{% for comm in commercials %}
-														<option value="{{comm.id}}" {% if police.commercial_id == comm.id %} selected {% endif %}>{{comm.first_name}} {{comm.last_name}}</option>
+														<option value="{{comm.id}}" {% if police.commercial_id == comm.id or police.client.commercial_id == comm.id %} selected {% endif %}>{{comm.first_name}} {{comm.last_name}}</option>
 													{% endfor %}
 												</select>
 											</div>
@@ -116,17 +116,33 @@
 									<div class="vl"></div>
 									<div class="col-md-6" style="border-left:0px;margin-left:-10px;padding-left:20px;">
 										<div class="form-group row">
-											<label class="col-sm-5 col-form-label">{{_("Date début")}} <span class="required">*</span></label>
+											<label class="col-sm-5 col-form-label">{{_("Mode renouvellement")}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<input type="date" class="form-control" name="date_debut_effet" id="date_debut_effet" value="{{ dernier_historique.date_debut_effet|date:'Y-m-d' }}" required>
+												<select class="form-control" name="mode_renouvellement" id="mode_renouvellement" required>
+													<option value="">{{_('Choisir')}}</option>
+													<option {% if mode_renouvellement.TACITE_RECONDUCTION == dernier_historique.mode_renouvellement %} selected {% endif %}  value="{{ mode_renouvellement.TACITE_RECONDUCTION }}">{{ mode_renouvellement.TACITE_RECONDUCTION }}</option>
+													<option {% if mode_renouvellement.SANS_TACITE_RECONDUCTION == dernier_historique.mode_renouvellement %} selected {% endif %}  value="{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}">{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}</option>
+												</select>
 											</div>
 										</div>
 										<div class="form-group row">
-                                            <label class="col-sm-5 col-form-label">{{_("Date Fin période garantie")}}</label>
-                                            <div class="col-sm-7">
-                                                <input type="date" class="form-control" name="date_fin_effet" id="date_fin_effet" value="{{ dernier_historique.date_fin_effet|date:'Y-m-d' }}" autocomplete="off">
-                                            </div>
-                                        </div>
+											<label class="col-sm-5 col-form-label">{{_("Date début")}} <span class="required">*</span></label>
+											<div class="col-sm-7">
+												<input type="date" class="form-control" name="date_debut_effet" id="date_debut_effet" autocomplete="off" value="{{ dernier_historique.date_debut_effet|date:'Y-m-d' }}" required/>
+											</div>
+										</div>
+										<div class="form-group row tacide_reconduction">
+											<label class="col-sm-5 col-form-label">{{_("Date de renouvellement")}} <span class="required">*</span></label>
+											<div class="col-sm-7">
+												<input type="date" class="form-control" name="date_fin_effet" id="date_fin_effet" autocomplete="off" value="{{ dernier_historique.date_fin_effet|date:'Y-m-d' }}">
+											</div>
+										</div>
+										<div class="form-group row sans_tacide_reconduction">
+											<label class="col-sm-5 col-form-label">{{_("Date fin contrat")}}</label>
+											<div class="col-sm-7">
+												<input type="date" class="form-control" name="date_fin_police" id="date_fin_police" autocomplete="off" value="{{ dernier_historique.date_fin_police|date:'Y-m-d' }}">
+											</div>
+										</div>
 
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("Préavis de résiliation")}} <span class="required">*</span></label>
@@ -139,17 +155,6 @@
 													<option {% if police.preavis_de_resiliation == '4' %} selected {% endif %} value="4">4 {{_('Mois')}}</option>
 													<option {% if police.preavis_de_resiliation == '5' %} selected {% endif %} value="5">5 {{_('Mois')}}</option>
 													<option {% if police.preavis_de_resiliation == '6' %} selected {% endif %} value="6">6 {{_('Mois')}}</option>
-												</select>
-											</div>
-										</div>
-
-										<div class="form-group row">
-											<label class="col-sm-5 col-form-label">{{_("Mode renouvellement")}} <span class="required">*</span></label>
-											<div class="col-sm-7">
-												<select class="form-control" name="mode_renouvellement" required>
-													<option value="">{{_('Choisir')}}</option>
-													<option {% if mode_renouvellement.TACITE_RECONDUCTION == dernier_historique.mode_renouvellement %} selected {% endif %}  value="{{ mode_renouvellement.TACITE_RECONDUCTION }}">{{ mode_renouvellement.TACITE_RECONDUCTION }}</option>
-													<option {% if mode_renouvellement.SANS_TACITE_RECONDUCTION == dernier_historique.mode_renouvellement %} selected {% endif %}  value="{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}">{{ mode_renouvellement.SANS_TACITE_RECONDUCTION }}</option>
 												</select>
 											</div>
 										</div>
@@ -976,7 +981,7 @@
 										<div class="form-group row d-none">
 											<label class="col-sm-5 col-form-label">{{_("Autres Taxes")}}<span class="required"></span></label>
 											<div class="col-sm-6" style="padding-right:0px;">
-												<input style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field calculs_handler_police_modification" name="autres_taxes" id="autres_taxes_modification" value="{{ dernier_historique.autres_taxes|default_if_none:'' }}" readonly/>
+												<input style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field calculs_handler_police_modification" name="" id="autres_taxes_modification" value="{{ dernier_historique.autres_taxes|default_if_none:'' }}" readonly/>
 											</div>
 											<div class="col-sm-1" style="padding-left:0px;">
 												<span class="btn " style="background:gray;color:white;border-top-left-radius:0px;border-bottom-left-radius:0px;" data-toggle="modal" data-target="#modal-autres_taxes_modification">+</span>

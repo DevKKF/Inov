@@ -82,7 +82,7 @@ urlpatterns = [
 
     # path('police/<int:police_id>/details',views.details_police,name='police.details'),
     path('police/<int:police_id>/details', views.DetailsPoliceView.as_view(), name='police.details'),
-    path('police/<int:police_id>/historique-details', views.DetailsHistoriquePoliceView.as_view(), name='police.historique.details'),
+    path('police/<int:police_id>/<int:historique_police_id>/historique-details', views.DetailsHistoriquePoliceView.as_view(), name='police.historique.details'),
     path('police/<int:police_id>/quittances', PoliceQuittancesView.as_view(), name='police_quittances'),
     path('police/<int:police_id>/add_quittance', views.add_quittance, name='add_quittance'),
     path('quittance/<int:quittance_id>/police/<int:police_id>/add_document', views.add_document_to_quittance, name='add_document_to_quittance'),
