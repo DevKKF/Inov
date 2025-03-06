@@ -1,0 +1,69 @@
+<div  class="modal fade modal_interne"  id="modal-sinistre_garantie" data-backdrop="static" data-keyboard="false" aria-hidden="true" style="display: none">
+	<div class="modal-dialog modal-lg" style="width:;">
+		<div class="modal-content">
+			<form id="form_add_sinistre_garantie" action="" method="post" enctype="multipart/form-data">
+				{% csrf_token %}
+                <div class="modal-header">
+                    <h4 class="modal-title">{{_("AJOUTER DES GARANTIES AU SINISTRE")}}</h4>
+                    <button type="button" data-dismiss="modal" aria-label="Close" style="border:none;background:none; color:#3F3F3F">
+                        <span aria-hidden="true"><i class="fa fa-remove"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert  alert-dismissible fade show hidden" role="alert">
+                        <span class="message"> {{_("TRAITEMENT EN COURS")}}</span>
+                    </div>
+                    <div class="col-md-12 offset-0">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div id="message-modal-success" class="alert alert-success" style="display:none;"></div>
+                                <div id="message-modal-warning" class="alert alert-warning" style="display:none;"></div>
+                                <div id="message-modal-error" class="alert alert-danger" style="display:none;"></div>
+                            </div>
+                            <div class="col-md-12">
+                                <table id="table_add_sinistre_garantie" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:5%"></th>
+                                            <th>{{_("Garantie")}}</th>
+                                            <th class="text-center" style="width:15%">{{_("Franchise")}}</th>
+                                            <th class="text-center" style="width:15%;">{{_("Capital")}}</th>
+                                            <th class="text-center" style="width:15%;">{{_("Prime nette")}}</th>
+                                            <th class="text-center" style="width:15%;">{{_("Prime TTC")}}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for p_garantie in garanties %}
+                                            <tr>
+                                                <td style="vertical-align:middle;">
+                                                    <input type="checkbox" class="form-control sinistre_garantie-checkbox" name="garantie_{{p_garantie.id}}" value="{{p_garantie.id}}" style="width: 0.6qrem; height: 1.25rem;">
+                                                </td>
+                                                <td style="vertical-align:middle;">{{ p_garantie.garantie.nom }}</td>
+                                                <td style="vertical-align:middle;padding:5px;">
+                                                    <input type="text" class="form-control form-control-sm sinistre_franchise-input" name="franchise_{{p_garantie.id}}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)" disabled>
+                                                </td>
+                                                <td style="vertical-align:middle;padding:5px;">
+                                                    <input type="text" class="form-control form-control-sm sinistre_capital-input" name="capital_{{p_garantie.id}}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)" disabled>
+                                                </td>
+                                                <td style="vertical-align:middle;padding:5px;">
+                                                    <input type="text" class="form-control form-control-sm sinistre_prime_net-input" name="prime_net_{{p_garantie.id}}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)" disabled>
+                                                </td>
+                                                <td style="vertical-align:middle;padding:5px;">
+                                                    <input type="text" class="form-control form-control-sm sinistre_prime_ttc-input" name="prime_ttc_{{p_garantie.id}}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)" disabled>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Fermer')}}</button>
+                    <button type="button" id="btn_save_sinistre_garantie" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Valider')}}</button>
+                </div>
+            </form>
+		</div>
+	</div>
+</div>

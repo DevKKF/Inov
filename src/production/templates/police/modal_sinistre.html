@@ -4,7 +4,7 @@
 			<form enctype="multipart/form-data" id="form_add_sinistre" action="" method="post">
 			{% csrf_token %}
 			<div class="modal-header">
-				<h4 class="modal-title">{{_("AJOUTER D'UN SINISTRE")}}</h4>
+				<h4 class="modal-title">{{_("CREER UN SINISTRE")}}</h4>
 				<button type="button" class="close"data-dismiss="modal"aria-label="Close">
 					<span aria-hidden="true">×</span>
 				</button>
@@ -119,6 +119,16 @@
 											<input type="date" class="form-control" name="date_reouverture" id="date_reouverture" autocomplete="off" value="">
 										</div>
 									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Sinistre en recours")}} ? <span class="required">*</span></label>
+										<div class="col-sm-7" style="margin-top:10px">
+											<input type="radio" value="OUI" name="sinistre_recours" id="sinistre_recours_oui">
+											<label class="form-check-label" for="sinistre_recours_oui">OUI</label>
+
+											<input type="radio" value="NON" name="sinistre_recours" id="sinistre_recours_non" class="ml-3" checked>
+											<label class="form-check-label" for="sinistre_recours_non">NON</label>
+										</div>
+									</div>
 								</div>
 
 								<div class="col-md-12 text-uppercase" style="margin-bottom:10px !important; border-top:2px solid #F16623">
@@ -214,7 +224,7 @@
 									<h6><mark class="match">Garanties mise en cause</mark></h6>
 								</div>
 								<div class="col-md-12" id="test_garantie_sinistre">
-									<span class="badge badge-success"><i class="fa fa-plus-circle"></i> Ajout de garantie</span>
+									<span class="btn btn-success" data-toggle="modal" data-target="#modal-sinistre_garantie"><i class="fa fa-plus-circle"></i> Ajout de garantie</span>
 									<div class="text-danger mb-2" id="garantie-message-error"></div>
 									<div class="text-warning mb-2" id="garantie-message-warning"></div>
 									<table id="table_garantie_sinistre" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
@@ -236,7 +246,27 @@
 
 						<div class="tab-pane fade mt-3" id="intervenant" role="tabpanel" aria-labelledby="intervenant-tab">
 							<div class="row">
+								<div class="col-md-12" id="test_intervenant_sinistre">
+									<span class="btn btn-success" data-toggle="modal" data-target="#modal-sinistre_intervenant"><i class="fa fa-plus-circle"></i> Ajout d'intervenant</span>
+									<div class="text-danger mb-2" id="intervenant-message-error"></div>
+									<div class="text-warning mb-2" id="intervenant-message-warning"></div>
+									<table id="table_intervenant_sinistre" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
+										<thead>
+											<tr>
+												<th>Nom</th>
+												<th>Prénoms</th>
+												<th>Catégorie</th>
+												<th>Téléphone</th>
+												<th>Email</th>
+												<th>Adresse</th>
+												<th>Ville</th>
+											</tr>
+										</thead>
+										<tbody>
 
+										</tbody>
+									</table>
+								</div>
 							</div>
 						</div>
 
@@ -293,3 +323,5 @@
         }
     }
 </script>
+{% include 'police/modal_sinistre_garantie.html' %}
+{% include 'police/modal_sinistre_intervenant.html' %}

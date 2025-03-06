@@ -4488,13 +4488,16 @@ class PoliceSinistresView(TemplateView):
             assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id, type_compagnie_id=1).first() if dernier_historique else []
             today = datetime.now(tz=timezone.utc)
 
-            postedommages = PosteDommage.objects.filter(statut=1).order_by('libelle')
+            postedommages = PosteDommage.objects.filter(statut=1)
             mouvements = Mouvement.objects.filter(type_mouvement_id=2).order_by('libelle')
             typesinistres = TypeSinistre.objects.filter(statut=1).order_by('libelle')
             typeintervenants = TypeIntervenant.objects.filter(statut=1).order_by('libelle')
             typedocuments = TypeDocument.objects.filter(is_sinistre=1).order_by('libelle')
-            responsabilites = Responsabilite.objects.filter(statut=1).order_by('libelle')
+            responsabilites = Responsabilite.objects.filter(statut=1)
             circonstances = Circonstance.objects.filter(statut=1).order_by('libelle')
+
+            garanties = PoliceGarantie.objects.filter(police_id=police.id)
+            pays = Pays.objects.all().order_by('nom')
 
             aliments = AlimentPolice.objects.filter(police_id=police.id)
 
@@ -4514,6 +4517,8 @@ class PoliceSinistresView(TemplateView):
                 'typedocuments': typedocuments,
                 'responsabilites': responsabilites,
                 'circonstances': circonstances,
+                'garanties': garanties,
+                'pays': pays,
                 'aliments': aliments,
                 'prestataires': prestataires
             }
