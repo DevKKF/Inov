@@ -144,6 +144,10 @@ urlpatterns = [
     path('police/<int:police_id>/<int:aliment_id>/upload_benef_picture', views.upload_benef_picture, name='upload_benef_picture'),
     path('police/<int:police_id>/sinistres', PoliceSinistresView.as_view(), name='police_sinistres'),
     path('police/<int:police_id>/sinistres_datatable', views.police_sinistres_datatable, name='police_sinistres_datatable'),
+    path('police/sinistre/<int:vehicule_id>', views.police_sisnistre_vehicule, name='police_sisnistre_vehicule'),
+    path('police-sinistre-intervenants/', views.police_sinistre_intervenants, name='police_sinistre_intervenants'),
+    path('vider-intervenants/', views.vider_intervenants_session, name='vider_intervenants'),
+    path('get_intervenants_session/', views.get_intervenants_session, name='get_intervenants_session'),
 
     path('police/<int:police_id>/courriers', CourrierView.as_view(), name='police_courrier'),
     path('police/<int:police_id>/courrier/<int:courrier_id>/pdf/', views.generer_courrier, name='generer_pdf'),

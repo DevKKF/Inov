@@ -24673,12 +24673,207 @@ $(document).ready(function () {
     }
 
     $("#business_unit").change(function () {
-    let business_unitID = $(this).find(":selected").data("business_unit_id");
+        let business_unitID = $(this).find(":selected").data("business_unit_id");
 
-    if (business_unitID) {
-        chargementPoliceBusinessUnitTable(business_unitID);
-    } else {
-        $("#polices_business_unit").hide(); // Masquer le bloc si aucun compercial n'est sélectionnée
-    }
+        if (business_unitID) {
+            chargementPoliceBusinessUnitTable(business_unitID);
+        } else {
+            $("#polices_business_unit").hide(); // Masquer le bloc si aucun compercial n'est sélectionnée
+        }
+    });
+
+    // Changement des informations du vehicule
+    $('#vehicule_id').on('change', function () {
+        let vehicule_id = $(this).val();
+
+        if (!vehicule_id) return; // Si aucun véhicule sélectionné, on stoppe
+
+        // Requête AJAX
+        $.ajax({
+            type: 'GET',
+            url: '/production/police/sinistre/' + vehicule_id,
+            success: function (vehicule) {
+                if (vehicule.error) {
+                    console.error('Erreur:', vehicule.error);
+                    return;
+                }
+                console.log('vehicule : ', vehicule);
+
+                // Remplissage du champ "risque"
+                let immat_marque = vehicule.risque_info;
+                $('#risque').val(immat_marque);
+
+                // Vérification de la date de sortie
+                let date_sortie = vehicule.date_sortie ? new Date(vehicule.date_sortie) : null;
+                let date_actuelle = new Date();
+
+                if (date_sortie && date_sortie < date_actuelle) {
+                    //alert("Date sortie passé");
+                    let n = noty({
+                        text: 'Ce véhicule est déjà sortie. Voulez-vous continuer ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary',
+                                text: 'Confirmer',
+                                onClick: function ($noty) {
+                                    $noty.close();
+                                    $('#btn_save_police_sinistre').prop('disabled', false);
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger',
+                                text: 'Annuler',
+                                onClick: function ($noty) {
+                                    $noty.close();
+                                    $('#btn_save_police_sinistre').prop('disabled', true);
+                                }
+                            }
+                        ]
+                    });
+                } else {
+                    $('#btn_save_police_sinistre').prop('disabled', false);
+                }
+            },
+            error: function () {
+                console.error('Erreur lors du chargement des données.');
+            }
+        });
+    });
+
+    //Affichage / Enregistrement des intervenants
+    $('#modal-sinistre').on('show.bs.modal', function (event) {
+        const policeId = $('#police_id').data('police-id');
+        const intervenantTableBody = $('#table_intervenant_sinistre tbody');
+
+        function chargerIntervenants() {
+            $.ajax({
+                url: '/production/get_intervenants_session/',
+                type: 'GET',
+                data: { police_id: policeId },
+                success: function (response) {
+                    if (response.success) {
+                        intervenantTableBody.empty(); // Effacer le tableau avant d'ajouter les intervenants
+                        response.data.forEach(intervenant => {
+                            intervenantTableBody.append(`
+                                <tr data-id="${intervenant.id}">
+                                    <td>${intervenant.nom || ''}</td>
+                                    <td>${intervenant.prenoms || ''}</td>
+                                    <td>${intervenant.typeintervenant || ''}</td>
+                                    <td>${intervenant.portable || ''}</td>
+                                    <td>${intervenant.email || ''}</td>
+                                    <td>${intervenant.code_postal || ''}</td>  // Utiliser code_postal
+                                    <td>${intervenant.ville || ''}</td>
+                                </tr>
+                            `);
+                        });
+                    } else {
+                        console.error(response.message);
+                    }
+                },
+                error: function (xhr) {
+                    console.error("Une erreur est survenue lors de la récupération des intervenants.");
+                }
+            });
+        }
+
+        chargerIntervenants();
+
+        $('#btn_save_sinistre_intervenant').off('click').on('click', function () {
+            $('.intervenant_champ_obligatoire').removeClass('is-invalid is-valid');
+            $('#intervenant-modal-error, #intervenant-modal-warning, #intervenant-modal-success').text('').hide();
+
+            let valide = true;
+            $('.intervenant_champ_obligatoire').each(function () {
+                let value = $(this).val().trim();
+                if (!value) {
+                    $(this).addClass('is-invalid');
+                    valide = false;
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                }
+            });
+
+            if (!valide) {
+                $('#intervenant-modal-error').text('Veuillez remplir tous les champs obligatoires.').show();
+                return;
+            }
+
+            const formData = new FormData($('#form_add_sinistre_intervenant')[0]);
+
+            $.ajax({
+                url: '/production/police-sinistre-intervenants/',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        $("#intervenant-modal-success").text(response.message).show();
+                        chargerIntervenants(); // Recharger les intervenants après l'ajout
+                        setTimeout(() => {
+                            $("#form_add_sinistre_intervenant").trigger("reset");
+                            $('.intervenant_champ_obligatoire').removeClass('is-valid is-invalid');
+                            $("#intervenant-modal-success").fadeOut();
+                        }, 3000);
+                    } else {
+                        $("#intervenant-modal-warning").text(response.message).show().delay(5000).fadeOut();
+                    }
+                },
+                error: function (xhr) {
+                    const response = xhr.responseJSON;
+                    $("#intervenant-modal-error").text(response?.message || "Une erreur est survenue.").show().delay(5000).fadeOut();
+                },
+            });
+        });
+    });
+
+    // Lorsque l'utilisateur clique sur la croix du modal on vide les intervenants / les provisions
+    $(document).on('click', '.close[data-dismiss="modal"]', function () {
+        $.ajax({
+            url: '/production/vider-intervenants/',
+            type: "POST",
+            success: function(response) {
+                console.log("Intervenants en session vidés !");
+                $("#table_intervenant_sinistre").empty(); // Vider l'affichage des intervenants
+            },
+            error: function() {
+                console.log("Erreur lors de la suppression des intervenants en session.");
+            }
+        });
+    });
+
+    //Vérification avant affichage du modal des garanties
+    $('#btn-ajout-garantie').click(function(event) {
+        event.preventDefault(); // Empêcher le comportement par défaut
+
+        var circonstanceId = $('#circonstance_id').val();
+
+        if (circonstanceId === '') {
+            let n = noty({
+                text: 'Veuillez choisir une circonstance avant d\'ajouter une garantie.',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary',
+                        text: 'Fermer',
+                        onClick: function ($noty) {
+                            $noty.close();
+                        }
+                    }
+                ]
+            });
+        } else {
+            $('#modal-sinistre_garantie').modal('show'); // Ouvrir le modal uniquement si la validation réussit
+        }
+    });
+
 });
-});
+
+

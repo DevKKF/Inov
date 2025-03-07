@@ -1,8 +1,11 @@
+{% load i18n static jazzmin admin_urls %}
+{% load my_filters %}
 <div  class="modal fade" id="modal-sinistre" data-backdrop="static" data-keyboard="false" aria-hidden="true"  style="display: none">
 	<div class="modal-dialog modal-xl">
 		<div class="modal-content">
 			<form enctype="multipart/form-data" id="form_add_sinistre" action="" method="post">
 			{% csrf_token %}
+			<input type="hidden" id="police_id" data-police-id="{{ police.id }}" value="{{ police.id }}">
 			<div class="modal-header">
 				<h4 class="modal-title">{{_("CREER UN SINISTRE")}}</h4>
 				<button type="button" class="close"data-dismiss="modal"aria-label="Close">
@@ -104,7 +107,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Risque")}} </label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="risque" id="risque" autocomplete="off" value="" />
+											<input type="text" class="form-control" name="risque" id="risque" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
@@ -136,7 +139,7 @@
 								</div>
 								<div class="col-md-6">
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Circonstance")}} </label>
+										<label class="col-sm-5 col-form-label">{{_("Circonstance")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
 											<select class="form-control" name="circonstance_id" id="circonstance_id" required>
 												<option value="">Choisir</option>
@@ -224,9 +227,7 @@
 									<h6><mark class="match">Garanties mise en cause</mark></h6>
 								</div>
 								<div class="col-md-12" id="test_garantie_sinistre">
-									<span class="btn btn-success" data-toggle="modal" data-target="#modal-sinistre_garantie"><i class="fa fa-plus-circle"></i> Ajout de garantie</span>
-									<div class="text-danger mb-2" id="garantie-message-error"></div>
-									<div class="text-warning mb-2" id="garantie-message-warning"></div>
+									<span class="btn btn-success mb-2" id="btn-ajout-garantie"><i class="fa fa-plus-circle"></i> Ajout de garantie</span>
 									<table id="table_garantie_sinistre" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
 										<thead>
 											<tr>
@@ -247,24 +248,20 @@
 						<div class="tab-pane fade mt-3" id="intervenant" role="tabpanel" aria-labelledby="intervenant-tab">
 							<div class="row">
 								<div class="col-md-12" id="test_intervenant_sinistre">
-									<span class="btn btn-success" data-toggle="modal" data-target="#modal-sinistre_intervenant"><i class="fa fa-plus-circle"></i> Ajout d'intervenant</span>
-									<div class="text-danger mb-2" id="intervenant-message-error"></div>
-									<div class="text-warning mb-2" id="intervenant-message-warning"></div>
+									<span class="btn btn-success mb-2" data-toggle="modal" data-target="#modal-sinistre_intervenant"><i class="fa fa-plus-circle"></i> Ajout d'intervenant</span>
 									<table id="table_intervenant_sinistre" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
 										<thead>
 											<tr>
 												<th>Nom</th>
 												<th>Prénoms</th>
 												<th>Catégorie</th>
-												<th>Téléphone</th>
+												<th>Portable</th>
 												<th>Email</th>
 												<th>Adresse</th>
 												<th>Ville</th>
 											</tr>
 										</thead>
-										<tbody>
-
-										</tbody>
+										<tbody></tbody>
 									</table>
 								</div>
 							</div>
@@ -305,7 +302,7 @@
 				</div>
 				<div class="modal-footer justify-content-between">
 					<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
-					<button type="button" id="btn_save_client" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Valider')}}</button>
+					<button type="button" id="btn_save_police_sinistre" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Valider')}}</button>
 				</div>
 			</div>
 			</form>
@@ -323,5 +320,6 @@
         }
     }
 </script>
+
 {% include 'police/modal_sinistre_garantie.html' %}
 {% include 'police/modal_sinistre_intervenant.html' %}

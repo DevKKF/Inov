@@ -962,3 +962,10 @@ $(document).ready(function () {
         loadProduits(branche_id);
     });
 });
+
+
+//TODO SINISTRE VALIDATION
+$(document).ready(function () {
+
+});
+

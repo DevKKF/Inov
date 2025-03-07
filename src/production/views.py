@@ -4472,8 +4472,10 @@ class PoliceSinistresView(TemplateView):
 
         police = Police.objects.filter(id=police_id, bureau=request.user.bureau, statut_validite=StatutValidite.VALIDE).first()
         if police:
-            prestataires_ids = Sinistre.objects.filter(police_id=police_id, statut_validite=StatutValidite.VALIDE).values_list('prestataire_id', flat=True)
-            prestataires = Prestataire.objects.filter(id__in=prestataires_ids).order_by('name')
+
+            #TODO VIDER LES INTERVENANTS
+            if 'intervenants' in request.session:
+                del request.session['intervenants']
 
             # etat police = dernier motif
             etat_police = police.etat_police
@@ -4519,8 +4521,7 @@ class PoliceSinistresView(TemplateView):
                 'circonstances': circonstances,
                 'garanties': garanties,
                 'pays': pays,
-                'aliments': aliments,
-                'prestataires': prestataires
+                'aliments': aliments
             }
 
             context = {**context_original, **context_perso}
@@ -4638,6 +4639,284 @@ def police_sinistres_datatable(request, police_id):
         "recordsFiltered": paginator.count,
         "draw": int(request.GET.get('draw', 1)),
     })
+
+
+def police_sisnistre_vehicule(request, vehicule_id):
+    vehicule = Vehicule.objects.filter(id=vehicule_id).first()
+    if not vehicule:
+        return JsonResponse({'error': 'Véhicule non trouvé'}, status=404)
+
+    # Récupérer les informations de aliment_police associées
+    aliment = AlimentPolice.objects.filter(vehicule=vehicule).first()
+
+    data = {
+        'id': vehicule.id,
+        'numero_immatriculation': vehicule.numero_immatriculation,
+        'marque': vehicule.marque,
+        'risque_info': vehicule.marque+'-'+vehicule.numero_immatriculation,
+        'date_entree': aliment.date_entree if aliment else None,
+        'date_sortie': aliment.date_sortie if aliment else None,
+    }
+
+    return JsonResponse(data)
+
+"""
+def get_intervenants_session(request):
+    try:
+        police_id = request.GET.get('police_id')
+        police = Police.objects.filter(id=police_id, bureau=request.user.bureau, statut_validite=StatutValidite.VALIDE).first()
+
+        if not police:
+            return JsonResponse({'success': False, 'message': "Police non trouvée."}, status=404)
+
+        # Récupérer le client de la police
+        client = Client.objects.filter(id=police.client_id).first()
+        intervenants = request.session.get('intervenants', [])
+
+        if client:
+            client_intervenant = {
+                'id': 0,  # ID unique pour éviter les faux doublons
+                'type_intervenant_id': 1,
+                'typeintervenant': 'Tiers Personne',
+                'nom': client.nom,
+                'prenoms': client.prenoms,
+                'portable': client.telephone_fixe,
+                'telephone': client.telephone_mobile,
+                'email': client.email,
+                'code_postal': client.adresse,
+                'boite_postale': client.adresse_postale,
+                'ville': client.ville
+            }
+
+            # Vérifier si le client est déjà dans la liste par `nom`, `prénoms` et `portable`
+            existe_deja = any(
+                intervenant['nom'] == client_intervenant['nom'] and
+                intervenant['prenoms'] == client_intervenant['prenoms'] and
+                intervenant['portable'] == client_intervenant['portable']
+                for intervenant in intervenants
+            )
+
+            # Ajouter uniquement s'il n'existe pas
+            if not existe_deja:
+                intervenants.insert(0, client_intervenant)
+                request.session['intervenants'] = intervenants  # Mise à jour de la session
+
+        # Éliminer les doublons dans la liste des intervenants
+        intervenants_unique = []
+        seen = set()
+        for intervenant in intervenants:
+            identifier = (intervenant['nom'], intervenant['prenoms'], intervenant['portable'])
+            if identifier not in seen:
+                seen.add(identifier)
+                intervenants_unique.append(intervenant)
+
+        request.session['intervenants'] = intervenants_unique
+
+        return JsonResponse({'success': True, 'data': intervenants_unique}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
+def police_sinistre_intervenants(request):
+    if request.method == 'POST':
+        try:
+            # Vérification du type d'intervenant
+            typeintervenant_id = request.POST.get('typeintervenant_id')
+            typeintervenant = TypeIntervenant.objects.filter(id=typeintervenant_id).first()
+
+            if not typeintervenant:
+                return JsonResponse({'success': False, 'message': 'Type intervenant non trouvé.'}, status=400)
+
+            # Récupération des données du formulaire
+            nom = request.POST.get('nom')
+            prenoms = request.POST.get('prenoms')
+            portable = request.POST.get('portable')
+            telephone = request.POST.get('telephone')
+            fax = request.POST.get('fax')
+            email = request.POST.get('email')
+            code_postal = request.POST.get('code_postal')
+            boite_postale = request.POST.get('boite_postale')
+            ville = request.POST.get('ville')
+
+            # Vérifier si le portable existe déjà en session
+            intervenants_existant = request.session.get('intervenants', [])
+            if any(intervenant['portable'] == portable for intervenant in intervenants_existant):
+                return JsonResponse({
+                    'success': False,
+                    'message': "Cet intervenant avec ce numéro de portable existe déjà en session."
+                }, status=400)
+
+            # Création du nouvel intervenant
+            nouvel_intervenant = {
+                'id': len(intervenants_existant) + 1,  # Générer un ID temporaire
+                'type_intervenant_id': typeintervenant_id,
+                'typeintervenant': typeintervenant.libelle,
+                'nom': nom,
+                'prenoms': prenoms,
+                'portable': portable,
+                'telephone': telephone,
+                'fax': fax,
+                'email': email,
+                'code_postal': code_postal,
+                'boite_postale': boite_postale,
+                'ville': ville
+            }
+
+            # Ajouter à la session
+            intervenants_existant.append(nouvel_intervenant)
+            request.session['intervenants'] = intervenants_existant
+
+            # Éliminer les doublons dans la liste des intervenants
+            intervenants_unique = []
+            seen = set()
+            for intervenant in intervenants_existant:
+                identifier = intervenant['portable']  # Utiliser le portable comme identifiant unique
+                if identifier not in seen:
+                    seen.add(identifier)
+                    intervenants_unique.append(intervenant)
+
+            request.session['intervenants'] = intervenants_unique
+
+            return JsonResponse({
+                'success': True,
+                'message': "Ajout d'intervenant effectué avec succès !",
+                'data': intervenants_unique  # Retourner toute la liste mise à jour
+            }, status=200)
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f"Erreur lors de l'enregistrement : {str(e)}"
+            }, status=500)
+
+    return JsonResponse({'success': False, 'message': 'Requête invalide ou données manquantes.'}, status=400)
+"""
+
+
+def get_intervenants_session(request):
+    try:
+        police_id = request.GET.get('police_id')
+        police = Police.objects.filter(
+            id=police_id,
+            bureau=request.user.bureau,
+            statut_validite=StatutValidite.VALIDE
+        ).first()
+
+        if not police:
+            return JsonResponse({'success': False, 'message': "Police non trouvée."}, status=404)
+
+        client = Client.objects.filter(id=police.client_id).first()
+        intervenants = request.session.setdefault('intervenants', [])
+
+        if client:
+            client_intervenant = {
+                'id': 0,  # ID temporaire
+                'type_intervenant_id': 1,
+                'typeintervenant': 'Tiers Personne',
+                'nom': client.nom.strip().upper(),
+                'prenoms': client.prenoms.strip().upper(),
+                'portable': client.telephone_fixe.strip() if client.telephone_fixe else '',
+                'telephone': client.telephone_mobile.strip() if client.telephone_mobile else '',
+                'email': client.email.strip().lower() if client.email else '',
+                'code_postal': client.adresse,
+                'boite_postale': client.adresse_postale,
+                'ville': client.ville
+            }
+
+            # Vérifier si l'intervenant existe déjà en session
+            existe_deja = any(
+                intervenant['nom'] == client_intervenant['nom'] and
+                intervenant['prenoms'] == client_intervenant['prenoms'] and
+                intervenant['portable'] == client_intervenant['portable'] and
+                intervenant['email'] == client_intervenant['email']
+                for intervenant in intervenants
+            )
+
+            if not existe_deja:
+                intervenants.insert(0, client_intervenant)
+                request.session['intervenants'] = intervenants
+        print(request.session['intervenants'])
+        return JsonResponse({'success': True, 'data': intervenants}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
+def police_sinistre_intervenants(request):
+    if request.method == 'POST':
+        try:
+            typeintervenant_id = request.POST.get('typeintervenant_id')
+            typeintervenant = TypeIntervenant.objects.filter(id=typeintervenant_id).first()
+
+            if not typeintervenant:
+                return JsonResponse({'success': False, 'message': 'Type intervenant non trouvé.'}, status=400)
+
+            # Récupération des données du formulaire
+            nom = request.POST.get('nom', '')
+            prenoms = request.POST.get('prenoms', '')
+            portable = request.POST.get('portable', '')
+            email = request.POST.get('email', '')
+            telephone = request.POST.get('telephone', '')
+            fax = request.POST.get('fax', '')
+            code_postal = request.POST.get('code_postal', '')
+            boite_postale = request.POST.get('boite_postale', '')
+            ville = request.POST.get('ville', '')
+
+            intervenants_existant = request.session.setdefault('intervenants', [])
+
+            # Vérifier si l'intervenant existe déjà en session
+            existe_deja = any(
+                intervenant['nom'] == nom and
+                intervenant['prenoms'] == prenoms and
+                intervenant['portable'] == portable and
+                intervenant['email'] == email and
+                intervenant['telephone'] == telephone and
+                intervenant['fax'] == fax and
+                intervenant['code_postal'] == code_postal and
+                intervenant['boite_postale'] == boite_postale and
+                intervenant['ville'] == ville
+                for intervenant in intervenants_existant
+            )
+
+            if existe_deja:
+                return JsonResponse({'success': False, 'message': "Cet intervenant existe déjà en session."}, status=400)
+
+            # Création du nouvel intervenant
+            nouvel_intervenant = {
+                'id': len(intervenants_existant) + 1,
+                'type_intervenant_id': typeintervenant_id,
+                'typeintervenant': typeintervenant.libelle,
+                'nom': nom,
+                'prenoms': prenoms,
+                'portable': portable,
+                'telephone': telephone,
+                'fax': fax,
+                'email': email,
+                'code_postal': code_postal,
+                'boite_postale': boite_postale,
+                'ville': ville
+            }
+
+            intervenants_existant.append(nouvel_intervenant)
+            request.session['intervenants'] = intervenants_existant
+            print(request.session['intervenants'])
+            return JsonResponse({
+                'success': True,
+                'message': "Ajout d'intervenant effectué avec succès !",
+                'data': intervenants_existant
+            }, status=200)
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f"Erreur lors de l'enregistrement : {str(e)}"}, status=500)
+
+    return JsonResponse({'success': False, 'message': 'Requête invalide.'}, status=400)
+
+
+def vider_intervenants_session(request):
+    if 'intervenants' in request.session:
+        del request.session['intervenants']  # Supprime les intervenants de la session
+    return JsonResponse({'success': True})
 
 
 @method_decorator(login_required, name='dispatch')
