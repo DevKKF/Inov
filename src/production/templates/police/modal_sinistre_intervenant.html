@@ -46,7 +46,7 @@
 								<div class="form-group row">
 									<label class="col-sm-5 col-form-label">{{_("Téléphone")}}</label>
 									<div class="col-sm-7">
-										<input type="text" class="form-control" name="telephone" id="telephone" autocomplete="off" value="">
+										<input type="text" class="form-control" name="telephone" id="telephone" autocomplete="off" value="" onkeypress="isInputNumber(event)">
 									</div>
 								</div>
 								<div class="form-group row">
@@ -68,13 +68,13 @@
 								<div class="form-group row">
 									<label class="col-sm-5 col-form-label">{{_("Portable")}} <span class="required">*</span></label>
 									<div class="col-sm-7">
-										<input type="text" class="form-control intervenant_champ_obligatoire" name="portable" id="portable" autocomplete="off" value="" required>
+										<input type="text" class="form-control intervenant_champ_obligatoire" name="portable" id="portable" autocomplete="off" value="" onkeypress="isInputNumber(event)" required>
 									</div>
 								</div>
 								<div class="form-group row">
 									<label class="col-sm-5 col-form-label">{{_("Fax")}}</label>
 									<div class="col-sm-7">
-										<input type="text" class="form-control" name="fax" id="fax" autocomplete="off" value="">
+										<input type="text" class="form-control" name="fax" id="fax" autocomplete="off" onkeypress="isInputNumber(event)" value="">
 									</div>
 								</div>
 							</div>

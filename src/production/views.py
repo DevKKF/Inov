@@ -4473,9 +4473,14 @@ class PoliceSinistresView(TemplateView):
         police = Police.objects.filter(id=police_id, bureau=request.user.bureau, statut_validite=StatutValidite.VALIDE).first()
         if police:
 
-            #TODO VIDER LES INTERVENANTS
+            #TODO VIDER LES INTERVENANTS ET DES GARANTIES DU SINISTRE
             if 'intervenants' in request.session:
                 del request.session['intervenants']
+                print("Intervenants supprimés de la session.")
+
+            if 'garanties_sinistre' in request.session:
+                del request.session['garanties_sinistre']
+                print("Garanties sinistre supprimées de la session.")
 
             # etat police = dernier motif
             etat_police = police.etat_police
@@ -4490,7 +4495,6 @@ class PoliceSinistresView(TemplateView):
             assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id, type_compagnie_id=1).first() if dernier_historique else []
             today = datetime.now(tz=timezone.utc)
 
-            postedommages = PosteDommage.objects.filter(statut=1)
             mouvements = Mouvement.objects.filter(type_mouvement_id=2).order_by('libelle')
             typesinistres = TypeSinistre.objects.filter(statut=1).order_by('libelle')
             typeintervenants = TypeIntervenant.objects.filter(statut=1).order_by('libelle')
@@ -4512,7 +4516,6 @@ class PoliceSinistresView(TemplateView):
                 'dernier_historique': dernier_historique,
                 'assureur_police': assureur_police,
                 'today': today,
-                'postedommages': postedommages,
                 'mouvements': mouvements,
                 'typesinistres': typesinistres,
                 'typeintervenants': typeintervenants,
@@ -4660,140 +4663,8 @@ def police_sisnistre_vehicule(request, vehicule_id):
 
     return JsonResponse(data)
 
-"""
-def get_intervenants_session(request):
-    try:
-        police_id = request.GET.get('police_id')
-        police = Police.objects.filter(id=police_id, bureau=request.user.bureau, statut_validite=StatutValidite.VALIDE).first()
 
-        if not police:
-            return JsonResponse({'success': False, 'message': "Police non trouvée."}, status=404)
-
-        # Récupérer le client de la police
-        client = Client.objects.filter(id=police.client_id).first()
-        intervenants = request.session.get('intervenants', [])
-
-        if client:
-            client_intervenant = {
-                'id': 0,  # ID unique pour éviter les faux doublons
-                'type_intervenant_id': 1,
-                'typeintervenant': 'Tiers Personne',
-                'nom': client.nom,
-                'prenoms': client.prenoms,
-                'portable': client.telephone_fixe,
-                'telephone': client.telephone_mobile,
-                'email': client.email,
-                'code_postal': client.adresse,
-                'boite_postale': client.adresse_postale,
-                'ville': client.ville
-            }
-
-            # Vérifier si le client est déjà dans la liste par `nom`, `prénoms` et `portable`
-            existe_deja = any(
-                intervenant['nom'] == client_intervenant['nom'] and
-                intervenant['prenoms'] == client_intervenant['prenoms'] and
-                intervenant['portable'] == client_intervenant['portable']
-                for intervenant in intervenants
-            )
-
-            # Ajouter uniquement s'il n'existe pas
-            if not existe_deja:
-                intervenants.insert(0, client_intervenant)
-                request.session['intervenants'] = intervenants  # Mise à jour de la session
-
-        # Éliminer les doublons dans la liste des intervenants
-        intervenants_unique = []
-        seen = set()
-        for intervenant in intervenants:
-            identifier = (intervenant['nom'], intervenant['prenoms'], intervenant['portable'])
-            if identifier not in seen:
-                seen.add(identifier)
-                intervenants_unique.append(intervenant)
-
-        request.session['intervenants'] = intervenants_unique
-
-        return JsonResponse({'success': True, 'data': intervenants_unique}, status=200)
-
-    except Exception as e:
-        return JsonResponse({'success': False, 'message': str(e)}, status=500)
-
-
-def police_sinistre_intervenants(request):
-    if request.method == 'POST':
-        try:
-            # Vérification du type d'intervenant
-            typeintervenant_id = request.POST.get('typeintervenant_id')
-            typeintervenant = TypeIntervenant.objects.filter(id=typeintervenant_id).first()
-
-            if not typeintervenant:
-                return JsonResponse({'success': False, 'message': 'Type intervenant non trouvé.'}, status=400)
-
-            # Récupération des données du formulaire
-            nom = request.POST.get('nom')
-            prenoms = request.POST.get('prenoms')
-            portable = request.POST.get('portable')
-            telephone = request.POST.get('telephone')
-            fax = request.POST.get('fax')
-            email = request.POST.get('email')
-            code_postal = request.POST.get('code_postal')
-            boite_postale = request.POST.get('boite_postale')
-            ville = request.POST.get('ville')
-
-            # Vérifier si le portable existe déjà en session
-            intervenants_existant = request.session.get('intervenants', [])
-            if any(intervenant['portable'] == portable for intervenant in intervenants_existant):
-                return JsonResponse({
-                    'success': False,
-                    'message': "Cet intervenant avec ce numéro de portable existe déjà en session."
-                }, status=400)
-
-            # Création du nouvel intervenant
-            nouvel_intervenant = {
-                'id': len(intervenants_existant) + 1,  # Générer un ID temporaire
-                'type_intervenant_id': typeintervenant_id,
-                'typeintervenant': typeintervenant.libelle,
-                'nom': nom,
-                'prenoms': prenoms,
-                'portable': portable,
-                'telephone': telephone,
-                'fax': fax,
-                'email': email,
-                'code_postal': code_postal,
-                'boite_postale': boite_postale,
-                'ville': ville
-            }
-
-            # Ajouter à la session
-            intervenants_existant.append(nouvel_intervenant)
-            request.session['intervenants'] = intervenants_existant
-
-            # Éliminer les doublons dans la liste des intervenants
-            intervenants_unique = []
-            seen = set()
-            for intervenant in intervenants_existant:
-                identifier = intervenant['portable']  # Utiliser le portable comme identifiant unique
-                if identifier not in seen:
-                    seen.add(identifier)
-                    intervenants_unique.append(intervenant)
-
-            request.session['intervenants'] = intervenants_unique
-
-            return JsonResponse({
-                'success': True,
-                'message': "Ajout d'intervenant effectué avec succès !",
-                'data': intervenants_unique  # Retourner toute la liste mise à jour
-            }, status=200)
-
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': f"Erreur lors de l'enregistrement : {str(e)}"
-            }, status=500)
-
-    return JsonResponse({'success': False, 'message': 'Requête invalide ou données manquantes.'}, status=400)
-"""
-
-
+@csrf_exempt
 def get_intervenants_session(request):
     try:
         police_id = request.GET.get('police_id')
@@ -4843,6 +4714,7 @@ def get_intervenants_session(request):
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 
+@csrf_exempt
 def police_sinistre_intervenants(request):
     if request.method == 'POST':
         try:
@@ -4913,10 +4785,139 @@ def police_sinistre_intervenants(request):
     return JsonResponse({'success': False, 'message': 'Requête invalide.'}, status=400)
 
 
-def vider_intervenants_session(request):
-    if 'intervenants' in request.session:
-        del request.session['intervenants']  # Supprime les intervenants de la session
-    return JsonResponse({'success': True})
+def enregistrer_garanties_sinistre(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            nouvelles_garanties = data.get("garanties", [])
+
+            # Récupérer les garanties existantes en session (ou initialiser une liste vide)
+            garanties_session = request.session.get("garanties_sinistre", [])
+
+            # Convertir en dictionnaire pour faciliter les mises à jour
+            garanties_dict = {g["id"]: g for g in garanties_session}
+
+            for garantie in nouvelles_garanties:
+                garantie_id = garantie.get("id")
+                if garantie_id:
+                    garanties_dict[garantie_id] = garantie  # Mise à jour ou ajout
+
+            # Sauvegarder les garanties mises à jour dans la session
+            request.session["garanties_sinistre"] = list(garanties_dict.values())
+            request.session.modified = True
+
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Méthode non autorisée"})
+
+
+def recuperer_garanties_sinistre(request):
+    garanties = request.session.get("garanties_sinistre", [])
+
+    for garantie in garanties:
+        garantie["mouvement"] = "Ouverture Sinistre"
+        garantie["date"] = now().strftime("%Y-%m-%d")
+    print('garanties : ', garanties)
+    return JsonResponse({"garanties": garanties})
+
+
+def afficher_provision_sinistre(request):
+    postedommages = PosteDommage.objects.filter(statut=1)
+    garanties_sinistre = request.session.get("garanties_sinistre", [])
+
+    # Sérialiser postedommages
+    postedommages_list = [{
+        "id": poste.id,
+        "libelle": poste.libelle,
+        # Ajoutez d'autres champs si nécessaire
+    } for poste in postedommages]
+
+    print('postedommages : ', postedommages_list)
+    print('garanties_sinistre : ', garanties_sinistre)
+
+    context = {
+        'postedommages': postedommages_list,
+        'garanties_sinistre': garanties_sinistre,
+    }
+
+    return render(request, 'police/sinistre_provision_table.html', context)
+
+
+@csrf_exempt
+def enregistrer_montant_garantie_sinistre(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+
+            postedommage_id = data.get("postedommageId")
+            garantie_id = data.get("garantieId")
+            type_montant = data.get("type")
+            valeur = int(data.get("valeur", 0))
+
+            # Vérifier si le poste dommage correspond à "Honoraires"
+            if "honoraires" in postedommage_id.lower():
+                valeur *= -1  # Appliquer le signe négatif
+
+            # Récupération des montants en session
+            session_key = "montants_garantie_sinistre"
+            montants = request.session.get(session_key, {})
+
+            # Initialiser la structure si besoin
+            if garantie_id not in montants:
+                montants[garantie_id] = {"estimation": 0, "deja_regle": 0, "provision": 0}
+
+            # Mise à jour des valeurs
+            montants[garantie_id][type_montant] += valeur
+            request.session[session_key] = montants
+            request.session.modified = True
+
+            return JsonResponse({"success": True, "totaux": montants})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)}, status=500)
+
+    return JsonResponse({"success": False, "message": "Méthode non autorisée"}, status=400)
+
+
+def vider_intervenants_garanties_session(request):
+    try:
+        if 'intervenants' in request.session:
+            del request.session['intervenants']
+            print("Intervenants supprimés de la session.")
+
+        if 'garanties_sinistre' in request.session:
+            del request.session['garanties_sinistre']
+            print("Garanties sinistre supprimées de la session.")
+
+        return JsonResponse({'success': True})
+
+    except KeyError as e:
+        print(f"Clé de session introuvable : {e}")
+        return JsonResponse({'success': False, 'error': f"Clé de session introuvable : {e}"})
+
+    except Exception as e:
+        print(f"Erreur lors de la suppression des données de session : {e}")
+        return JsonResponse({'success': False, 'error': f"Erreur lors de la suppression des données de session : {e}"})
+
+
+def supprimer_garantie_sinistre(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            garantie_id = str(data.get("id"))
+
+            if "garanties_sinistre" in request.session:
+                garanties = request.session["garanties_sinistre"]
+                garanties = [g for g in garanties if str(g["id"]) != garantie_id]
+                request.session["garanties_sinistre"] = garanties
+
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Requête invalide"})
 
 
 @method_decorator(login_required, name='dispatch')

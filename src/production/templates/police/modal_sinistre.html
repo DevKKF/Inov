@@ -269,30 +269,13 @@
 
 						<div class="tab-pane fade mt-3" id="provision" role="tabpanel" aria-labelledby="provision-tab">
 							<div class="row">
-								<div class="col-md-12">
-									<table id="table_provision_sinistre" style="width:100%;" class="table table-bordered table-striped dtr-inline">
-										<thead>
-											<tr>
-												<th rowspan="2">Postes dommages</th>
-												<th colspan="3" style="background:#87CEFA" class="text-center">Bris de glaces</th>
-											</tr>
-											<tr>
-												<th class="text-center">Estimation</th>
-												<th class="text-center">Déjà réglé</th>
-												<th class="text-center">Provision</th>
-											</tr>
-										</thead>
-										<tbody>
-											{% for postedommage in postedommages %}
-												<tr>
-													<td>{{ postedommage.libelle }}</td>
-													<td></td>
-													<td></td>
-													<td></td>
-												</tr>
-											{% endfor %}
-										</tbody>
-									</table>
+								<div class="col-12 col-md-12 col-sm-12 table-responsive">
+									<div class="garantie_null" id="garantie_null">
+										<h5 class="text-center text-italic">Sélectionnez des garanties...</h5>
+									</div>
+									<div class="garantie_existe" id="garantie_existe">
+
+									</div>
 								</div>
 							</div>
 						</div>

@@ -459,80 +459,18 @@ $(document).on('click', '.btn_supprimer_postedommage', function () {
 
 
 
-$('#btn_save_sinistre_intervenant').on('click', function () {
-    // Supprimer les erreurs et cacher les messages
-    $('.intervenant_champ_obligatoire').removeClass('is-invalid is-valid');
-    $('#intervenant-modal-error, #intervenant-modal-warning, #intervenant-modal-success').text('').hide();
 
-    // Validation des champs obligatoires
-    let valide = true;
-    $('.intervenant_champ_obligatoire').each(function () {
-        let value = $(this).val().trim();
-        if (!value) {
-            $(this).addClass('is-invalid');
-            valide = false;
-        } else {
-            $(this).removeClass('is-invalid').addClass('is-valid');
-        }
-    });
 
-    if (!valide) {
-        $('#intervenant-modal-error').text('Veuillez remplir tous les champs obligatoires.').show();
-        return;
-    }
 
-    // Récupération des données du formulaire
-    const formData = new FormData($('#form_add_sinistre_intervenant')[0]);
 
-    // Envoi AJAX
-    $.ajax({
-        url: '/production/police-sinistre-intervenants/',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function (response) {
-            if (response.success) {
-                // Affichage du message de succès
-                $("#intervenant-modal-success").text(response.message).show();
 
-                // Cacher la div contenant le tableau par défaut
-                $("#intervenant_table_default").hide();
 
-                // Récupération du tableau
-                const tbody = $("#table_intervenant_sinistre tbody");
 
-                // Ajouter chaque intervenant dans le tableau
-                response.data.forEach(intervenant => {
-                    tbody.append(`
-                        <tr data-id="${intervenant.id}">
-                            <td>${intervenant.nom || ''}</td>
-                            <td>${intervenant.prenoms || ''}</td>
-                            <td>${intervenant.typeintervenant || ''}</td>
-                            <td>${intervenant.portable || ''}</td>
-                            <td>${intervenant.email || ''}</td>
-                            <td>${intervenant.boite_postale || ''}</td>
-                            <td>${intervenant.ville || ''}</td>
-                        </tr>
-                    `);
-                });
 
-                // Réinitialiser le formulaire après un court délai
-                setTimeout(() => {
-                    $("#form_add_sinistre_intervenant").trigger("reset");
-                    $('.intervenant_champ_obligatoire').removeClass('is-valid is-invalid');
-                    $("#intervenant-modal-success").fadeOut();
-                }, 3000);
-            } else {
-                $("#intervenant-modal-warning").text(response.message).show().delay(5000).fadeOut();
-            }
-        },
-        error: function (xhr) {
-            const response = xhr.responseJSON;
-            $("#intervenant-modal-error").text(response?.message || "Une erreur est survenue.").show().delay(5000).fadeOut();
-        },
-    });
-});
+
+
+
+
 
 
 
