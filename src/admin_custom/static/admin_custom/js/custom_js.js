@@ -10640,6 +10640,115 @@ $(document).ready(function () {
     });
 
 
+    //soumission d'un sinistre via une police
+    $(document).on('click', "#btn_save_police_sinistre", function () {
+
+        let formulaire = $('#form_police_add_sinistre');
+        let href = formulaire.attr('action');
+
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            //demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment enregistrer le sinistre ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
+
+                            //confirmation obtenu
+
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
+
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        notifySuccess(response.message, function () {
+                                            location.reload();
+                                        });
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-sinistre .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-sinistre .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            //fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            //confirmation refusée
+                            $noty.close();
+
+                        }
+                    }
+                ]
+            });
+            //fin demande confirmation
+
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le forumulaire');
+        }
+
+    });
+
+
     //soumission du formulaire de modification du cout d'un sinistre hospit
     $(document).on("click", "#btn_update_sinistre", function (e) {
         e.preventDefault();
@@ -24940,7 +25049,6 @@ $(document).ready(function () {
 
         $(document).on("click", ".btn-supprimer-garantie", function () {
             let garantieId = $(this).data("id");
-            if (!confirm("Voulez-vous vraiment supprimer cette garantie ?")) return;
 
             $.ajax({
                 url: "/production/supprimer_garantie_sinistre/",
@@ -25046,126 +25154,6 @@ $(document).ready(function () {
             $(this).find("input[type=text]").val("").prop("disabled", true);
         });
     }
-
-    /*
-    $(document).on("keyup change", "#table_provision_sinistre .calculs_montant_garantie_sinistre", function (event) {
-        if (event.which == 13) {
-            event.preventDefault();
-        }
-
-        calculer_montant_garantie_sinistre();
-        enregistrer_montant_garantie_sinistre($(this));
-    });
-
-    function calculer_montant_garantie_sinistre() {
-        $("#table_provision_sinistre tbody tr").each(function () {
-            let postedommageId = $(this).find("td:first").text();
-            if (!postedommageId) return;
-
-            $("#table_provision_sinistre thead tr:last th").each(function (index) {
-                if (index < 1) return;
-
-                // Correction : Récupérer l'ID numérique de la garantie
-                let garantieId = $(this).data("garantie-id");
-                if (!garantieId) return;
-
-                let total_estimation = 0;
-                let total_deja_regle = 0;
-                let total_provision = 0;
-                /*
-                $("#table_provision_sinistre tbody tr").each(function () {
-                    let estimation = parseInt($(this).find(`#estimation_${postedommageId}_${garantieId}`).val().replaceAll(' ', '')) || 0;
-                    let deja_regle = parseInt($(this).find(`#deja_regle_${postedommageId}_${garantieId}`).val().replaceAll(' ', '')) || 0;
-                    let provision = parseInt($(this).find(`#provision_${postedommageId}_${garantieId}`).val().replaceAll(' ', '')) || 0;
-
-                    // Appliquer un signe négatif pour les Honoraires
-                    if (postedommageId.toLowerCase().includes("Honoraires")) {
-                        estimation *= -1;
-                        deja_regle *= -1;
-                        provision *= -1;
-                    }
-
-                    total_estimation += estimation;
-                    total_deja_regle += deja_regle;
-                    total_provision += provision;
-
-                    console.log('total_estimation : ', total_estimation);
-                    console.log('total_deja_regle : ', total_deja_regle);
-                    console.log('total_provision : ', total_provision);
-                });
-
-                $(`#total_estimation_${garantieId}`).val(total_estimation);
-                $(`#total_deja_regle_${garantieId}`).val(total_deja_regle);
-                $(`#total_provision_${garantieId}`).val(total_provision);
-
-                $("#table_provision_sinistre tbody tr").each(function () {
-                    let estimation = parseInt($(this).find(`#estimation_${postedommageId}_${garantieId}`).val().replaceAll(' ', '')) || 0;
-                    let deja_regle = parseInt($(this).find(`#deja_regle_${postedommageId}_${garantieId}`).val().replaceAll(' ', '')) || 0;
-                    let provision = parseInt($(this).find(`#provision_${postedommageId}_${garantieId}`).val().replaceAll(' ', '')) || 0;
-
-                    // Appliquer un signe négatif pour les Honoraires
-                    if (postedommageId.toLowerCase().includes("honoraires")) {
-                        console.log('Honoraires détectés pour : ', postedommageId);
-                        estimation *= -1;
-                        deja_regle *= -1;
-                        provision *= -1;
-                    }
-
-                    console.log(`Estimation: ${estimation}, Déjà réglé: ${deja_regle}, Provision: ${provision}`);
-
-                    total_estimation += estimation;
-                    total_deja_regle += deja_regle;
-                    total_provision += provision;
-                });
-
-                console.log('Total Estimation: ', total_estimation);
-                console.log('Total Déjà Réglé: ', total_deja_regle);
-                console.log('Total Provision: ', total_provision);
-
-                $(`#total_estimation_${garantieId}`).val(total_estimation);
-                $(`#total_deja_regle_${garantieId}`).val(total_deja_regle);
-                $(`#total_provision_${garantieId}`).val(total_provision);
-            });
-        });
-    }
-
-    function enregistrer_montant_garantie_sinistre(input) {
-        let id = input.attr("id").split("_");
-        let postedommageId = id[1];
-        let garantieId = id[2];
-        let type = input.data("type");
-        let valeur = input.val();
-
-        // Appliquer un signe négatif pour les Honoraires
-        if (postedommageId.toLowerCase().includes("Honoraires")) {
-            valeur *= -1;
-        }
-
-        console.log('postedommageId : ',postedommageId);
-        console.log('garantieId : ',garantieId);
-
-        $.ajax({
-            url: "/production/enregistrer_montant_garantie_sinistre/",
-            type: "POST",
-            headers: { "X-CSRFToken": getCSRFToken() },
-            contentType: "application/json",
-            data: JSON.stringify({
-                postedommageId: postedommageId,
-                garantieId: garantieId,
-                type: type,
-                valeur: valeur,
-            }),
-            success: function (response) {
-                if (!response.success) {
-                    console.error("Erreur lors de l'enregistrement en session.");
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Erreur de communication avec le serveur.");
-            }
-        });
-    }
-    */
 
     $(document).on("keyup change", "#table_provision_sinistre .calculs_montant_garantie_sinistre", function (event) {
         if (event.which == 13) {

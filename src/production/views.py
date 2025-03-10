@@ -20,7 +20,7 @@ from io import BytesIO
 from pprint import pprint
 from sqlite3 import Date
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from venv import create
 
 from django.db.models import Max
@@ -107,7 +107,9 @@ from shared.enum import StatutIncorporation, StatutValidite, StatutSinistre, Sta
 from shared.helpers import generer_qrcode_carte, generate_numero_famille, generate_numero_carte, render_pdf, \
     generer_numero_ordre, generer_nombre_famille_du_mois, custom_model_to_dict
 from shared.veos import get_taux_euro_by_devise, get_taux_usd_by_devise, send_client_to_veos
-from sinistre.models import Sinistre, DossierSinistre
+from sinistre.models import Sinistre, DossierSinistre, MouvementSinistre, AlimentPoliceSinistre, Intervenant, SinistreIntervenant, GarantieSinistre, Provision, ReglementSinistre, \
+    OperationSaisie
+from sinistre.forms import SinistreForm
 from comptabilite.models import EncaissementCommission
 from django.contrib.auth.models import Group
 import traceback
@@ -4549,47 +4551,33 @@ def police_sinistres_datatable(request, police_id):
     sort_column_index = int(request.GET.get('order[0][column]'))
     sort_direction = request.GET.get('order[0][dir]')
 
-    search_numero_assure = request.GET.get('num_assure', '')
     search_numero_sinistre = request.GET.get('num_sinistre', '')
-    search_numero_dossier_sinistre = request.GET.get('num_feuille_soins', '')
-    search_date_survenance = request.GET.get('date_prestation', '')
-    prestataire = request.GET.get('prestataire', '')
+    search_type_sinistre = request.GET.get('type_sinistre_id', '')
+    search_date_declaration = request.GET.get('date_declaration', '')
+    search_date_ouverture = request.GET.get('date_ouverture', '')
     search_value = request.GET.get('search[value]')
 
-    queryset = Sinistre.objects.filter(police_id=police_id, statut_validite=StatutValidite.VALIDE).order_by('id')
-    # dd(queryset)
+    print('search_date_declaration', search_date_declaration)
+    print('search_date_ouverture', search_date_ouverture)
 
-    if prestataire:
-        queryset = queryset.filter(prestataire_id=prestataire)
-
-    if search_numero_assure:
-        cartes = Carte.objects.filter(numero=search_numero_assure)
-        carte = cartes.first() if cartes else None
-        aliment = carte.aliment if carte else None
-        queryset = queryset.filter(aliment_id=aliment.pk) if aliment else queryset.filter(numero="nexisterajamais")
-
-    if search_numero_dossier_sinistre:
-        queryset = queryset.filter(dossier_sinistre__numero__contains=search_numero_dossier_sinistre)
+    queryset = Sinistre.objects.filter(police_id=police_id).order_by('id')
 
     if search_numero_sinistre:
         queryset = queryset.filter(numero__contains=search_numero_sinistre)
 
-    if search_date_survenance:
-        queryset = queryset.filter(date_survenance__contains=search_date_survenance)
+    if search_type_sinistre:
+        queryset = queryset.filter(type_sinistre_id=search_type_sinistre)
 
-    if search_value is not None and search_value != '':
-        queryset = queryset.filter(
-        Q(numero__contains=search_value) |
-        Q(dossier_sinistre__numero__contains=search_value) |
-        Q(aliment__nom__icontains=search_value) | Q(aliment__prenoms__icontains=search_value) |
-        Q(prestataire__name__icontains=search_value) |
-        Q(date_survenance__contains=search_value)).distinct()
+    if search_date_declaration:
+        queryset = queryset.filter(date_declaration__contains=search_date_declaration)
 
+    if search_date_ouverture:
+        queryset = queryset.filter(date_ouverture__contains=search_date_ouverture)
 
     # Map column index to corresponding model field for sorting
     sort_columns = {
         0: '-numero',
-        1: 'aliment__nom',
+        1: '-date_ouverture',
         2: 'statut',
         # Add more columns as needed
     }
@@ -4609,27 +4597,17 @@ def police_sinistres_datatable(request, police_id):
     # Prepare the data in the expected format
     data = []
     for c in page_obj:
-        detail_url = reverse('details_dossier_sinistre', args=[c.dossier_sinistre.id]) if c.dossier_sinistre else None # URL to the detail view# URL to the detail view
-        actions_html = f'<a href="{detail_url}" class="text-center"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {_("Détails")}</span></a>&nbsp;&nbsp;'
+        detail_url = ""
+        actions_html = ""
 
         statut_html = f'<span class="badge badge-{c.statut.lower()}">{c.statut}</span>'
-
-        nom_beneficiaire_soins = ''
-        if c.aliment:
-            nom_beneficiaire_soins = c.aliment.nom + ' ' + c.aliment.prenoms
 
         data_iten = {
             "id": c.id,
             "numero": c.numero if c.numero else "",
-            "numero_dossier_sinistre": c.dossier_sinistre.numero if c.dossier_sinistre else '',
-            "nom_beneficiaire_soins": nom_beneficiaire_soins,
-            "prestataire": c.prestataire.name if c.prestataire else '',
-            "acte": c.acte.libelle,
-            "total_frais_reel": money_field(c.total_frais_reel),
-            "total_part_compagnie": money_field(c.total_part_compagnie),
-            "total_part_assure": money_field(c.total_part_assure),
-            "date_survenance": c.date_survenance.strftime("%d/%m/%Y %H:%M"),
-            "date_saisie": c.created_at.strftime("%d/%m/%Y %H:%M"),
+            "type_sinistre": c.type_sinistre.libelle if c.type_sinistre else '',
+            "date_declaration": c.date_declaration.strftime("%d/%m/%Y"),
+            "date_ouverture": c.date_ouverture.strftime("%d/%m/%Y"),
             "statut": statut_html,
             "actions": actions_html,
         }
@@ -4644,7 +4622,163 @@ def police_sinistres_datatable(request, police_id):
     })
 
 
-def police_sisnistre_vehicule(request, vehicule_id):
+def police_save_sinistre(request, police_id):
+    police = Police.objects.get(id=police_id)
+    client = Client.objects.get(id=police.client_id)
+
+    if request.method == 'POST':
+
+        form = SinistreForm(request.POST)
+
+        if form.is_valid():
+            vehicule_id = request.POST.get('vehicule_id')
+            compagnie_id = request.POST.get('compagnie_id')
+            date_survenance = request.POST.get('date_survenance')
+            date_ouverture = request.POST.get('date_ouverture')
+            date_cloture = request.POST.get('date_cloture')
+            risque = request.POST.get('risque')
+            date_declaration = request.POST.get('date_declaration')
+            date_reouverture = request.POST.get('date_reouverture')
+            sinistre_recours = request.POST.get('sinistre_recours')
+            circonstance_id = request.POST.get('circonstance_id')
+            lieu_survenance = request.POST.get('lieu_survenance')
+            tva_recuperee = request.POST.get('tva_recuperee')
+            type_sinistre_id = request.POST.get('type_sinistre_id')
+            franchise = request.POST.get('franchise').replace(' ', '')
+            responsabilite_id = request.POST.get('responsabilite_id')
+            fait_gerateur = request.POST.get('fait_gerateur')
+            point_choc = request.POST.get('point_choc')
+            commentaire = request.POST.get('commentaire')
+            numero = request.POST.get('numero')
+            print('franchise : ', franchise)
+
+            sinistre_created = Sinistre(
+                bureau_id=client.bureau_id,
+                client_id=client.id,
+                police_id=police.id,
+                compagnie_id=compagnie_id,
+                type_sinistre_id=type_sinistre_id,
+                created_by=request.user,
+                numero=numero,
+                created_at=datetime.now(),
+                date_survenance=date_survenance if date_survenance else None,
+                date_declaration=date_declaration if date_declaration else None,
+                date_ouverture=date_ouverture if date_ouverture else None,
+                date_cloture=date_cloture if date_cloture else None,
+                date_reouverture=date_reouverture if date_reouverture else None,
+                sinistre_recours=sinistre_recours,
+                lieu_survenance=lieu_survenance,
+                tva_recuperee=tva_recuperee,
+                fait_generateur=fait_gerateur,
+                point_de_choc=point_choc,
+                commentaire=commentaire,
+                franchise=franchise if franchise else 0,
+            )
+            sinistre_created.save()
+
+            code_bureau = request.user.bureau.code
+            sinistre_created.numero_provisoire = str(code_bureau) + 'S' + str(Date.today().year)[-2:] + str(
+                sinistre_created.pk).zfill(6)
+            if sinistre_created.numero == "":
+                sinistre_created.numero = sinistre_created.numero_provisoire
+
+            sinistre_created.save()
+
+            sinistre = Sinistre.objects.get(id=sinistre_created.pk)
+
+            # Créer une ligne de mouvement_sinistre avec le mouvement ouverture sinistre et le motif ouverture sinistre
+            ms = MouvementSinistre()
+            ms.sinistre = sinistre
+            ms.police = police
+            ms.mouvement = Mouvement.objects.get(code='OS')
+            ms.motif = Motif.objects.get(code='OS')
+            ms.date_effet = sinistre.date_ouverture
+            ms.save()
+
+            # Créer la ligne de l'aliment lié au sinistre
+            aliment_sinitre_created = AlimentPoliceSinistre(
+                police=police,
+                sinistre=sinistre,
+                aliment_police=AlimentPolice.objects.get(vehicule_id=vehicule_id),
+                risque=risque,
+            )
+            aliment_sinitre_created.save()
+
+            # Récupérer les intervenants de la session
+            intervenants = request.session.get('intervenants', [])
+            for intervenant in intervenants:
+                intervenant_created = Intervenant(
+                    type_intervenant_id=intervenant.get('type_intervenant_id'),
+                    pays_id=intervenant.get('pays_id'),
+                    nom=intervenant.get('nom'),
+                    prenoms=intervenant.get('prenoms'),
+                    portable=intervenant.get('portable'),
+                    telephone=intervenant.get('telephone'),
+                    fax=intervenant.get('fax'),
+                    email=intervenant.get('email'),
+                    code_postal=intervenant.get('code_postal'),
+                    boite_postale=intervenant.get('boite_postale'),
+                    ville=intervenant.get('ville'),
+                )
+                intervenant_created.save()
+                intervenant = Intervenant.objects.get(id=intervenant_created.pk)
+
+                # Créer la ligne intervenant du sinistre
+                aliment_sinitre_created = SinistreIntervenant(
+                    intervenant_id=intervenant.id,
+                    sinistre=sinistre
+                )
+                aliment_sinitre_created.save()
+
+            # Récupérer les garanties de la session
+            garanties_sinistre = request.session.get("garanties_sinistre", [])
+            for garantie_sinistre in garanties_sinistre:
+                garantie_sinistre_created = GarantieSinistre(
+                    responsabilite_id=responsabilite_id,
+                    circonstance_id=circonstance_id,
+                    garantie_id=garantie_sinistre.get('id'),
+                    franchise=supprimer_espaces(garantie_sinistre.get('franchise', '')),
+                    capital=supprimer_espaces(garantie_sinistre.get('capital', '')),
+                    prime_nette=supprimer_espaces(garantie_sinistre.get('prime_net', '')),
+                    prime_ttc=supprimer_espaces(garantie_sinistre.get('prime_ttc', '')),
+                )
+                garantie_sinistre_created.save()
+
+            session_key = "montants_garantie_sinistre"
+            montants = request.session.get(session_key, {})
+
+            print('session_key :', session_key)
+            print('montants :', montants)
+
+            response = {
+                'statut': 1,
+                'message': "Sinistre enregistré avec succès !",
+                'data': {
+                    'id': sinistre.pk,
+                    'numero': sinistre.numero,
+                }
+            }
+
+            return JsonResponse(response)
+
+        else:
+            response = {
+                'statut': 0,
+                'message': "Veuillez renseigner correctement le formulaire",
+                'errors': form.errors,
+            }
+
+            return JsonResponse(response)
+    else:
+        response = {
+            'statut': 0,
+            'message': "Cette méthode n'est pas reconnue !",
+        }
+
+        return JsonResponse(response)
+
+
+def police_sinistre_vehicule(request, vehicule_id):
     vehicule = Vehicule.objects.filter(id=vehicule_id).first()
     if not vehicule:
         return JsonResponse({'error': 'Véhicule non trouvé'}, status=404)
@@ -4692,7 +4826,8 @@ def get_intervenants_session(request):
                 'email': client.email.strip().lower() if client.email else '',
                 'code_postal': client.adresse,
                 'boite_postale': client.adresse_postale,
-                'ville': client.ville
+                'ville': client.ville,
+                'pays_id': client.pays_id
             }
 
             # Vérifier si l'intervenant existe déjà en session
@@ -4734,6 +4869,7 @@ def police_sinistre_intervenants(request):
             code_postal = request.POST.get('code_postal', '')
             boite_postale = request.POST.get('boite_postale', '')
             ville = request.POST.get('ville', '')
+            pays_id = request.POST.get('pays_id', '')
 
             intervenants_existant = request.session.setdefault('intervenants', [])
 
@@ -4747,7 +4883,8 @@ def police_sinistre_intervenants(request):
                 intervenant['fax'] == fax and
                 intervenant['code_postal'] == code_postal and
                 intervenant['boite_postale'] == boite_postale and
-                intervenant['ville'] == ville
+                intervenant['ville'] == ville and
+                intervenant['pays_id'] == pays_id
                 for intervenant in intervenants_existant
             )
 
@@ -4767,7 +4904,8 @@ def police_sinistre_intervenants(request):
                 'email': email,
                 'code_postal': code_postal,
                 'boite_postale': boite_postale,
-                'ville': ville
+                'ville': ville,
+                'pays_id': pays_id
             }
 
             intervenants_existant.append(nouvel_intervenant)
@@ -4872,7 +5010,7 @@ def enregistrer_montant_garantie_sinistre(request):
             montants[garantie_id][type_montant] += valeur
             request.session[session_key] = montants
             request.session.modified = True
-
+            print('Montant : ', montants)
             return JsonResponse({"success": True, "totaux": montants})
 
         except Exception as e:

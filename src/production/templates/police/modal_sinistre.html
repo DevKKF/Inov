@@ -3,7 +3,7 @@
 <div  class="modal fade" id="modal-sinistre" data-backdrop="static" data-keyboard="false" aria-hidden="true"  style="display: none">
 	<div class="modal-dialog modal-xl">
 		<div class="modal-content">
-			<form enctype="multipart/form-data" id="form_add_sinistre" action="" method="post">
+			<form enctype="multipart/form-data" id="form_police_add_sinistre" action="{% url 'police_save_sinistre' police.id %}" method="post">
 			{% csrf_token %}
 			<input type="hidden" id="police_id" data-police-id="{{ police.id }}" value="{{ police.id }}">
 			<div class="modal-header">
@@ -43,6 +43,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Compagnie")}} </label>
 										<div class="col-sm-7">
+											<input type="hidden" name="compagnie_id" id="compagnie_id" value="{{ assureur_police.compagnie_id }}" class="form-control">
 											<span class="form-control">{{ assureur_police.compagnie.nom|default_if_none:"" }}</span>
 										</div>
 									</div>
@@ -59,6 +60,12 @@
 										<label class="col-sm-5 col-form-label">{{_("Produit")}} </label>
 										<div class="col-sm-7">
 											<span class="form-control" title="{{ police.produit.nom|default_if_none:'' }}">{{ police.produit.nom|default_if_none:""|slice:":35" }}</span>
+										</div>
+									</div>
+									<div class="form-group row d-none">
+										<label class="col-sm-5 col-form-label">{{_("Numéro Sinistre")}} </label>
+										<div class="col-sm-7">
+											<input type="text" name="numero" id="numero" class="form-control">
 										</div>
 									</div>
 								</div>
@@ -105,9 +112,9 @@
 								<div class="col-md-5" style="border-left:0px;">
 
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Risque")}} </label>
+										<label class="col-sm-5 col-form-label">{{_("Risque")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="risque" id="risque" readonly>
+											<input type="text" class="form-control" name="risque" id="risque" readonly required>
 										</div>
 									</div>
 									<div class="form-group row">
@@ -285,7 +292,7 @@
 				</div>
 				<div class="modal-footer justify-content-between">
 					<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
-					<button type="button" id="btn_save_police_sinistre" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Valider')}}</button>
+					<button type="button" id="btn_save_police_sinistre" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
 				</div>
 			</div>
 			</form>

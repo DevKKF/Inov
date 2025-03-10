@@ -55,6 +55,12 @@ class StatutSinistrePrestation(models.TextChoices):
     ATTENTE = 'NON EFFECTUE'
 
 
+class StatutRecours(models.TextChoices):
+    OUI = 'OUI'
+    NON = 'NON'
+    AUCUN = 'AUCUN'
+
+
 class BaseCalculTM(models.TextChoices):
     FRAIS_REEL = 'FRAIS REEL'
     PLAFOND = 'PLAFOND'
