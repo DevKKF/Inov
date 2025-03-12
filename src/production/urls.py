@@ -5,7 +5,8 @@ from . import views
 from .views import ClientsView, ExcelFileView, FormulesUniversellesView, FormulesView, DetailsFormuleView, \
     DetailsClientView, PoliceClientView, ContactClientView, FilialeClientView, AcompteClientView, GEDClientView, QuittancesClientView, \
     PoliceBeneficiairesView, PoliceGedView, PoliceAvenantsView, PoliceTarifsSpecifiquesView, PoliceQuittancesView, \
-    PoliceSinistresView, PhotosBeneficiairesView, AnnulerQuittanceView, CourrierView, PolicesEncoursView, PolicesArrivantEcheanceView, PolicesNonRenouvelleesResilieesView
+    PoliceSinistresView, PhotosBeneficiairesView, AnnulerQuittanceView, CourrierView, PolicesEncoursView, PolicesArrivantEcheanceView, PolicesNonRenouvelleesResilieesView, \
+    DetailsSinistreView
 
 urlpatterns = [
     path("todo_manuel/", views.todo_manuel, name='todo_manuel'),
@@ -80,7 +81,6 @@ urlpatterns = [
     path('polices-non-renouvellees-resiliees/', PolicesNonRenouvelleesResilieesView.as_view(), name='polices_non_renouvellees_resiliees'),
     path('polices_non_resiliees_renouvellees_datatable/', views.polices_non_renouvellees_resiliees_datatable, name='polices_non_renouvellees_resiliees_datatable'),
 
-    # path('police/<int:police_id>/details',views.details_police,name='police.details'),
     path('police/<int:police_id>/details', views.DetailsPoliceView.as_view(), name='police.details'),
     path('police/<int:police_id>/<int:historique_police_id>/historique-details', views.DetailsHistoriquePoliceView.as_view(), name='police.historique.details'),
     path('police/<int:police_id>/quittances', PoliceQuittancesView.as_view(), name='police_quittances'),
@@ -98,7 +98,6 @@ urlpatterns = [
     path('del_tarif_specifique', views.del_tarif_specifique, name='del_tarif_specifique'),
     path('police/<int:police_id>/ged', PoliceGedView.as_view(), name='police_ged'),
     path('police/<int:police_id>/add_document', views.police_add_document, name='police_add_document'),
-
 
     path('police/<int:police_id>/beneficiaires', PoliceBeneficiairesView.as_view(), name='police_beneficiaires'),
     path('police/<int:police_id>/beneficiaires_datatable', views.police_beneficiaires_datatable, name='police_beneficiaires_datatable'),
@@ -145,16 +144,22 @@ urlpatterns = [
     path('police/<int:police_id>/sinistres', PoliceSinistresView.as_view(), name='police_sinistres'),
     path('police/<int:police_id>/save-sinistre', views.police_save_sinistre, name='police_save_sinistre'),
     path('police/<int:police_id>/sinistres_datatable', views.police_sinistres_datatable, name='police_sinistres_datatable'),
-    path('police/sinistre/<int:vehicule_id>', views.police_sinistre_vehicule, name='police_sinistre_vehicule'),
-    path('police-sinistre-intervenants/', views.police_sinistre_intervenants, name='police_sinistre_intervenants'),
-    path('vider-intervenants-garanties/', views.vider_intervenants_garanties_session, name='vider_intervenants_garanties_session'),
+    path('police/information-vehicule/<int:vehicule_id>', views.information_vehicule, name='information_vehicule'),
+
+    path('add_intervenant_session/', views.add_intervenant_session, name='add_intervenant_session'),
+    path('vider_intervenants_garanties/', views.vider_intervenants_garanties_session, name='vider_intervenants_garanties_session'),
     path('get_intervenants_session/', views.get_intervenants_session, name='get_intervenants_session'),
+    path('delete_intervenant_session/', views.delete_intervenant_session, name='delete_intervenant_session'),
+
+    path('recuperer_garantie_circonstance/', views.recuperer_garantie_circonstance, name='recuperer_garantie_circonstance'),
+    path('vider_garanties_sinistre/', views.vider_garanties_sinistre, name='vider_garanties_sinistre'),
+
     path("enregistrer_garanties_sinistre/", views.enregistrer_garanties_sinistre, name="enregistrer_garanties_sinistre"),
     path("recuperer_garanties_sinistre/", views.recuperer_garanties_sinistre, name="recuperer_garanties_sinistre"),
     path('afficher_provision_sinistre/', views.afficher_provision_sinistre, name='afficher_provision_sinistre'),
     path('enregistrer_montant_garantie_sinistre/', views.enregistrer_montant_garantie_sinistre, name='enregistrer_montant_garantie_sinistre'),
-    path('supprimer_garantie_sinistre/<int:index>/', views.supprimer_garantie_sinistre, name='supprimer_garantie_sinistre'),
-    path('supprimer_intervenant_sinistre/', views.supprimer_intervenant_sinistre, name='supprimer_intervenant_sinistre'),
+    path('supprimer_garantie_session/', views.supprimer_garantie_session, name='supprimer_garantie_session'),
+    path('delete_garantie_session/', views.delete_garantie_session, name='delete_garantie_session'),
 
     path('police/<int:police_id>/courriers', CourrierView.as_view(), name='police_courrier'),
     path('police/<int:police_id>/courrier/<int:courrier_id>/pdf/', views.generer_courrier, name='generer_pdf'),
@@ -163,6 +168,8 @@ urlpatterns = [
     path('police/<int:police_id>/courrier/<int:courrier_id>/quittance/<int:quittance_id>/word/', views.generer_word, name='generer_word'),
 
     # path('generate-word/', generate_word, name='generate_word'),
+
+    path('sinistre/<int:sinistre_id>/details', views.DetailsSinistreView.as_view(), name='sinistre.details'),
 
     path('formules_universelles', FormulesUniversellesView.as_view(), name='formules_universelles'),
     path('police/<int:police_id>/formules', FormulesView.as_view(), name='police_formules'),
@@ -175,7 +182,6 @@ urlpatterns = [
     path('formule/<int:formule_id>/add_bareme', views.add_bareme, name='add_bareme'),
     path('formule/del_bareme', views.del_bareme, name='del_bareme'),
     path('formule/detail_bareme/<int:bareme_id>', views.detail_bareme, name='detail_bareme'),
-
 
     path('aliment/<int:police_id>/change_formule/<int:aliment_id>', views.change_formule, name='change_formule'),
     path('aliment/<int:police_id>/suspension_beneficiaire/<int:aliment_id>', views.suspension_beneficiaire, name='suspension_beneficiaire'),

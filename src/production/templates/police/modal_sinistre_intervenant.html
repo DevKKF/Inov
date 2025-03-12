@@ -4,6 +4,7 @@
 		<div class="modal-content">
 			<form id="form_add_sinistre_intervenant" action="" method="post" enctype="multipart/form-data">
 				{% csrf_token %}
+				<input type="hidden" name="police_id" value="{{ police.id }}">
                 <div class="modal-header">
                     <h4 class="modal-title">{{_("AJOUTER UN INTERVENANT AU SINISTRE")}}</h4>
                     <button type="button" data-dismiss="modal" aria-label="Close" style="border:none;background:none; color:#3F3F3F">

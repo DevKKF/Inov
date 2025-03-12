@@ -11,7 +11,7 @@ from configurations.models import CompteTresorerie, Devise, Compagnie, User, Bur
 
 from production.models import TypeDocument, Aliment, Police, PeriodeCouverture, FormuleGarantie, Client, AlimentPolice, Mouvement, Motif, Bareme
 from shared.enum import StatutFacture, StatutSinistre, StatutValidite, Statut, StatutRecours, StatutRemboursement, StatutPaiementSinistre, StatutSinistrePrestation, \
-    StatutSinistreBordereau, StatutRemboursementSinistre, OptionRefacturation, SatutBordereauDossierSinistres
+    StatutSinistreBordereau, StatutRemboursementSinistre, OptionRefacturation, SatutBordereauDossierSinistres, StatutReglement
 
 import random
 
@@ -23,6 +23,7 @@ class Sinistre(models.Model):
     compagnie = models.ForeignKey(Compagnie, null=True, on_delete=models.RESTRICT)
     police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
     type_sinistre = models.ForeignKey(TypeSinistre, null=True, on_delete=models.RESTRICT)
+    responsabilite = models.ForeignKey(Responsabilite, null=True, on_delete=models.RESTRICT)
     created_by = models.ForeignKey(User, related_name="created_by_sinistre", null=True, on_delete=models.RESTRICT)
     updated_by = models.ForeignKey(User, related_name="updated_by_sinistre", null=True, on_delete=models.RESTRICT)
 
@@ -40,7 +41,6 @@ class Sinistre(models.Model):
     date_ouverture = models.DateTimeField(null=True)
     date_reouverture = models.DateTimeField(null=True)
     date_cloture = models.DateTimeField(null=True)
-    date_reglement = models.DateTimeField(null=True)
 
     sinistre_recours = models.fields.CharField(choices=StatutRecours.choices, default=StatutRecours.AUCUN, max_length=15, null=True)
     statut = models.fields.CharField(choices=StatutSinistre.choices, default=StatutSinistre.ATTENTE, max_length=15, null=True)
@@ -129,7 +129,6 @@ class SinistreIntervenant(models.Model):
 #
 class GarantieSinistre(models.Model):
     garantie = models.ForeignKey(Garantie, null=True, on_delete=models.RESTRICT)
-    responsabilite = models.ForeignKey(Responsabilite, null=True, on_delete=models.RESTRICT)
     circonstance = models.ForeignKey(Circonstance, null=True, on_delete=models.RESTRICT)
 
     franchise = models.BigIntegerField(null=True)
@@ -167,9 +166,14 @@ class Provision(models.Model):
 
 
 class ReglementSinistre(models.Model):
-    sinistre = models.ForeignKey(Sinistre, on_delete=models.RESTRICT)
+    sinistre = models.ForeignKey(Sinistre, null=True, on_delete=models.RESTRICT)
+    provision = models.ForeignKey(Provision, null=True, on_delete=models.RESTRICT)
+    sinistre_intervenant = models.ForeignKey(SinistreIntervenant, null=True, on_delete=models.RESTRICT)
+    mode_reglement = models.ForeignKey(ModeReglement, null=True, on_delete=models.RESTRICT)
+    devise = models.ForeignKey(Devise, null=True, on_delete=models.CASCADE)
+    montant_regle = models.BigIntegerField(null=True)
+    date_reglement = models.DateTimeField(null=True)
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(auto_now=True)
 

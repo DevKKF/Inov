@@ -66,6 +66,7 @@ from django.views import View
 from django.views.decorators.cache import never_cache
 ## INOV API MOBILE
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.views.generic import TemplateView
 from docx import Document as WordDocument
 # from django_dump_die.middleware import dd
@@ -84,7 +85,7 @@ from configurations.models import Compagnie, MarqueVehicule, Pays, Civilite, Qua
     Territorialite, ModeCalcul, Duree, TicketModerateur, TypeCarosserie, User, Fractionnement, ModeReglement, \
     Regularisation, Bureau, BusinessUnit, TypeCompagnie, Groupe, PosteDommage, TypeSinistre, TypeIntervenant, Responsabilite, Circonstance, \
     Devise, Taxe, BureauTaxe, Apporteur, BaseCalcul, TypeQuittance, NatureQuittance, TypeClient, TypePersonne, Langue, \
-    Branche, ParamProduitCompagnie, CategorieVehicule, Banque, Carburant, Usage, Carosserie, \
+    Branche, ParamProduitCompagnie, CategorieVehicule, Banque, Carburant, Usage, Carosserie, GarantieCirconstance, \
     NatureOperation, TypeTarif, Prestataire, Acte, Rubrique, ReseauSoin, Periodicite, PrescripteurPrestataire, \
     AuthGroup, ActionLog, SousRubrique, RegroupementActe, TypePrefinancement, CompteTresorerie, SousRegroupementActe, \
     GroupeInter, TypeFichier
@@ -101,7 +102,7 @@ from production.models import FormuleRubriquePrefinance, ModePrefinancement, Mot
     OperationReglement, HistoriquePolice, HistoriqueApporteurPolice, HistoriqueTaxePolice, Marchandise, HistoriqueAliment, \
     HistoriquePoliceGarantie
 from production.templatetags.my_filters import money_field, convertir_date_multiformat, supprimer_espaces, convertir_date_jj_mm_aaaa, format_montant, money_format_mille, \
-    rendre_html, arrondis_nombre
+    rendre_html, arrondis_nombre, transformer_statut
 from shared.enum import StatutIncorporation, StatutValidite, StatutSinistre, StatutEnrolement, StatutTraitement, \
     StatutReversementCompagnie, StatutValiditeQuittance, Confidentialite
 from shared.helpers import generer_qrcode_carte, generate_numero_famille, generate_numero_carte, render_pdf, \
@@ -4597,10 +4598,10 @@ def police_sinistres_datatable(request, police_id):
     # Prepare the data in the expected format
     data = []
     for c in page_obj:
-        detail_url = reverse('details_dossier_sinistre', args=[c.id])
+        detail_url = reverse('sinistre.details', args=[c.id])
         actions_html = f'<a href="{detail_url}"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {_("Détails")}</span></a>&nbsp;&nbsp;'
 
-        statut_html = f'<span class="badge badge-{c.statut.lower()}">{c.statut}</span>'
+        statut_html = f'<span class="badge badge-{transformer_statut(c.statut)}">{c.statut}</span>'
 
         data_iten = {
             "id": c.id,
@@ -4620,6 +4621,36 @@ def police_sinistres_datatable(request, police_id):
         "recordsFiltered": paginator.count,
         "draw": int(request.GET.get('draw', 1)),
     })
+
+
+@method_decorator(login_required, name='dispatch')
+class DetailsSinistreView(TemplateView):
+    template_name = 'sinistre/index.html'
+    model = Sinistre
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        sinistre_id = kwargs['sinistre_id']
+        sinistres = Sinistre.objects.filter(id=sinistre_id, bureau=request.user.bureau)
+        if sinistres:
+            sinistre = sinistres.first()
+
+            context_perso = {'sinistre': sinistre,}
+            context = {**context_original, **context_perso}
+
+            return self.render_to_response(context)
+
+        else:
+            #liste_clients_url = reverse('clients')
+            return redirect("clients")
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
 
 
 def police_save_sinistre(request, police_id):
@@ -4657,6 +4688,7 @@ def police_save_sinistre(request, police_id):
                 police_id=police.id,
                 compagnie_id=compagnie_id,
                 type_sinistre_id=type_sinistre_id,
+                responsabilite_id=responsabilite_id,
                 created_by=request.user,
                 numero=numero,
                 created_at=datetime.now(),
@@ -4734,7 +4766,6 @@ def police_save_sinistre(request, police_id):
             garanties_sinistre = request.session.get("garanties_sinistre", [])
             for garantie_sinistre in garanties_sinistre:
                 garantie_sinistre_created = GarantieSinistre(
-                    responsabilite_id=responsabilite_id,
                     circonstance_id=circonstance_id,
                     garantie_id=garantie_sinistre.get('id'),
                     franchise=supprimer_espaces(garantie_sinistre.get('franchise', 0)) if garantie_sinistre.get('franchise', 0) else None,
@@ -4788,8 +4819,7 @@ def police_save_sinistre(request, police_id):
         return JsonResponse(response)
 
 
-
-def police_sinistre_vehicule(request, vehicule_id):
+def information_vehicule(request, vehicule_id):
     vehicule = Vehicule.objects.filter(id=vehicule_id).first()
     if not vehicule:
         return JsonResponse({'error': 'Véhicule non trouvé'}, status=404)
@@ -4827,7 +4857,8 @@ def get_intervenants_session(request):
 
         if client:
             client_intervenant = {
-                'id': 0,  # ID temporaire
+                'id': str(uuid.uuid4()),  # ID unique pour le client
+                'police_id': police.id,
                 'type_intervenant_id': 1,
                 'typeintervenant': 'Tiers Personne',
                 'nom': client.nom.strip().upper(),
@@ -4841,19 +4872,18 @@ def get_intervenants_session(request):
                 'pays_id': client.pays_id
             }
 
-            # Vérifier si l'intervenant existe déjà en session
+            # Vérification simplifiée de l'existence de l'intervenant
             existe_deja = any(
                 intervenant['nom'] == client_intervenant['nom'] and
                 intervenant['prenoms'] == client_intervenant['prenoms'] and
-                intervenant['portable'] == client_intervenant['portable'] and
-                intervenant['email'] == client_intervenant['email']
+                intervenant['typeintervenant'] == client_intervenant['typeintervenant']
                 for intervenant in intervenants
             )
 
             if not existe_deja:
                 intervenants.insert(0, client_intervenant)
                 request.session['intervenants'] = intervenants
-        print(request.session['intervenants'])
+
         return JsonResponse({'success': True, 'data': intervenants}, status=200)
 
     except Exception as e:
@@ -4861,10 +4891,11 @@ def get_intervenants_session(request):
 
 
 @csrf_exempt
-def police_sinistre_intervenants(request):
+def add_intervenant_session(request):
     if request.method == 'POST':
         try:
             typeintervenant_id = request.POST.get('typeintervenant_id')
+            police_id = request.POST.get('police_id')
             typeintervenant = TypeIntervenant.objects.filter(id=typeintervenant_id).first()
 
             if not typeintervenant:
@@ -4884,18 +4915,11 @@ def police_sinistre_intervenants(request):
 
             intervenants_existant = request.session.setdefault('intervenants', [])
 
-            # Vérifier si l'intervenant existe déjà en session
+            # Vérification simplifiée de l'existence de l'intervenant
             existe_deja = any(
                 intervenant['nom'] == nom and
                 intervenant['prenoms'] == prenoms and
-                intervenant['portable'] == portable and
-                intervenant['email'] == email and
-                intervenant['telephone'] == telephone and
-                intervenant['fax'] == fax and
-                intervenant['code_postal'] == code_postal and
-                intervenant['boite_postale'] == boite_postale and
-                intervenant['ville'] == ville and
-                intervenant['pays_id'] == pays_id
+                intervenant['typeintervenant'] == typeintervenant.libelle
                 for intervenant in intervenants_existant
             )
 
@@ -4904,7 +4928,8 @@ def police_sinistre_intervenants(request):
 
             # Création du nouvel intervenant
             nouvel_intervenant = {
-                'id': len(intervenants_existant) + 1,
+                'id': str(uuid.uuid4()),  # ID unique
+                'police_id': police_id,
                 'type_intervenant_id': typeintervenant_id,
                 'typeintervenant': typeintervenant.libelle,
                 'nom': nom,
@@ -4921,7 +4946,7 @@ def police_sinistre_intervenants(request):
 
             intervenants_existant.append(nouvel_intervenant)
             request.session['intervenants'] = intervenants_existant
-            print(request.session['intervenants'])
+
             return JsonResponse({
                 'success': True,
                 'message': "Ajout d'intervenant effectué avec succès !",
@@ -4934,22 +4959,60 @@ def police_sinistre_intervenants(request):
     return JsonResponse({'success': False, 'message': 'Requête invalide.'}, status=400)
 
 
-def supprimer_intervenant_sinistre(request):
+@csrf_exempt
+def delete_intervenant_session(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            intervenant_id = str(data.get("id"))
+            intervenant_id = str(data.get("intervenant_id"))
+            police_id = str(data.get("police_id"))
 
             if "intervenants" in request.session:
                 intervenants = request.session["intervenants"]
+                print('intervenants avant suppression : ', intervenants)
                 intervenants = [inter for inter in intervenants if str(inter["id"]) != intervenant_id]
                 request.session["intervenants"] = intervenants
+
+                print('intervenants après suppression : ', request.session["intervenants"])
 
             return JsonResponse({"success": True})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
 
     return JsonResponse({"success": False, "error": "Requête invalide"})
+
+
+def recuperer_garantie_circonstance(request):
+    data = json.loads(request.body)
+    circonstance_id = str(data.get("circonstance_id"))
+
+    garantiecirconstances = GarantieCirconstance.objects.filter(circonstance_id=circonstance_id)
+
+    # Sérialiser postedommages
+    garantiecirconstances_list = [{
+        "id": garantiecirconstance.garantie.id,
+        "nom": garantiecirconstance.garantie.nom,
+        # Ajoutez d'autres champs si nécessaire
+    } for garantiecirconstance in garantiecirconstances]
+
+    print('circonstance id : ', circonstance_id)
+    print('garanties de la circonstance : ', garantiecirconstances_list)
+
+    if garantiecirconstances_list:
+        context = {
+            'garanties': garantiecirconstances_list,
+        }
+        return render(request, 'police/sinistre_garantie_table.html', context)
+    else:
+        return JsonResponse({'message': "Aucune garantie trouvée.", 'status': 'no_garanties'})
+
+
+@csrf_exempt
+def vider_garanties_sinistre(request):
+    """Vide les garanties en session."""
+    if 'garanties_sinistre' in request.session:
+        del request.session['garanties_sinistre']
+    return JsonResponse({'success': True})
 
 
 def enregistrer_garanties_sinistre(request):
@@ -5069,12 +5132,12 @@ def vider_intervenants_garanties_session(request):
         return JsonResponse({'success': False, 'error': f"Erreur lors de la suppression des données de session : {e}"})
 
 
-def supprimergarantiesinistre(request):
+def supprimer_garantie_session(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            garantie_id = str(data.get("id"))
-
+            garantie_id = str(data.get("garantie_id"))
+            print('garantie id : ', garantie_id)
             if "garanties_sinistre" in request.session:
                 garanties = request.session["garanties_sinistre"]
                 garanties = [g for g in garanties if str(g["id"]) != garantie_id]
@@ -5085,20 +5148,26 @@ def supprimergarantiesinistre(request):
             return JsonResponse({"success": False, "error": str(e)})
 
     return JsonResponse({"success": False, "error": "Requête invalide"})
-def supprimer_garantie_sinistre(request, index):
-    print('Suppression garantie sinistre en cours...')
-    if request.method == 'POST':
+@csrf_exempt
+def delete_garantie_session(request):
+    if request.method == "POST":
         try:
-            # Supposons que vous stockez les garanties sinistres en session
-            garanties_sinistre = request.session.get('garanties_sinistre', [])
-            if 0 <= index < len(garanties_sinistre):
-                garanties_sinistre.pop(index)
-                request.session['garanties_sinistre'] = garanties_sinistre
-                return JsonResponse({'success': True, 'message': 'Garantie sinistre supprimé.'})
-            return JsonResponse({'success': False, 'error': 'Index invalide.'}, status=400)
+            data = json.loads(request.body)
+            garantie_id = str(data.get("garantie_id"))
+
+            if "garanties_sinistre" in request.session:
+                garanties_sinistre = request.session["garanties_sinistre"]
+                print('garanties sinistre avant suppression : ', garanties_sinistre)
+                garanties_sinistre = [g for g in garanties_sinistre if str(g["id"]) != garantie_id]
+                request.session["garanties_sinistre"] = garanties_sinistre
+
+                print('garanties sinistre après suppression : ', request.session["garanties_sinistre"])
+
+            return JsonResponse({"success": True})
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Requête invalide"})
 
 
 @method_decorator(login_required, name='dispatch')

@@ -13,18 +13,22 @@ class StatutEnrolement(models.TextChoices):
     REJETE = 'REJETE'
     INCORPORE = 'INCORPORE'
 
+
 class StatutIncorporation(models.TextChoices):
     ENCOURS = 'ENCOURS'
     INCORPORE = 'INCORPORE'
+
 
 class StatutTraitement(models.TextChoices):
     TRAITE = 'TRAITE'
     NON_TRAITE = 'NON TRAITE'
 
+
 class Etat(models.TextChoices):
     ENTRE = 'ENTRÉ'
     SUSPENDU = 'SUSPENDU'
     SORTIE = 'SORTIE'
+
 
 class PasswordType(models.TextChoices):
     DEFAULT = 'DEFAULT'
@@ -39,6 +43,7 @@ class SatutBordereauDossierSinistres(models.TextChoices):
     PAYE = 'PAYE'
     ANNULE = 'ANNULE'
 
+
 class StatutSinistreBordereau(models.TextChoices):
     AJOUTE_BORDEREAU = 'AJOUTE BORDEREAU'
     PAYE = 'PAYE'
@@ -49,6 +54,9 @@ class StatutSinistre(models.TextChoices):
     ACCORDE = 'ACCORDE'
     ATTENTE = 'EN ATTENTE'
     REJETE = 'REJETE'
+    EN_RECOURS = 'EN RECOURS'
+    SOLDE = 'SOLDE'
+
 
 class StatutSinistrePrestation(models.TextChoices):
     EFFECTUE = 'EFFECTUE'
@@ -89,6 +97,7 @@ class StatutValidite(models.TextChoices):
     BROUILLON = 'BROUILLON'
     CLOTURE = 'CLOTURE'
 
+
 class StatutRemboursement(models.TextChoices):
     ATTENTE = 'EN ATTENTE'
     DEMANDE = 'DEMANDE'
@@ -110,6 +119,7 @@ class StatutRemboursementSinistre(models.TextChoices):
     TAXT = 'TAXT'
     FAR_TAXE = 'TAXE FAR'
 
+
 class DesignationRemboursementSinistre(models.TextChoices):
     NET_A_PAYER = 'NET A PAYER'
     TAXT = 'TAXT'
@@ -119,6 +129,7 @@ class StatutPolice(models.TextChoices):
     ACTIF = 'ACTIF'
     INACTIF = 'INACTIF'
     ANNULE = 'ANNULE'
+
 
 class EtatPolice(models.TextChoices):
     EN_COURS = 'EN COURS'
@@ -130,9 +141,11 @@ class StatutRelation(models.TextChoices):
     PROSPECT = 'PROSPECT'
     CLIENT = 'CLIENT'
 
+
 class StatutContrat(models.TextChoices):
     PROJET = 'PROJET'
     CONTRAT = 'CONTRAT'
+
 
 class EtapeProjet(models.TextChoices):
     PROSPECTION = 'PROSPECTION'
@@ -141,14 +154,20 @@ class EtapeProjet(models.TextChoices):
     ACCORD_CLIENT = 'ACCORD CLIENT'
 
 
-
 class StatutQuittance(models.TextChoices):
     IMPAYE = 'IMPAYE'
     PAYE = 'PAYE'
 
+
+class StatutReglement(models.TextChoices):
+    REGLE = 'REGLE'
+    NON_REGLE = 'NON REGLE'
+
+
 class StatutValiditeQuittance(models.TextChoices):
     VALIDE = 'VALIDE'
     ANNULEE = 'ANNULEE'
+
 
 class StatutFacture(models.TextChoices):
     SOLDE = 'SOLDE'
@@ -168,6 +187,7 @@ class StatutEncaissementCommission(models.TextChoices):
 class TypeEncaissementCommission(models.TextChoices):
     COURTAGE = 'COURTAGE'
     GESTION = 'GESTION'
+
 
 class StatutReglementApporteurs(models.TextChoices):
     REGLE = 'REGLE'
@@ -197,9 +217,11 @@ class CalculTM(models.TextChoices):
     SUR_FRAIS_REEL = 'SUR FRAIS REEL'
     CHOISIR = ''
 
+
 class TypeMajorationContrat(models.TextChoices):
         TAUX = 'TAUX'
         MONTANT = 'MONTANT'
+
 
 class Energie(models.TextChoices):
         ES = 'ESSENCE'
@@ -213,10 +235,12 @@ class MoyenPaiement(models.TextChoices):
         ESP = 'ESPÈCE'
         VRMT = 'VIREMENT BANCAIRE'
 
+
 class StatutPaiementSinistre(models.TextChoices):
     ATTENTE = 'EN ATTENTE'
     ORDONNANCE = 'ORDONNANCE'
     PAYE = 'PAYE'
+
 
 class TypeBonConsultation(models.TextChoices):
     AUTO_CARBONE = 'AUTO CARBONE'
@@ -248,3 +272,4 @@ class TypePortefeuille(models.TextChoices):
     ALL_COM = 'TOUS LES COMMERCIAUX'
     PAR_BUS = 'PAR BUSINESS UNIT'
     ALL_BUS = 'TOUS LES BUSINESS UNIT'
+

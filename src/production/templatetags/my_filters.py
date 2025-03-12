@@ -8,6 +8,7 @@ from datetime import date
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 import math
+from django.utils.text import slugify
 
 from django import template
 from django.contrib.humanize.templatetags.humanize import intcomma
@@ -240,3 +241,13 @@ def arrondis_nombre(value: float) -> int:
     if decimal_part >= 0.5:
         return math.ceil(value)  # Arrondi à l'entier supérieur
     return integer_part  # Arrondi à l'entier inférieur
+
+
+
+def transformer_statut(statut):
+    """Transforme un statut en minuscules avec des tirets."""
+    if statut:
+        return slugify(statut)
+    else:
+        return ""  # Retourne une chaîne vide si le statut est None
+

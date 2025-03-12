@@ -1,4 +1,4 @@
-{% extends 'police/menu_police.html' %}
+{% extends 'sinistre/menu_sinistre.html' %}
 {% load my_filters %}
 {% load i18n %}
 {% block extrastyle %}{% endblock %}
@@ -38,15 +38,15 @@
 {% block content_title %}
     <div class="row mb-2">
           <div class="col-sm-6">
-                <h1 class="m-0">Fiche police</h1>
+                <h1 class="m-0">Fiche sinistre</h1>
           </div>
           <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
                       <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
                       <li class="breadcrumb-item">Production</li>
                       <li class="breadcrumb-item"><a href="{% url 'clients' %}">Clients</a></li>
-                      <li class="breadcrumb-item"><a href="{% url 'police.details' police.id %}">Police</a></li>
-                      <li class="breadcrumb-item active">Fiche police</li>
+                      <li class="breadcrumb-item"><a href="{% url 'sinistre.details' sinistre.id %}">Sinistre</a></li>
+                      <li class="breadcrumb-item active">Fiche sinistre</li>
                 </ol>
           </div>
     </div>
@@ -58,7 +58,7 @@
       <h4></h4>
       <div class="card shadow_">
         <div class="card-header o-bg-primary">
-        <h3 class="card-title text-white">{{_("DETAILS POLICE")}}</h3>
+        <h3 class="card-title text-white">{{_("DETAILS SINISTRE")}}</h3>
         <div class="card-tools">
         </div>
 
@@ -68,9 +68,9 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">{{_("Numero Police cie")}}</label>
+                        <label class="col-sm-6 col-form-label">{{_("Numero sinistre")}}</label>
                         <div class="col-sm-6">
-                        <span class="form-control">{{ police.numero|default_if_none:"" }}</span>
+                        <span class="form-control">{{ sinistre.numero|default_if_none:"" }}</span>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -113,9 +113,9 @@
                 </div>
             </div>
             <hr>
-            <h6 class="o-primary">{{_('DATES')}}</h6>
-            <hr>
-            <div class="row mb-3">
+            <h6 class="o-primary d-none">{{_('DATES')}}</h6>
+            <hr class="d-none">
+            <div class="row mb-3 d-none">
                 <div class="col-md-6">
                     <div class="form-group row">
                         <label class="col-sm-6 col-form-label">{{_("Date début")}}</label>
@@ -158,10 +158,10 @@
                     </div>
                 </div>
             </div>
-            <hr>
-            <h6 class="o-primary">{{_('FACTURATION')}}</h6>
-            <hr>
-            <div class="row mb-3">
+             <hr class="d-none">
+            <h6 class="o-primary d-none">{{_('FACTURATION')}}</h6>
+             <hr class="d-none">
+            <div class="row mb-3 d-none">
                 <div class="col-md-6">
                     <div class="form-group row">
                         <label class="col-sm-6 col-form-label">{{_('Fractionnement')}}</label>
@@ -180,10 +180,10 @@
                     </div>
                 </div>
             </div>
-            <hr>
-            <h6 class="o-primary">{{_("LA PRIME")}}</h6>
-            <hr>
-            <div class="row mb-3">
+             <hr class="d-none">
+            <h6 class="o-primary d-none">{{_("LA PRIME")}}</h6>
+             <hr class="d-none">
+            <div class="row mb-3 d-none">
                 <div class="col-md-6">
                     <div class="form-group row">
                         <label class="col-sm-6 col-form-label">{{_("Prime HT")}}</label>
@@ -226,10 +226,10 @@
                     </div>
                 </div>
             </div>
-            <hr>
-            <h6 class="o-primary">{{_('COMMISSIONS')}}</h6>
-            <hr>
-            <div class="row mb-3">
+             <hr class="d-none">
+            <h6 class="o-primary d-none">{{_('COMMISSIONS')}}</h6>
+             <hr class="d-none">
+            <div class="row mb-3 d-none">
                 <div class="col-md-6">
                     <div class="form-group row">
                         <label class="col-sm-6 col-form-label">{{_("Taux Com Courtage")}}</label>
@@ -260,20 +260,19 @@
                     </div>
                 </div>
             </div>
-            <hr>
-            <h6 class="o-primary">{{_('APPORTEUR')}}</h6>
+            <hr class="d-none">
+            <h6 class="o-primary">GARANTIES MISES EN CAUSE</h6>
             <hr>
             <div class="row mb-3">
-
-                <div class="col-sm-11  mb-3" style="padding-right:0px;">
-                    <table id="table_apporteurs_details_police" class="table table-bordered table-striped dataTable customDataTable dtr-inline">
+                <div class="col-md-11  mb-3" style="padding-right:0px;">
+                    <table id="table_garanties_details_sinistre" class="table table-bordered table-striped dataTable customDataTable dtr-inline">
                         <thead>
                             <tr>
-                                <th style="padding:5px;">{{_("Nom & Prénoms")}}</th>
-                                <th style="padding:5px;">{{_("Base de calcul")}}</th>
-                                <th style="width:20%;padding:5px;">{{_("Taux Retro AN.")}}</th>
-                                <th style="width:20%;padding:5px;">{{_("Montant Retro AN")}}</th>
-                                <th style="width:20%;padding:5px;">{{_("Taux Retro Renouv")}}</th>
+                                <th style="padding:5px;">{{_("Garantie")}}</th>
+                                <th style="padding:5px;">{{_("Franchise")}}</th>
+                                <th style="width:20%;padding:5px;">{{_("Capital")}}</th>
+                                <th style="width:20%;padding:5px;">{{_("Prime Nette")}}</th>
+                                <th style="width:20%;padding:5px;">{{_("Prime TTC")}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -290,72 +289,60 @@
                     </table>
                 </div>
 
-                <div class="col-md-6">
-                    <!--div class="form-group row">
-                        <label class="col-sm-6 col-form-label">Nombre apporteurs</label>
-                        <div class="col-sm-6">
-                        <span class="form-control text-right">{{ i }}</span>
-                        </div>
-                    </div-->
-                </div>
-                <div class="col-md-5">
+                <div class="col-md-2">
                     <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">{{_("Retro Apporteurs")}}</label>
-                        <div class="col-sm-6">
-                        <span class="form-control money_field" style="background: #f0dcc8; border: #f0dcc8">{{dernier_historique.commission_intermediaires|default_if_none:"0" }}</span>
+                        <div class="col-sm-12">
+                            <label>Franchise</label>
+                            <span class="form-control text-right">{{ i }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <label>Capital</label>
+                            <span class="form-control text-right">{{ i }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <label>Prime Nette</label>
+                            <span class="form-control money_field" style="background: #f0dcc8; border: #f0dcc8">{{dernier_historique.commission_intermediaires|default_if_none:"0" }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <label>Prime TTC</label>
+                            <span class="form-control money_field" style="background: #f0dcc8; border: #f0dcc8">{{dernier_historique.commission_intermediaires|default_if_none:"0" }}</span>
                         </div>
                     </div>
                 </div>
 
             </div>
             <hr>
-            <h6 class="o-primary">{{_("SITUATION POLICE")}}</h6>
+            <h6 class="o-primary">INTERVENANTS</h6>
             <hr>
             <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">{{_('Mouvement')}}</label>
-                        <div class="col-sm-6">
-                        <span class="form-control">{{mouvement_police.mouvement.libelle}}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="vl"></div>
-                <div class="col-md-5">
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">{{_('Motif')}}</label>
-                        <div class="col-sm-6">
-                        <span class="form-control">{{mouvement_police.motif.libelle}}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <hr>
-            <h6 class="o-primary">{{_("GESTIONNAIRE SINISTRE / PRODUCTION ET COMMERCIAL")}}</h6>
-            <hr>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">{{_("Gestionnaire sinistre")}}</label>
-                        <div class="col-sm-6">
-                            <span class="form-control">{{ police.gestionnaire.first_name|default_if_none:"" }} {{ police.gestionnaire.last_name|default_if_none:"" }}</span>
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">{{_("Gestionnaire production")}}</label>
-                        <div class="col-sm-6">
-                            <span class="form-control">{{ police.production.first_name|default_if_none:"" }} {{ police.production.last_name|default_if_none:"" }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="vl"></div>
-                <div class="col-md-5">
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">{{_("Commercial")}}</label>
-                        <div class="col-sm-6">
-                            <span class="form-control">{{ police.commercial.first_name|default_if_none:"" }} {{ police.commercial.last_name|default_if_none:"" }}</span>
-                        </div>
-                    </div>
+                <div class="col-md-11  mb-3" style="padding-right:0px;">
+                    <table id="table_intervenant_details_sinistre" class="table table-bordered table-striped dataTable customDataTable dtr-inline">
+                        <thead>
+                            <tr>
+                                <th>{{_("Nom & Prénoms")}}</th>
+                                <th>{{_("Catégorie")}}</th>
+                                <th>{{_("Portable")}}</th>
+                                <th>{{_("Email")}}</th>
+                                <th>{{_("Adresse")}}</th>
+                                <th>{{_("Ville")}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
