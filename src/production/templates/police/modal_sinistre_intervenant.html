@@ -28,7 +28,7 @@
 								<div class="form-group row">
 									<label class="col-sm-5 col-form-label">{{_("Type intervenant")}} <span class="required">*</span></label>
 									<div class="col-sm-7">
-										<select class="form-control tags-multiple typeintervenant intervenant_champ_obligatoire" name="typeintervenant_id" id="typeintervenant_id" required>
+										<select class="form-control typeintervenant intervenant_champ_obligatoire" name="typeintervenant_id" id="typeintervenant_id" required>
 											<option value="">Choisir</option>
 											{% for typeintervenant in typeintervenants %}
 												<option value="{{ typeintervenant.id }}">{{ typeintervenant.libelle|default_if_none:"" }}</option>

@@ -2748,3 +2748,19 @@ class PosteDommage(models.Model):
         verbose_name_plural = "Postes de dommages"
 
 
+class GarantieCirconstance(models.Model):
+    circonstance = models.ForeignKey(Circonstance, null=True, on_delete=models.RESTRICT)
+    garantie = models.ForeignKey(Garantie, null=True, on_delete=models.RESTRICT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.circonstance} - {self.created_at}'
+
+    class Meta:
+        db_table = 'garantie_circonstance'
+        verbose_name = 'Garanties / Circonstances'
+        verbose_name_plural = 'Garanties / Circonstances'
+
+

@@ -43,7 +43,7 @@ from configurations.models import ActionLog, Prescripteur, PrescripteurPrestatai
     PrestataireReseauSoin, WsBoby, ParamWsBoby, Affection, BackgroundQueryTask, ParamProduitCompagnie, Compagnie, \
     AlimentMatricule, ParamActe, TypeApporteur, TypePersonne, Pays, TypeCompagnie, TypeGarant, RisqueProduit, Carosserie, \
     CategorieVehicule, Civilite, CompteTresorerie, ConditionsAssurance, Carburant, Formule, Fractionnement, Garantie, GarantieFormule, \
-    Groupe, ModeReglement, Circonstance, Responsabilite, TypeIntervenant, TypeMouvement, TypeSinistre, PosteDommage
+    Groupe, ModeReglement, Circonstance, Responsabilite, TypeIntervenant, TypeMouvement, TypeSinistre, PosteDommage, GarantieCirconstance
 from inov import settings
 # Create your views here.
 from production.models import TarifPrestataireClient, Client, Aliment, AlimentFormule, Mouvement, MouvementAliment, \
@@ -5974,6 +5974,170 @@ def supprimer_garantieformule(request, garantieformule_id):
         return JsonResponse(response)
 
 #------------------------FIN GARANTIE / FORMULE----------------------------------
+
+
+#------------------------GARANTIE / CIRCONSTANCE----------------------------------
+
+class GarantieCirconstanceView(PermissionRequiredMixin,TemplateView):
+    template_name = 'garantiecirconstances/garantiecirconstance.html'
+    permission_required = "configurations.view_garantiecirconstance"
+    model = GarantieCirconstance
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        garantiecirconstances = GarantieCirconstance.objects.all().order_by('-id')
+
+        garanties = Garantie.objects.filter(status=1).order_by('nom')
+        circonstances = Circonstance.objects.filter(statut=1).order_by('libelle')
+
+        context_perso = {
+            'garantiecirconstances': garantiecirconstances,
+            'garanties': garanties,
+            'circonstances': circonstances,
+        }
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def add_garantiecirconstance(request):
+
+    if request.method == 'POST':
+        garantiecirconstances = request.POST.getlist('garantiecirconstances')
+
+        if len(garantiecirconstances) > 0:
+            for garantiecirconstance in garantiecirconstances:
+                # Créer une nouvelle Garantie circonstance
+                garantie_circonstance = GarantieCirconstance(
+                    garantie_id=garantiecirconstance,
+                    circonstance_id=request.POST.get('circonstance_id'),
+                    status=request.POST.get('status'),
+                    created_at=datetime.now(),
+
+                )
+                garantie_circonstance.save()
+
+            response = {
+                'statut': 1,
+                'message': "Enregistrement effectué avec succès !",
+                'data': {}
+            }
+
+            return JsonResponse(response)
+
+        response = {
+            'statut': 0,
+            'message': "Veuillez sélectionner des garanties !",
+            'data': {}
+        }
+
+        return JsonResponse(response)
+
+
+@login_required
+def modifier_garantiecirconstance(request, garantiecirconstance_id):
+
+    garantiecirconstance = GarantieCirconstance.objects.get(id=garantiecirconstance_id)
+    garanties = Garantie.objects.filter(status=1).order_by('nom')
+    circonstancegaranties = GarantieCirconstance.objects.filter(circonstance_id=garantiecirconstance.circonstance_id)
+    circonstances = Circonstance.objects.filter(statut=1).order_by('libelle')
+
+    if request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+
+        #Suppression l'existant
+        for circonstancegarantie in circonstancegaranties:
+            circonstancegarantie.delete()
+
+        garantiecirconstances = request.POST.getlist('garantiecirconstances')
+
+        if len(garantiecirconstances) > 0:
+            for garantiecirconstance in garantiecirconstances:
+                # Créer une nouvelle Garantie circonstance
+                garantie_circonstance = GarantieCirconstance(
+                    garantie_id=garantiecirconstance,
+                    circonstance_id=request.POST.get('circonstance_id'),
+                    status=request.POST.get('status'),
+                    updated_at=datetime.now(),
+
+                )
+                garantie_circonstance.save()
+
+            response = {
+                'statut': 1,
+                'message': "Modification effectuée avec succès !",
+                'data': {}
+            }
+
+            return JsonResponse(response)
+
+        response = {
+            'statut': 0,
+            'message': "Veuillez sélectionner des garanties !",
+            'data': {}
+        }
+
+        return JsonResponse(response)
+
+    else:
+        print('garantiecirconstance ', garantiecirconstance)
+        print('garanties ', garanties)
+        print('circonstancegaranties ', circonstancegaranties)
+        print('circonstances ', circonstances)
+
+        context = {
+            'garantiecirconstance':garantiecirconstance,
+            'garanties':garanties,
+            'circonstancegaranties':circonstancegaranties,
+            'circonstances':circonstances,
+        }
+
+        return render(request, 'garantiecirconstances/modal_modifier_garantiecirconstance.html',context)
+
+
+@login_required
+def supprimer_garantiecirconstance(request, garantiecirconstance_id):
+    if request.method == "POST":
+
+        garantiecirconstance_id = request.POST.get('garantiecirconstance_id')
+        print("garantiecirconstance id : ", garantiecirconstance_id)
+        garantiecirconstance = GarantieCirconstance.objects.get(id=garantiecirconstance_id)
+        if garantiecirconstance.pk is not None:
+
+            garantiecirconstance.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Garantie circonstance supprimée avec succès !",
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Garantie circonstance non trouvée !",
+            }
+
+        return JsonResponse(response)
+
+#------------------------FIN GARANTIE / CIRCONSTANCE----------------------------------
+
 
 #------------------------GROUPE----------------------------------
 

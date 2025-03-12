@@ -1212,52 +1212,14 @@ class SaisieSinistreView(TemplateView):
     template_name = 'form_saisie_sinistre.html'
     model = Sinistre
 
-    def get(self, request, prestataire_id=None, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
 
-        prestataires_executants = Prestataire.objects.filter(id=prestataire_id)
-        prestataire_executant = prestataires_executants.first() if prestataires_executants else None
-
-        prestataires = Prestataire.objects.filter(bureau=request.user.bureau, status=True).exclude(type_prestataire__code="PRES02").exclude(type_prestataire__code__isnull=True)  # exclure les pharmacies
-        centres_prescripteurs = Prestataire.objects.filter(bureau=request.user.bureau, type_prestataire__code__in=["PRES01", "PRES04"], status=True)
-        pps = PrescripteurPrestataire.objects.filter(prestataire=prestataire_executant, statut_validite=StatutValidite.VALIDE)
-        prescripteurs = Prescripteur.objects.filter(id__in=[pp.prescripteur_id for pp in pps]).order_by('nom')
-
-        rubriques = Rubrique.objects.filter()
-        types_priseencharges = TypePriseencharge.objects.filter(statut_selectable=True)
-        if prestataire_executant:
-            if prestataire_executant.type_prestataire.code == "PRES01":
-                types_priseencharges = TypePriseencharge.objects.filter(statut_selectable=True).exclude(code='OPTIQUE')
-
-            elif prestataire_executant.type_prestataire.code == "PRES03":
-                types_priseencharges = TypePriseencharge.objects.filter(statut_selectable=True, code='OPTIQUE')
-
-            else:
-                types_priseencharges = (TypePriseencharge.objects.filter(statut_selectable=True)
-                                        .exclude(code='OPTIQUE')
-                                        .exclude(code='HOSPIT'))
-
-        context['types_priseencharges'] = types_priseencharges
-        context['rubriques'] = rubriques
-
-        context['prestataire_executant'] = prestataire_executant
-        context['prestataires'] = prestataires
-        context['centres_prescripteurs'] = centres_prescripteurs
-        context['prescripteurs'] = prescripteurs
-        context['affections'] = Affection.objects.filter(status=True)
-        context['types_remboursements'] = TypeRemboursement.objects.filter(status=True)
-
-        context['yesterday'] = timezone.now().date()- datetime.timedelta(days=1)
-        context['today'] =timezone.now().date()
-
         today = timezone.now().date()
+        clients = Client.objects.order_by('-nom')
+
         context['today'] = today
-        context['reference_facture_origin'] = request.GET.get('reference_facture', "")
-        context['date_reception_facture_origin'] = request.GET.get('date_reception_facture', None)
-        context['breadcrumbs'] = [
-            {'title': 'Prises en charges', 'url': ''},
-            {'title': 'Traités', 'url': ''},
-        ]
+        context['clients'] = clients
 
         return self.render_to_response(context)
 
@@ -6409,83 +6371,14 @@ class DetailsDossierSinistreView(TemplateView):
     template_name = 'details_dossier_sinistre.html'
     model = Sinistre
 
-    def get(self, request, dossier_sinistre_id, *args, **kwargs):
+    def get(self, request, sinistre_id, *args, **kwargs):
 
-        if request.user.is_pres or request.user.is_imag or request.user.is_optic or request.user.is_labo or request.user.is_dentaire:
-            dossier_sinistre = DossierSinistre.objects.filter(id=dossier_sinistre_id, prestataire=request.user.prestataire, bureau=request.user.bureau).first()
-
-        elif request.user.is_pharm:
-            dossier_sinistre = DossierSinistre.objects.filter(id=dossier_sinistre_id, type_priseencharge__code="CONSULT", bureau=request.user.bureau).first()
-            # print(f'@@ ville by prestataire : {dossier_sinistre.prestataire.ville} @@')
-            # print(f'@@ ville by bureau : {dossier_sinistre.bureau.ville} @@')
-
-        else:
-            dossier_sinistre = DossierSinistre.objects.filter(id=dossier_sinistre_id, bureau=request.user.bureau).first()
-
+        dossier_sinistre = Sinistre.objects.filter(id=sinistre_id)
 
         if dossier_sinistre:
-            sinistres = Sinistre.objects.filter(dossier_sinistre_id=dossier_sinistre_id, type_sinistre="acte",
-                                                statut_validite=StatutValidite.VALIDE)
-            # commented on 25112023: medicaments = Sinistre.objects.filter(dossier_sinistre_id=dossier_sinistre_id, statut_validite=StatutValidite.VALIDE).filter(type_sinistre='medicament').filter(Q(served_by=request.user) if (not request.user.is_superuser and not request.user.is_med) else Q())
-            medicaments = Sinistre.objects.filter(dossier_sinistre_id=dossier_sinistre_id,
-                                                  statut_validite=StatutValidite.VALIDE).filter(
-                type_sinistre='medicament').filter(Q(prestataire=request.user.prestataire) if (
-                        not request.user.is_superuser and not request.user.is_med and not request.user.is_ges) else Q())
-
-            medicaments_total_frais_reel = sum(sm.total_frais_reel for sm in medicaments.exclude(statut="REJETE"))
-            medicaments_total_part_assure = sum(sm.total_part_assure for sm in medicaments.exclude(statut="REJETE"))
-            medicaments_total_part_compagnie = sum(
-                sm.total_part_compagnie for sm in medicaments.exclude(statut="REJETE"))
-
-            types_documents = TypeDocument.objects.filter(is_sinistre=True)
-            affections = Affection.objects.filter(status=True)
-
-            # dd(medicaments)
-
-            '''
-            #gestion des medicaments à afficher
-            liste_medicaments = Medicament.objects.all()
-            
-            #retirer ceux dont la rubrique n'est pas garantie dans le bareme
-            rubriques_pharmacie_exclu = Bareme.objects.filter(rubrique__type_priseencharge__code="PHARM", formulegarantie_id=dossier_sinistre.aliment.formule.pk, is_garanti=False)
-            pprint("rubriques_pharmacie_exclu")
-            pprint(rubriques_pharmacie_exclu)
-
-            # retirer les médicament dont la rubrique est exclu
-            liste_medicaments = liste_medicaments.exclude(rubrique__in=rubriques_pharmacie_exclu.values_list('rubrique', flat=True))
-            pprint("liste_medicaments")
-            pprint(liste_medicaments)
-            '''
-
-            # version avec actes et medicaments fusionnés
-            liste_medicaments = Acte.objects.filter(type_acte__code="MEDICAMENT", status=1, statut_validite=StatutValidite.VALIDE)
-            pprint("liste_medicaments")
-            pprint(liste_medicaments)
-
-            #
-            documents = dossier_sinistre.documents.filter(statut=Statut.ACTIF)  # .distinct('type_document')
-            document_dict = {}
-            unique_documents = []
-
-            for document in documents:
-                if document.type_document not in document_dict:
-                    document_dict[document.type_document] = document
-                    unique_documents.append(document)
 
             context = self.get_context_data(**kwargs)
             context['dossier_sinistre'] = dossier_sinistre
-            context['sinistres'] = sinistres
-            context['liste_medicaments'] = liste_medicaments
-            context['medicaments'] = medicaments
-            context['affections'] = affections
-            context['types_documents'] = types_documents
-            context['documents'] = unique_documents
-            context['total_frais_reel'] = dossier_sinistre.total_frais_reel
-            context['total_part_assure'] = dossier_sinistre.total_part_assure
-            context['total_part_compagnie'] = dossier_sinistre.total_part_compagnie
-            context['medicaments_total_frais_reel'] = medicaments_total_frais_reel
-            context['medicaments_total_part_assure'] = medicaments_total_part_assure
-            context['medicaments_total_part_compagnie'] = medicaments_total_part_compagnie
 
             return self.render_to_response(context)
 

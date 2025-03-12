@@ -153,7 +153,8 @@ urlpatterns = [
     path("recuperer_garanties_sinistre/", views.recuperer_garanties_sinistre, name="recuperer_garanties_sinistre"),
     path('afficher_provision_sinistre/', views.afficher_provision_sinistre, name='afficher_provision_sinistre'),
     path('enregistrer_montant_garantie_sinistre/', views.enregistrer_montant_garantie_sinistre, name='enregistrer_montant_garantie_sinistre'),
-    path('supprimer_garantie_sinistre/', views.supprimer_garantie_sinistre, name='supprimer_garantie_sinistre'),
+    path('supprimer_garantie_sinistre/<int:index>/', views.supprimer_garantie_sinistre, name='supprimer_garantie_sinistre'),
+    path('supprimer_intervenant_sinistre/', views.supprimer_intervenant_sinistre, name='supprimer_intervenant_sinistre'),
 
     path('police/<int:police_id>/courriers', CourrierView.as_view(), name='police_courrier'),
     path('police/<int:police_id>/courrier/<int:courrier_id>/pdf/', views.generer_courrier, name='generer_pdf'),

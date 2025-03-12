@@ -126,7 +126,7 @@
                   <div class="form-groupn mb-2 row col-sm-12">
                     <div class="col-sm-4">{{_('Date_de_prestation')}}:</div>
                     <div class="col-sm-8">
-                      <span class="col-sm-12 text-bold" readonly="">{% if dossier_sinistre.of_gestionnaire %} {{ dossier_sinistre.date_survenance|date_heure_locale:dossier_sinistre.created_by.bureau.fuseau_horaire|date:"d/m/Y" }} {% else %} {{ dossier_sinistre.date_survenance|date_heure_locale:dossier_sinistre.created_by.bureau.fuseau_horaire|date:"d/m/Y \à H:i" }} {% endif %}</span>
+                      <span class="col-sm-12 text-bold" readonly=""></span>
                     </div>
                   </div>
                   {% if dossier_sinistre.centre_prescripteur %}

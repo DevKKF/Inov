@@ -10,7 +10,7 @@ from .views import PrestatairesView, DetailsPrestatairesView, GroupePermissionsV
     CarosseriesView, CategorieVehiculeView, CiviliteView, CompteTresorerieView, ConditionsAssuranceView, DeviseView, CarburantView, \
     FormuleView, FractionnementView, GarantieView, GarantieFormuleView, GroupeView, ModeReglementView, PaysView, SecteurActiviteView, \
     TypeDocumentView, CirconstanceView, ResponsabiliteView, TypeIntervenantView, TypeMouvementView, TypeSinistreView, MouvementView, \
-    MotifView, PosteDommageView
+    MotifView, PosteDommageView, GarantieCirconstanceView
 
 
 urlpatterns = [
@@ -134,6 +134,11 @@ urlpatterns = [
     path('garantieformule/ajouter', views.add_garantieformule, name='add_garantieformule'),
     path('garantieformule/<int:garantieformule_id>/modifier', views.modifier_garantieformule, name='modifier_garantieformule'),
     path('garantieformule/delete/<int:garantieformule_id>/', views.supprimer_garantieformule, name='supprimer_garantieformule'),
+    #
+    path('garantiecirconstance/', GarantieCirconstanceView.as_view(), name='garantiecirconstance'),
+    path('garantiecirconstance/ajouter', views.add_garantiecirconstance, name='add_garantiecirconstance'),
+    path('garantiecirconstance/<int:garantiecirconstance_id>/modifier', views.modifier_garantiecirconstance, name='modifier_garantiecirconstance'),
+    path('garantiecirconstance/delete/<int:garantiecirconstance_id>/', views.supprimer_garantiecirconstance, name='supprimer_garantiecirconstance'),
     #
     path('groupe/', GroupeView.as_view(), name='groupe'),
     path('groupe/ajouter', views.add_groupe, name='add_groupe'),

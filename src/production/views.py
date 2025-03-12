@@ -107,8 +107,7 @@ from shared.enum import StatutIncorporation, StatutValidite, StatutSinistre, Sta
 from shared.helpers import generer_qrcode_carte, generate_numero_famille, generate_numero_carte, render_pdf, \
     generer_numero_ordre, generer_nombre_famille_du_mois, custom_model_to_dict
 from shared.veos import get_taux_euro_by_devise, get_taux_usd_by_devise, send_client_to_veos
-from sinistre.models import Sinistre, DossierSinistre, MouvementSinistre, AlimentPoliceSinistre, Intervenant, SinistreIntervenant, GarantieSinistre, Provision, ReglementSinistre, \
-    OperationSaisie
+from sinistre.models import Sinistre, DossierSinistre, MouvementSinistre, AlimentPoliceSinistre, Intervenant, SinistreIntervenant, GarantieSinistre, Provision, ReglementSinistre
 from sinistre.forms import SinistreForm
 from comptabilite.models import EncaissementCommission
 from django.contrib.auth.models import Group
@@ -4478,11 +4477,9 @@ class PoliceSinistresView(TemplateView):
             #TODO VIDER LES INTERVENANTS ET DES GARANTIES DU SINISTRE
             if 'intervenants' in request.session:
                 del request.session['intervenants']
-                print("Intervenants supprimés de la session.")
 
             if 'garanties_sinistre' in request.session:
                 del request.session['garanties_sinistre']
-                print("Garanties sinistre supprimées de la session.")
 
             # etat police = dernier motif
             etat_police = police.etat_police
@@ -4507,7 +4504,12 @@ class PoliceSinistresView(TemplateView):
             garanties = PoliceGarantie.objects.filter(police_id=police.id)
             pays = Pays.objects.all().order_by('nom')
 
-            aliments = AlimentPolice.objects.filter(police_id=police.id)
+            aliments = 0
+            aliment = 0
+            if police.produit.code == '10001' or police.produit.code == '10002':
+                aliments = AlimentPolice.objects.filter(police_id=police.id)
+            else:
+                aliment = AlimentPolice.objects.filter(police_id=police.id).first()
 
             context_perso = {
                 'police': police,
@@ -4526,7 +4528,8 @@ class PoliceSinistresView(TemplateView):
                 'circonstances': circonstances,
                 'garanties': garanties,
                 'pays': pays,
-                'aliments': aliments
+                'aliments': aliments,
+                'aliment': aliment
             }
 
             context = {**context_original, **context_perso}
@@ -4556,9 +4559,6 @@ def police_sinistres_datatable(request, police_id):
     search_date_declaration = request.GET.get('date_declaration', '')
     search_date_ouverture = request.GET.get('date_ouverture', '')
     search_value = request.GET.get('search[value]')
-
-    print('search_date_declaration', search_date_declaration)
-    print('search_date_ouverture', search_date_ouverture)
 
     queryset = Sinistre.objects.filter(police_id=police_id).order_by('id')
 
@@ -4597,8 +4597,8 @@ def police_sinistres_datatable(request, police_id):
     # Prepare the data in the expected format
     data = []
     for c in page_obj:
-        detail_url = ""
-        actions_html = ""
+        detail_url = reverse('details_dossier_sinistre', args=[c.id])
+        actions_html = f'<a href="{detail_url}"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {_("Détails")}</span></a>&nbsp;&nbsp;'
 
         statut_html = f'<span class="badge badge-{c.statut.lower()}">{c.statut}</span>'
 
@@ -4650,7 +4650,6 @@ def police_save_sinistre(request, police_id):
             point_choc = request.POST.get('point_choc')
             commentaire = request.POST.get('commentaire')
             numero = request.POST.get('numero')
-            print('franchise : ', franchise)
 
             sinistre_created = Sinistre(
                 bureau_id=client.bureau_id,
@@ -4672,7 +4671,7 @@ def police_save_sinistre(request, police_id):
                 fait_generateur=fait_gerateur,
                 point_de_choc=point_choc,
                 commentaire=commentaire,
-                franchise=franchise if franchise else 0,
+                franchise=supprimer_espaces(franchise) if franchise else 0,
             )
             sinistre_created.save()
 
@@ -4693,6 +4692,7 @@ def police_save_sinistre(request, police_id):
             ms.mouvement = Mouvement.objects.get(code='OS')
             ms.motif = Motif.objects.get(code='OS')
             ms.date_effet = sinistre.date_ouverture
+            ms.created_by = request.user
             ms.save()
 
             # Créer la ligne de l'aliment lié au sinistre
@@ -4737,18 +4737,28 @@ def police_save_sinistre(request, police_id):
                     responsabilite_id=responsabilite_id,
                     circonstance_id=circonstance_id,
                     garantie_id=garantie_sinistre.get('id'),
-                    franchise=supprimer_espaces(garantie_sinistre.get('franchise', '')),
-                    capital=supprimer_espaces(garantie_sinistre.get('capital', '')),
-                    prime_nette=supprimer_espaces(garantie_sinistre.get('prime_net', '')),
-                    prime_ttc=supprimer_espaces(garantie_sinistre.get('prime_ttc', '')),
+                    franchise=supprimer_espaces(garantie_sinistre.get('franchise', 0)) if garantie_sinistre.get('franchise', 0) else None,
+                    capital=supprimer_espaces(garantie_sinistre.get('capital', 0)) if garantie_sinistre.get('capital', 0) else None,
+                    prime_nette=supprimer_espaces(garantie_sinistre.get('prime_net', 0)) if garantie_sinistre.get('prime_net', 0) else None,
+                    prime_ttc=supprimer_espaces(garantie_sinistre.get('prime_ttc', 0)) if garantie_sinistre.get('prime_ttc', 0) else None,
                 )
                 garantie_sinistre_created.save()
 
-            session_key = "montants_garantie_sinistre"
-            montants = request.session.get(session_key, {})
+            # Récupérer les données des provisions
+            provisions_data = json.loads(request.POST.get('provisions', '{}'))
 
-            print('session_key :', session_key)
-            print('montants :', montants)
+            # Enregistrer les provisions
+            for postedommage_id, garanties in provisions_data.items():
+
+                for garantie_id, montants in garanties.items():
+                    Provision.objects.create(
+                        sinistre=sinistre,
+                        garantie_id=garantie_id,
+                        poste_dommage=PosteDommage.objects.get(libelle=postedommage_id),
+                        estimation=supprimer_espaces(montants.get("estimation")) if montants.get("estimation") else None,
+                        deja_regle=supprimer_espaces(montants.get("deja_regle")) if montants.get("deja_regle") else None,
+                        provision=supprimer_espaces(montants.get("provision")) if montants.get("provision") else None,
+                    )
 
             response = {
                 'statut': 1,
@@ -4776,6 +4786,7 @@ def police_save_sinistre(request, police_id):
         }
 
         return JsonResponse(response)
+
 
 
 def police_sinistre_vehicule(request, vehicule_id):
@@ -4923,6 +4934,24 @@ def police_sinistre_intervenants(request):
     return JsonResponse({'success': False, 'message': 'Requête invalide.'}, status=400)
 
 
+def supprimer_intervenant_sinistre(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            intervenant_id = str(data.get("id"))
+
+            if "intervenants" in request.session:
+                intervenants = request.session["intervenants"]
+                intervenants = [inter for inter in intervenants if str(inter["id"]) != intervenant_id]
+                request.session["intervenants"] = intervenants
+
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Requête invalide"})
+
+
 def enregistrer_garanties_sinistre(request):
     if request.method == "POST":
         try:
@@ -4994,8 +5023,8 @@ def enregistrer_montant_garantie_sinistre(request):
             type_montant = data.get("type")
             valeur = int(data.get("valeur", 0))
 
-            # Vérifier si le poste dommage correspond à "Honoraires"
-            if "honoraires" in postedommage_id.lower():
+            # Vérifier si le poste dommage correspond à "Franchise"
+            if "Franchise" in postedommage_id.lower():
                 valeur *= -1  # Appliquer le signe négatif
 
             # Récupération des montants en session
@@ -5040,7 +5069,7 @@ def vider_intervenants_garanties_session(request):
         return JsonResponse({'success': False, 'error': f"Erreur lors de la suppression des données de session : {e}"})
 
 
-def supprimer_garantie_sinistre(request):
+def supprimergarantiesinistre(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -5056,6 +5085,20 @@ def supprimer_garantie_sinistre(request):
             return JsonResponse({"success": False, "error": str(e)})
 
     return JsonResponse({"success": False, "error": "Requête invalide"})
+def supprimer_garantie_sinistre(request, index):
+    print('Suppression garantie sinistre en cours...')
+    if request.method == 'POST':
+        try:
+            # Supposons que vous stockez les garanties sinistres en session
+            garanties_sinistre = request.session.get('garanties_sinistre', [])
+            if 0 <= index < len(garanties_sinistre):
+                garanties_sinistre.pop(index)
+                request.session['garanties_sinistre'] = garanties_sinistre
+                return JsonResponse({'success': True, 'message': 'Garantie sinistre supprimé.'})
+            return JsonResponse({'success': False, 'error': 'Index invalide.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
 
 
 @method_decorator(login_required, name='dispatch')

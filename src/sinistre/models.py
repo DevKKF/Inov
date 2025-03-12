@@ -185,7 +185,8 @@ class MouvementSinistre(models.Model):
     mouvement = models.ForeignKey(Mouvement, on_delete=models.RESTRICT)
     motif = models.ForeignKey(Motif, on_delete=models.RESTRICT)
     #historique_sinistre = models.ForeignKey(HistoriqueSinistre, null=True, on_delete=models.RESTRICT)
-    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT, related_name='created_by_sinistre_mouv')
+    updated_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT, related_name='updated_by_sinistre_mouv')
 
     observation = models.CharField(max_length=255, blank=True, null=True)
     date_effet = models.DateField(blank=True, null=True)
@@ -203,20 +204,6 @@ class MouvementSinistre(models.Model):
         db_table = 'mouvements_sinistres'
         verbose_name = 'Mouvement du sinistre'
         verbose_name_plural = 'Mouvements du sinistre'
-
-
-class OperationSaisie(models.Model):
-    mouvement_sinistre = models.ForeignKey(MouvementSinistre, on_delete=models.RESTRICT)
-    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-
-    updated_at = models.DateTimeField(auto_now=True)
-    deleted_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'operation_saisie'
-        verbose_name = 'Opération de saisie'
-        verbose_name_plural = 'Opération de saisie'
-
 
 
 
