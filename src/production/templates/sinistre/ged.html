@@ -1,6 +1,22 @@
-{% extends 'police/menu_police.html' %}
+{% extends 'sinistre/menu_sinistre.html' %}
 {% load i18n %}
 {% block extrastyle %} {% endblock %}
+{% block content_title %}
+    <div class="row mb-2">
+          <div class="col-sm-6">
+                <h1 class="m-0">GED sinistre</h1>
+          </div>
+          <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                      <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
+                      <li class="breadcrumb-item">Production</li>
+                      <li class="breadcrumb-item"><a href="{% url 'clients' %}">Clients</a></li>
+                      <li class="breadcrumb-item"><a href="{% url 'sinistre.details' sinistre.id %}">Sinistre</a></li>
+                      <li class="breadcrumb-item active">GED</li>
+                </ol>
+          </div>
+    </div>
+{% endblock %}
 {% block content %}
 <div class="col-12 col-md-12 order-2 order-md-1">
     <div class="row ">
@@ -41,7 +57,7 @@
                             </thead>
                             <tbody>
                                 {% for document in documents %}
-                                    {% if not document.quittance_id or document.sinistre_id %}
+                                    {% if not document.quittance_id or document.police_id %}
                                         <tr class="odd">
                                             <td class="dtr-control" tabindex="0">{{ document.nom }}</td>
                                             <td class="">{{ document.type_document.libelle }}</td>

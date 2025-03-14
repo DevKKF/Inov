@@ -357,14 +357,14 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="" class="nav-link">
+                <a href="{% url 'sinistre_avenants' sinistre.id %}" class="nav-link">
                   <i class="nav-icon fas fa-history"></i>
                   <p>Mouvements</p>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="" class="nav-link">
+                <a href="{% url 'sinistre_ged' sinistre.id %}" class="nav-link">
                   <i class="nav-icon fas fa-folder-open"></i>
                   <p>GED</p>
                 </a>
@@ -470,6 +470,8 @@
 <div id="olea_std_dialog_box"></div>
 
 {% include 'client/modal_dynamique.html' %}
+{% include 'sinistre/modal_document.html' %}
+{% include 'sinistre/modal_avenant.html' %}
 <!-- //FIN DES MODALS -->
 
 <!-- jQuery -->

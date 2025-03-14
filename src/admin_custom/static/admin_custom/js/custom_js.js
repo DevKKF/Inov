@@ -4671,6 +4671,114 @@ $(document).ready(function () {
     //fin ajout d'un avenant sur une police
 
 
+    //ajout d'un avenant sur un sinistre
+    $("#btn_save_avenant_sinistre").on('click', function () {
+
+        let formulaire = $('#form_add_avenant_sinistre');
+        let href = formulaire.attr('action');
+        let href_sinistre = $(this).attr('data-href_sinistre');
+        let mouvement = $('#mouvement_sinistre').val();
+
+        console.log('href_sinistre', href_sinistre);
+
+        if (formulaire.valid()) {
+
+            $.ajax({
+                type: 'post',
+                url: href,
+                data: formulaire.serialize(),
+                success: function (response) {
+
+                    if (response.statut == 1) {
+
+                        //Vider le formulaire
+                        resetFields('#' + formulaire.attr('id'));
+                        console.log(mouvement);
+                        console.log(typeof(mouvement));
+                        if(mouvement === '19' || mouvement === '20'){
+                            helper_modification_police(href_sinistre)
+                        }else{
+                             notifySuccess(response.message, function () {
+                                location.reload();
+                            });
+                        }
+
+                    } else {
+
+                        let errors = JSON.parse(JSON.stringify(response.errors));
+                        let errors_list_to_display = '';
+                        for (field in errors) {
+                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                        }
+
+                        $('#modal-avenant_sinistre .alert .message').html(errors_list_to_display);
+
+                        $('#modal-avenant_sinistre .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                            $(this).slideUp(500);
+                        }).removeClass('alert-success').addClass('alert-warning');
+
+                    }
+
+                },
+                error: function (request, status, error) {
+
+                    notifyWarning("Erreur lors de l'enregistrement");
+                }
+
+            });
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner tous les champs obligatoires');
+        }
+
+
+    });
+
+    //Changement de mouvement, charger les motifs liés
+    $('#mouvement_sinistre').on('change', function () {
+
+            let mouvement_id = $(this).val();
+            $('#motif').html('<option value="">---------------------------</option>');
+
+            $.ajax({
+                type: 'get',
+                url: '/production/mouvement/' + mouvement_id + '/motifs',
+                success: function (motifs) {
+
+                    $('#motif').html('').append('<option value="">Sélectionnez un motif</option>');
+
+                    motifs.forEach(function (motif) {
+                        $('#motif').append('<option value="' + motif.pk + '">' + motif.fields.libelle + '</option>');
+                    });
+
+                },
+                error: function () { }
+            });
+
+            //
+            if (mouvement_id == 21) {
+                $('#box_date_cloture_sinistre').show();
+                $('#date_cloture_sinistre').attr('required', 'true');
+            } else {
+                $('#box_date_cloture_sinistre').hide();
+                $('#date_cloture_sinistre').removeAttr('required');
+            }
+
+        });
+
+    //fin ajout d'un avenant sur un sinistre
+
     //ajout d'une formule universelle
     $(document).on("click", "#btn_save_formule_universelle", function () {
 
@@ -6149,6 +6257,162 @@ $(document).ready(function () {
     }
 
     //fin modification de police
+
+    //TODO:modification de sinistre
+    // Créer une function
+    function helper_modification_sinistre(href, modal_title, model_name) {
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_sinistre').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_sinistre').find('.modal-title').text(modal_title);
+            $('#modal-modification_sinistre').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_sinistre').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-modification_sinistre').modal();
+
+            $('#option_calcul_prime_modification').change();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_sinistre").on('click', function () {
+
+                let formulaire = $('#form_update_sinistre');
+                let href = formulaire.attr('action');
+
+                console.log(href);
+
+                let police_date_debut = $('#modal-modification_sinistre #date_debut_effet').val();
+                let police_date_fin = $('#modal-modification_sinistre #date_fin_effet').val();
+
+                console.log("Début :", police_date_debut, "Fin :", police_date_fin);
+
+                // Vérification des dates avant toute autre action
+                if (police_date_debut && police_date_fin) {
+                    if (new Date(police_date_debut) >= new Date(police_date_fin)) {
+                        notifyWarning('La date de fin de la police doit être strictement postérieure à la date de début.');
+                        return;
+                    }
+                }
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+
+                    //demander confirmation
+                    let n = noty({
+                        text: 'Voulez-vous vraiment modifier ce sinistre ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+
+                                    //confirmation obtenu
+                                    let data_serialized = formulaire.serialize();
+                                    $.each(data_serialized.split('&'), function (index, elem) {
+                                        let vals = elem.split('=');
+
+                                        let key = vals[0];
+                                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                                        formData.append(key, valeur);
+
+                                    });
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        xhrFields: {
+                                            withCredentials: true
+                                        },
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                notifySuccess(response.message, function () {
+                                                    location.reload();
+                                                });
+
+                                            }
+                                            if (response.statut == 0) {
+
+                                                notifyWarning(response.message, function () {
+                                                    //location.reload();
+                                                });
+
+                                            }else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-modification_sinistre .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-modification_sinistre .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
+
+                                }
+                            }
+                        ]
+                    });
+                    //fin demande confirmation
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Il y a des erreurs de saisie dans le formulaire');
+                }
+
+
+            });
+
+        });
+    }
+
+    //fin modification du sinistre
 
     $("#modal-police #compagnie, #modal-police #produit").on('change', function () {
 

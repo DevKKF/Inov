@@ -190,7 +190,7 @@ class DetailsClientView(TemplateView):
 
             pays = Pays.objects.all().order_by('nom')
 
-            types_documents = TypeDocument.objects.all().order_by('libelle')
+            types_documents = TypeDocument.objects.filter(is_production=1).order_by('libelle')
 
             types_prefinancements = TypePrefinancement.objects.filter(statut=Statut.ACTIF).order_by('libelle')
 
@@ -549,21 +549,6 @@ def modifier_document(request, document_id):
 
             document_update = form.save(commit=False)
             document_update.save()
-            #fichier = request.FILES['fichier']
-            #filename_old = document.fichier.url
-            #filename = "doc_" + str(uuid.uuid4()) + "_" + fichier.name
-
-            #pprint(filename_old)
-
-            # uploader le fichier
-            #uploaded_file_name = ''
-            #if fichier is not None:
-            #    uploaded_file_name = handle_uploaded_document(fichier, filename)
-
-            #type_document_id = request.POST.get('type_document')
-            #document.nom = request.POST.get('nom')
-            #document.type_document_id = type_document_id
-            #document.save()
 
             response = {
                 'statut': 1,
@@ -593,7 +578,10 @@ def modifier_document(request, document_id):
     else:
 
         document = Document.objects.get(id=document_id)
-        typedocuments = TypeDocument.objects.all().order_by('libelle')
+        if document.sinistre:
+            typedocuments = TypeDocument.objects.filter(is_sinistre=1).order_by('libelle')
+        else:
+            typedocuments = TypeDocument.objects.filter(is_production=1).order_by('libelle')
         confidentialite = Confidentialite
 
         form = DocumentForm()
@@ -3334,6 +3322,7 @@ class DetailsPoliceView(TemplateView):
             context_perso = {'police': police, 'duree_police': duree,
                              'mouvement_police': mouvement_police, 'dernier_historique': dernier_historique, 'assureur_police': assureur_police, 'autre_assureur_police': autre_assureur_police,
                              'apporteurs_police': apporteurs_police, 'reseaux_soins': reseaux_soins, }
+
             context = {**context_original, **context_perso}
 
             return self.render_to_response(context)
@@ -3544,7 +3533,7 @@ def details_quittance(request, quittance_id):
 
     natures_quittances = NatureQuittance.objects.all().order_by('libelle')
     types_quittances = TypeQuittance.objects.all().order_by('libelle')
-    types_documents = TypeDocument.objects.all().order_by('libelle')
+    types_documents = TypeDocument.objects.filter(is_production=1).order_by('libelle')
 
     taxes_quittances = TaxeQuittance.objects.filter(quittance_id=quittance_id)
 
@@ -4352,7 +4341,7 @@ class PoliceGedView(TemplateView):
 
         police = Police.objects.filter(id=police_id, bureau=request.user.bureau, statut_validite=StatutValidite.VALIDE).first()
         if police:
-            types_documents = TypeDocument.objects.all().order_by('libelle')
+            types_documents = TypeDocument.objects.filter(is_production=1).order_by('libelle')
             documents = Document.objects.filter(police_id=police_id)
 
             # etat police = dernier motif
@@ -4482,9 +4471,6 @@ class PoliceSinistresView(TemplateView):
             if 'garanties_sinistre' in request.session:
                 del request.session['garanties_sinistre']
 
-            # etat police = dernier motif
-            etat_police = police.etat_police
-
             # Récupération de client
             client = Client.objects.filter(id=police.client_id).first()
 
@@ -4515,7 +4501,6 @@ class PoliceSinistresView(TemplateView):
             context_perso = {
                 'police': police,
                 'client': client,
-                'etat_police': etat_police,
                 'dossiers_sinistres': None,
                 'sinistres': None,
                 'dernier_historique': dernier_historique,
@@ -4597,18 +4582,21 @@ def police_sinistres_datatable(request, police_id):
 
     # Prepare the data in the expected format
     data = []
-    for c in page_obj:
-        detail_url = reverse('sinistre.details', args=[c.id])
+    for s in page_obj:
+        detail_url = reverse('sinistre.details', args=[s.id])
         actions_html = f'<a href="{detail_url}"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {_("Détails")}</span></a>&nbsp;&nbsp;'
 
-        statut_html = f'<span class="badge badge-{transformer_statut(c.statut)}">{c.statut}</span>'
+        # etat sinistre = dernier motif
+        etat_sinistre = s.etat_sinistre
+        print('etat_sinistre ', transformer_statut(etat_sinistre))
+        statut_html = f'<span class="badge badge-{transformer_statut(etat_sinistre)}">{etat_sinistre}</span>'
 
         data_iten = {
-            "id": c.id,
-            "numero": c.numero if c.numero else "",
-            "type_sinistre": c.type_sinistre.libelle if c.type_sinistre else '',
-            "date_declaration": c.date_declaration.strftime("%d/%m/%Y"),
-            "date_ouverture": c.date_ouverture.strftime("%d/%m/%Y"),
+            "id": s.id,
+            "numero": s.numero if s.numero else "",
+            "type_sinistre": s.type_sinistre.libelle if s.type_sinistre else '',
+            "date_declaration": s.date_declaration.strftime("%d/%m/%Y"),
+            "date_ouverture": s.date_ouverture.strftime("%d/%m/%Y"),
             "statut": statut_html,
             "actions": actions_html,
         }
@@ -4636,7 +4624,28 @@ class DetailsSinistreView(TemplateView):
         if sinistres:
             sinistre = sinistres.first()
 
-            context_perso = {'sinistre': sinistre,}
+            #Totaux
+            total_franchises = sinistre.total_franchises
+            total_capitaux = sinistre.total_capitaux
+            total_prime_nette = sinistre.total_prime_nette
+            total_prime_ttc = sinistre.total_prime_ttc
+
+            intervenants = SinistreIntervenant.objects.filter(sinistre_id=sinistre_id)
+            garantie_sinistres = GarantieSinistre.objects.filter(sinistre_id=sinistre_id)
+            mouvement_sinistre = MouvementSinistre.objects.filter(sinistre_id=sinistre_id, statut_validite=StatutValidite.VALIDE).order_by('-id').first()
+            aliment_police_sinistre = AlimentPoliceSinistre.objects.filter(sinistre_id=sinistre_id).order_by('-id').first()
+
+            context_perso = {
+                'sinistre': sinistre,
+                'intervenants': intervenants,
+                'garantie_sinistres': garantie_sinistres,
+                'mouvement_sinistre': mouvement_sinistre,
+                'total_franchises': total_franchises,
+                'total_capitaux': total_capitaux,
+                'total_prime_nette': total_prime_nette,
+                'total_prime_ttc': total_prime_ttc,
+                'aliment_police_sinistre': aliment_police_sinistre,
+            }
             context = {**context_original, **context_perso}
 
             return self.render_to_response(context)
@@ -4651,6 +4660,207 @@ class DetailsSinistreView(TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
+
+
+@method_decorator(login_required, name='dispatch')
+class SinistreGedView(TemplateView):
+    template_name = 'sinistre/ged.html'
+    model = Sinistre
+
+    def get(self, request, sinistre_id, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        sinistre = Sinistre.objects.filter(id=sinistre_id, bureau=request.user.bureau).first()
+        if sinistre:
+            police = Police.objects.filter(id=sinistre.police_id, bureau=request.user.bureau).first()
+            types_documents = TypeDocument.objects.filter(is_sinistre=1).order_by('libelle')
+            documents = Document.objects.filter(sinistre_id=sinistre_id)
+
+            context_perso = {
+                'sinistre': sinistre,
+                'police': police,
+                'documents': documents,
+                'types_documents': types_documents,
+            }
+
+            context = {**context_original, **context_perso}
+
+            return self.render_to_response(context)
+        else:
+            return redirect("clients")
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+# all sinistre avenants
+@method_decorator(login_required, name='dispatch')
+class SinistreAvenantsView(TemplateView):
+    template_name = 'sinistre/avenants.html'
+    model = Sinistre
+
+    def get(self, request, sinistre_id, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        sinistre = Sinistre.objects.filter(id=sinistre_id, bureau=request.user.bureau).first()
+        if sinistre:
+            police = Police.objects.filter(id=sinistre.police_id, bureau=request.user.bureau).first()
+            mouvements = Mouvement.objects.filter(type_mouvement_id=2).exclude(code="OS").order_by('libelle')
+            mouvements_sinistre = MouvementSinistre.objects.filter(sinistre_id=sinistre_id, statut_validite=StatutValidite.VALIDE).order_by('-id')
+
+            # etat sinistre = dernier motif
+            etat_sinistre = sinistre.etat_sinistre
+
+            if etat_sinistre != "Suspendu":
+                # Retirer mise en vigueur (REMVIG) sauf cas de suspention
+                mouvements = mouvements.exclude(code="REMVIG").order_by('libelle')
+
+
+            context_perso = {'sinistre': sinistre, 'police': police, 'mouvements_sinistre': mouvements_sinistre, 'mouvements': mouvements,
+                             'etat_sinistre': etat_sinistre}
+
+            context = {**context_original, **context_perso}
+
+            return self.render_to_response(context)
+
+        else:
+            return redirect("clients")
+
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+# modification de sinistre
+@transaction.atomic  # open a transaction
+@login_required
+def modifier_sinistre(request, sinistre_id):
+
+    if request.method == 'POST':
+
+        response = {
+            'statut': 1,
+            'message': "Police modifiée avec succès !",
+            'data': {
+                'id': police.pk,
+                'numero': police.numero,
+                'prime_ht': dernier_historique.prime_ht,
+                'prime_ttc': dernier_historique.prime_ttc,
+                'commission_courtage': dernier_historique.commission_courtage,
+                'statut': police.statut,
+            }
+        }
+
+        return JsonResponse(response)
+
+    else:
+
+        sinistre = Sinistre.objects.get(id=sinistre_id)
+
+        print('modal doit se lancer')
+        return render(request, 'sinistre/modal_sinistre_modification.html',{
+          'sinistre': sinistre,
+        })
+
+
+
+# ajout d'avenant
+def add_sinistre_avenant(request, sinistre_id):
+    sinistre = Sinistre.objects.get(id=sinistre_id)
+
+    if request.method == 'POST':
+
+        if request.POST.get('mouvement') in ["19", "20"]:
+            request.session['add_sinistre_avenant'] = request.POST
+            response = {
+                'statut': 1,
+                'message': "Enregistrement effectuée avec succès !",
+                'data': {}
+            }
+
+        else:
+            date_cloture_sinistre = request.POST.get('date_cloture_sinistre')
+
+            mouvement_sinistre = MouvementSinistre.objects.create(
+                sinistre=sinistre,
+                police_id=sinistre.police_id,
+                mouvement_id=request.POST.get('mouvement'),
+                motif_id=request.POST.get('motif'),
+                date_effet=request.POST.get('date_effet'),
+                date_cloture_sinistre=date_cloture_sinistre if date_cloture_sinistre else None,
+                created_by=request.user
+            )
+            mouvement_sinistre.save()
+
+            mouvement = Mouvement.objects.get(id=mouvement_sinistre.mouvement_id)
+
+            motif = Motif.objects.get(id=mouvement_sinistre.motif_id)
+
+            response = {
+                'statut': 1,
+                'message': "Enregistrement effectuée avec succès !",
+                'data': {
+                    'id': mouvement_sinistre.pk,
+                    'mouvement': mouvement.libelle,
+                    'motif': motif.libelle,
+                    'date_effet': mouvement_sinistre.date_effet,
+                    'date_cloture_sinistre': mouvement_sinistre.date_cloture_sinistre,
+                }
+            }
+
+        return JsonResponse(response)
+
+
+def sinistre_add_document(request, sinistre_id):
+    if request.method == "POST":
+
+        form = DocumentForm(request.POST, request.FILES)
+
+        if form.is_valid():
+
+            sinistre = Sinistre.objects.get(id=sinistre_id)
+            type_document_id = request.POST.get('type_document')
+
+            document = form.save(commit=False)
+            document.client = sinistre.client
+            document.sinistre = sinistre
+            document.type_document = TypeDocument.objects.get(id=type_document_id)
+            document.save()
+
+            pprint("document.fichier")
+            pprint(document.fichier.path)
+
+            response = {
+                'statut': 1,
+                'message': "Enregistrement effectué avec succès !",
+                'data': {
+                    'id': document.pk,
+                    'nom': document.nom,
+                    'fichier': '<a href="' + document.fichier.url + '"><i class="fa fa-file" title="Aperçu"></i> Afficher</a>',
+                    'type_document': document.type_document.libelle,
+                    'confidentialite': document.confidentialite,
+                }
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Veuillez renseigner correctement le formulaire !",
+                'errors': form.errors,
+            }
+
+            return JsonResponse(response)
 
 
 def police_save_sinistre(request, police_id):
@@ -4766,6 +4976,7 @@ def police_save_sinistre(request, police_id):
             garanties_sinistre = request.session.get("garanties_sinistre", [])
             for garantie_sinistre in garanties_sinistre:
                 garantie_sinistre_created = GarantieSinistre(
+                    sinistre=sinistre,
                     circonstance_id=circonstance_id,
                     garantie_id=garantie_sinistre.get('id'),
                     franchise=supprimer_espaces(garantie_sinistre.get('franchise', 0)) if garantie_sinistre.get('franchise', 0) else None,
@@ -5132,22 +5343,6 @@ def vider_intervenants_garanties_session(request):
         return JsonResponse({'success': False, 'error': f"Erreur lors de la suppression des données de session : {e}"})
 
 
-def supprimer_garantie_session(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            garantie_id = str(data.get("garantie_id"))
-            print('garantie id : ', garantie_id)
-            if "garanties_sinistre" in request.session:
-                garanties = request.session["garanties_sinistre"]
-                garanties = [g for g in garanties if str(g["id"]) != garantie_id]
-                request.session["garanties_sinistre"] = garanties
-
-            return JsonResponse({"success": True})
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
-
-    return JsonResponse({"success": False, "error": "Requête invalide"})
 @csrf_exempt
 def delete_garantie_session(request):
     if request.method == "POST":
@@ -9261,7 +9456,7 @@ class PoliceClientView(TemplateView):
 
             pays = Pays.objects.all().order_by('nom')
 
-            types_documents = TypeDocument.objects.all().order_by('libelle')
+            types_documents = TypeDocument.objects.filter(is_production=1).order_by('libelle')
 
             types_prefinancements = TypePrefinancement.objects.filter(statut=Statut.ACTIF).order_by('libelle')
 

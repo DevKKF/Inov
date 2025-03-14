@@ -6,7 +6,7 @@ from .views import ClientsView, ExcelFileView, FormulesUniversellesView, Formule
     DetailsClientView, PoliceClientView, ContactClientView, FilialeClientView, AcompteClientView, GEDClientView, QuittancesClientView, \
     PoliceBeneficiairesView, PoliceGedView, PoliceAvenantsView, PoliceTarifsSpecifiquesView, PoliceQuittancesView, \
     PoliceSinistresView, PhotosBeneficiairesView, AnnulerQuittanceView, CourrierView, PolicesEncoursView, PolicesArrivantEcheanceView, PolicesNonRenouvelleesResilieesView, \
-    DetailsSinistreView
+    DetailsSinistreView, SinistreGedView, SinistreAvenantsView
 
 urlpatterns = [
     path("todo_manuel/", views.todo_manuel, name='todo_manuel'),
@@ -158,7 +158,6 @@ urlpatterns = [
     path("recuperer_garanties_sinistre/", views.recuperer_garanties_sinistre, name="recuperer_garanties_sinistre"),
     path('afficher_provision_sinistre/', views.afficher_provision_sinistre, name='afficher_provision_sinistre'),
     path('enregistrer_montant_garantie_sinistre/', views.enregistrer_montant_garantie_sinistre, name='enregistrer_montant_garantie_sinistre'),
-    path('supprimer_garantie_session/', views.supprimer_garantie_session, name='supprimer_garantie_session'),
     path('delete_garantie_session/', views.delete_garantie_session, name='delete_garantie_session'),
 
     path('police/<int:police_id>/courriers', CourrierView.as_view(), name='police_courrier'),
@@ -170,6 +169,11 @@ urlpatterns = [
     # path('generate-word/', generate_word, name='generate_word'),
 
     path('sinistre/<int:sinistre_id>/details', views.DetailsSinistreView.as_view(), name='sinistre.details'),
+    path('sinistre/<int:sinistre_id>/ged', SinistreGedView.as_view(), name='sinistre_ged'),
+    path('sinistre/<int:sinistre_id>/add_document', views.sinistre_add_document, name='sinistre_add_document'),
+    path('sinistre/<int:sinistre_id>/mouvements', SinistreAvenantsView.as_view(), name='sinistre_avenants'),
+    path('sinistre/<int:sinistre_id>/add_sinistre_avenant', views.add_sinistre_avenant, name='add_sinistre_avenant'),
+    path('sinistre/<int:sinistre_id>/modifier', views.modifier_sinistre, name='modifier_sinistre'),
 
     path('formules_universelles', FormulesUniversellesView.as_view(), name='formules_universelles'),
     path('police/<int:police_id>/formules', FormulesView.as_view(), name='police_formules'),

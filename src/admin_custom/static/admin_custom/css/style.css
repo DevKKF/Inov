@@ -497,7 +497,7 @@ article .shimmer{
   background-color: #28a745;
 }
 
-.badge-inactif, .badge-rejete, .badge-sorti, .badge-resilie, .badge-non-encaissee{
+.badge-inactif, .badge-rejete, .badge-sorti, .badge-resilie, .badge-non-encaissee, .badge-cloture-sinistre{
   color: #fff;
   background-color: #dc3545;
 }

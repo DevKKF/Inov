@@ -1983,8 +1983,11 @@ def upload_location_document(instance, filename):
 
 
 class Document(models.Model):
+    #Importation de l'app sinistre
+    from sinistre.models import Sinistre
     client = models.ForeignKey(Client, null=True, on_delete=models.RESTRICT)
     police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
+    sinistre = models.ForeignKey(Sinistre, null=True, on_delete=models.RESTRICT, related_name="sinistre")
     type_document = models.ForeignKey(TypeDocument, on_delete=models.RESTRICT)
     quittance = models.ForeignKey(Quittance, null=True, on_delete=models.RESTRICT)
     nom = models.CharField(max_length=255, blank=True, null=True)

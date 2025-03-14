@@ -3,6 +3,7 @@
 import datetime
 from django.db import models
 from django.db.models import Q, Sum
+from django.utils import timezone
 
 
 from configurations.models import CompteTresorerie, Devise, Compagnie, User, Bureau, TypeSinistre, Responsabilite, TypeIntervenant, Pays, Garantie, Circonstance, \
@@ -74,6 +75,118 @@ class Sinistre(models.Model):
             ("can_do_annulation_facture", "Peut annuler des factures"),
         ]
 
+    @property
+    def total_franchises(self):
+        """Calcule la somme des franchises pour ce sinistre."""
+        return self.garanties.aggregate(models.Sum('franchise'))['franchise__sum'] or 0
+
+    @property
+    def total_capitaux(self):
+        """Calcule la somme des capital pour ce sinistre."""
+        return self.garanties.aggregate(models.Sum('capital'))['capital__sum'] or 0
+
+    @property
+    def total_prime_nette(self):
+        """Calcule la somme des prime_nette pour ce sinistre."""
+        return self.garanties.aggregate(models.Sum('prime_nette'))['prime_nette__sum'] or 0
+
+    @property
+    def total_prime_ttc(self):
+        """Calcule la somme des prime_ttc pour ce sinistre."""
+        return self.garanties.aggregate(models.Sum('prime_ttc'))['prime_ttc__sum'] or 0
+
+    @property
+    def etat_sinistre(self):
+        # tenir compte de la date du jour pour déterminer l'état du sinistre
+        # today = datetime.datetime.now(tz=timezone.utc).date()
+        today = timezone.now().date()
+
+        mouvement = MouvementSinistre.objects.filter(sinistre_id=self.id, date_effet__lte=today, statut_validite=StatutValidite.VALIDE).order_by('-id').first()
+
+        if mouvement:
+            return mouvement.motif.etat_sinistre
+        else:
+            return "En attente"
+
+
+class HistoriqueSinistre(models.Model):
+    sinistre = models.ForeignKey(Sinistre, null=True, on_delete=models.RESTRICT)
+    client = models.ForeignKey(Client, null=True, on_delete=models.RESTRICT)
+    bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
+    compagnie = models.ForeignKey(Compagnie, null=True, on_delete=models.RESTRICT)
+    police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
+    type_sinistre = models.ForeignKey(TypeSinistre, null=True, on_delete=models.RESTRICT)
+    responsabilite = models.ForeignKey(Responsabilite, null=True, on_delete=models.RESTRICT)
+    created_by = models.ForeignKey(User, related_name="histo_created_by_sinistre", null=True, on_delete=models.RESTRICT)
+    updated_by = models.ForeignKey(User, related_name="histo_updated_by_sinistre", null=True, on_delete=models.RESTRICT)
+
+    numero = models.CharField(max_length=50, blank=True, null=True)
+    lieu_survenance = models.TextField(blank=True, null=True)
+    tva_recuperee = models.TextField(blank=True, null=True)
+    fait_generateur = models.TextField(blank=True, null=True)
+    point_de_choc = models.TextField(blank=True, null=True)
+    commentaire = models.TextField(blank=True, null=True)
+
+    franchise = models.BigIntegerField(null=True)
+
+    date_survenance = models.DateTimeField(null=True)
+    date_declaration = models.DateTimeField(null=True)
+    date_ouverture = models.DateTimeField(null=True)
+    date_reouverture = models.DateTimeField(null=True)
+    date_cloture = models.DateTimeField(null=True)
+
+    sinistre_recours = models.fields.CharField(choices=StatutRecours.choices, default=StatutRecours.AUCUN, max_length=15, null=True)
+    statut = models.fields.CharField(choices=StatutSinistre.choices, default=StatutSinistre.ATTENTE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.BROUILLON, max_length=15, null=True)
+    statut_remboursement = models.fields.CharField(choices=StatutRemboursement.choices, default=StatutRemboursement.ATTENTE, max_length=25, null=True)
+    statut_paiement = models.fields.CharField(choices=StatutPaiementSinistre.choices, default=StatutPaiementSinistre.ATTENTE, max_length=15, null=True)
+    date_paiement = models.DateField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = 'historique_sinistres'
+        verbose_name = 'Historique Sinistres'
+        verbose_name_plural = 'Historique Sinistres'
+
+        permissions = [
+            ("can_do_saisie_prestataire", "Peut saisir des PEC en ligne"),
+            ("can_do_saisie_gestionnaire", "Peut saisir des PEC physiques"),
+            ("can_view_prestations", "Peut afficher les PEC"),
+            ("can_do_generation_bordereau_facturation", "Peut générer un bordereau de facturation"),
+            ("can_view_bordereaux_facturations", "Peut voir bordereaux de facturations"),
+            ("can_view_facturesprestataires_en_attente", "Peut voir les factures prestataire en attente"),
+            ("can_view_facturesprestataires_validees", "Peut voir les factures prestataire validées"),
+            ("can_do_traitement_factures_prestataire", "Peut traiter les factures prestataires"),
+            ("can_view_remboursements_validees", "Peut voir les remboursements validées"),
+            ("can_do_ordonnancement", "Peut faire un ordonnancement"),
+            ("can_view_bordereaux_ordonnancement", "Peut voir les bordereaux d'ordonnancements"),
+            ("can_do_annulation_sinistre", "Peut annuler des sinistres"),
+            ("can_do_annulation_facture", "Peut annuler des factures"),
+        ]
+
+    @property
+    def total_franchises(self):
+        """Calcule la somme des franchises pour ce sinistre."""
+        return self.garanties.aggregate(models.Sum('franchise'))['franchise__sum'] or 0
+
+    @property
+    def total_capitaux(self):
+        """Calcule la somme des capital pour ce sinistre."""
+        return self.garanties.aggregate(models.Sum('capital'))['capital__sum'] or 0
+
+    @property
+    def total_prime_nette(self):
+        """Calcule la somme des prime_nette pour ce sinistre."""
+        return self.garanties.aggregate(models.Sum('prime_nette'))['prime_nette__sum'] or 0
+
+    @property
+    def total_prime_ttc(self):
+        """Calcule la somme des prime_ttc pour ce sinistre."""
+        return self.garanties.aggregate(models.Sum('prime_ttc'))['prime_ttc__sum'] or 0
+
 
 #
 class AlimentPoliceSinistre(models.Model):
@@ -126,8 +239,22 @@ class SinistreIntervenant(models.Model):
         verbose_name_plural = 'Sinistre intervenant'
 
 
+class HistoriqueSinistreIntervenant(models.Model):
+    historique_sinistre = models.ForeignKey(HistoriqueSinistre, null=True, on_delete=models.RESTRICT)
+    intervenant = models.ForeignKey(Intervenant, null=True, on_delete=models.RESTRICT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        db_table = 'historique_sinistre_intervenant'
+        verbose_name = 'Historique sinistre intervenant'
+        verbose_name_plural = 'Historique sinistre intervenant'
+
+
 #
 class GarantieSinistre(models.Model):
+    sinistre = models.ForeignKey(Sinistre, related_name='garanties', null=True, on_delete=models.RESTRICT)
     garantie = models.ForeignKey(Garantie, null=True, on_delete=models.RESTRICT)
     circonstance = models.ForeignKey(Circonstance, null=True, on_delete=models.RESTRICT)
 
@@ -146,6 +273,27 @@ class GarantieSinistre(models.Model):
         verbose_name_plural = 'Garantie Sinistre'
 
 
+class HistoriqueGarantieSinistre(models.Model):
+    historique_sinistre = models.ForeignKey(HistoriqueSinistre, related_name='garanties', null=True, on_delete=models.RESTRICT)
+    garantie = models.ForeignKey(Garantie, null=True, on_delete=models.RESTRICT)
+    circonstance = models.ForeignKey(Circonstance, null=True, on_delete=models.RESTRICT)
+
+    franchise = models.BigIntegerField(null=True)
+    capital = models.BigIntegerField(null=True)
+    prime_nette = models.BigIntegerField(null=True)
+    prime_ttc = models.BigIntegerField(null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        db_table = 'historique_garantie_sinistre'
+        verbose_name = 'Historique garantie sinistre'
+        verbose_name_plural = 'Historique garantie sinistre'
+
+
+#
 class Provision(models.Model):
     sinistre = models.ForeignKey(Sinistre, null=True, on_delete=models.RESTRICT)
     garantie = models.ForeignKey(Garantie, null=True, on_delete=models.RESTRICT)
@@ -183,17 +331,19 @@ class ReglementSinistre(models.Model):
         verbose_name_plural = 'Règlement du sinistre'
 
 
+#
 class MouvementSinistre(models.Model):
-    sinistre = models.ForeignKey(Sinistre, on_delete=models.RESTRICT)
-    police = models.ForeignKey(Police, on_delete=models.RESTRICT)
-    mouvement = models.ForeignKey(Mouvement, on_delete=models.RESTRICT)
-    motif = models.ForeignKey(Motif, on_delete=models.RESTRICT)
-    #historique_sinistre = models.ForeignKey(HistoriqueSinistre, null=True, on_delete=models.RESTRICT)
+    sinistre = models.ForeignKey(Sinistre, null=True, on_delete=models.RESTRICT)
+    police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
+    mouvement = models.ForeignKey(Mouvement, null=True, on_delete=models.RESTRICT)
+    motif = models.ForeignKey(Motif, null=True, on_delete=models.RESTRICT)
+    historique_sinistre = models.ForeignKey(HistoriqueSinistre, null=True, on_delete=models.RESTRICT)
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT, related_name='created_by_sinistre_mouv')
     updated_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT, related_name='updated_by_sinistre_mouv')
 
     observation = models.CharField(max_length=255, blank=True, null=True)
     date_effet = models.DateField(blank=True, null=True)
+    date_cloture_sinistre = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(auto_now=True)
@@ -202,7 +352,7 @@ class MouvementSinistre(models.Model):
 
 
     def __str__(self):
-        return f'Mouvement: {self.mouvement.libelle}/{self.motif.libelle} - Police N° {self.sinistre.numero}'
+        return f'Mouvement sinistre: {self.mouvement.libelle}/{self.motif.libelle} - Police N° {self.sinistre.numero}'
 
     class Meta:
         db_table = 'mouvements_sinistres'
