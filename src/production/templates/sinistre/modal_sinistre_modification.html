@@ -1,0 +1,57 @@
+{% load i18n static jazzmin admin_urls %}
+{% load my_filters %}
+<style>
+	input[readonly], select[disabled], textarea[readonly],
+	input[type="radio"][disabled], input[type="checkbox"][disabled] {
+		background-color: #f0f0f0;
+		color: #000;
+		cursor: not-allowed;
+	}
+</style>
+<div  class="modal fade"  id="modal-modification_sinistre" data-backdrop="static" data-keyboard="false" aria-hidden="true"  style="display: none">
+	<div class="modal-dialog modal-xl">
+		<div class="modal-content">
+			<form enctype="multipart/form-data" id="form_update_sinistre" action="{% url 'modifier_sinistre' sinistre.id %}" method="post">
+				{% csrf_token %}
+				<input type="hidden" name="sinistre_id" id="sinistre_id" value="{{ sinistre.id }}">
+				<div class="modal-header">
+					<h4 class="modal-title">{{_("MODIFICATION DE LA POLICE")}} <b>N° {{ sinistre.numero }}</b> <span class="text-white">{{ sinistre.id }}</span></h4>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">×</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="alert  alert-dismissible fade show hidden" role="alert">
+					  <span class="message"> {{_("TRAITEMENT EN COURS")}}</span>
+					</div>
+					<div class="col-md-12 offset-0">
+						<ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item text-uppercase"><a class="nav-link active" id="identity-tab" data-toggle="tab" href="#identity" role="tab" aria-controls="identity" aria-selected="true">{{_("Information du contrat")}}</a></li>
+                            <li class="nav-item text-uppercase"><a class="nav-link" id="declaration_sinistre-tab" data-toggle="tab" href="#declaration_sinistre" role="tab" aria-controls="declaration_sinistre" aria-selected="false">{{_("Déclaration du sinistre")}}</a></li>
+                            <li class="nav-item text-uppercase"><a class="nav-link" id=intervenant-tab" data-toggle="tab" href="#intervenant" role="tab" aria-controls="intervenant" aria-selected="false">{{_("Intervenants")}}</a></li>
+                            <li class="nav-item text-uppercase"><a class="nav-link" id=provision-tab" data-toggle="tab" href="#provision" role="tab" aria-controls="provision" aria-selected="false">{{_("Provision")}}</a></li>
+                        </ul>
+						<div class="tab-content" id="myTabContent">
+                            
+						</div>
+					</div>
+					<div class="modal-footer justify-content-between">
+						<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
+						<button type="button" id="btn_save_modification_sinistre" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Valider')}}</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<script>
+    function isInputNumber(evt){
+
+        var ch = String.fromCharCode(evt.which);
+
+        if(!(/[0-9]/.test(ch))){
+            evt.preventDefault();
+        }
+    }
+</script>

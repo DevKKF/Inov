@@ -4520,8 +4520,6 @@ $(document).ready(function () {
         let modal_title = $(this).attr('data-modal_title');
         let href = $(this).attr('data-href');
 
-        //let dialog_box = $("<div>").addClass('olea_std_dialog_box').appendTo('body');
-
         $('#olea_std_dialog_box').load(href, function () {
 
             //appliquer le mask de saisie sur les champs montant
@@ -4671,111 +4669,7 @@ $(document).ready(function () {
     //fin ajout d'un avenant sur une police
 
 
-    //ajout d'un avenant sur un sinistre
-    $("#btn_save_avenant_sinistre").on('click', function () {
 
-        let formulaire = $('#form_add_avenant_sinistre');
-        let href = formulaire.attr('action');
-        let href_sinistre = $(this).attr('data-href_sinistre');
-        let mouvement = $('#mouvement_sinistre').val();
-
-        console.log('href_sinistre', href_sinistre);
-
-        if (formulaire.valid()) {
-
-            $.ajax({
-                type: 'post',
-                url: href,
-                data: formulaire.serialize(),
-                success: function (response) {
-
-                    if (response.statut == 1) {
-
-                        //Vider le formulaire
-                        resetFields('#' + formulaire.attr('id'));
-                        console.log(mouvement);
-                        console.log(typeof(mouvement));
-                        if(mouvement === '19' || mouvement === '20'){
-                            helper_modification_police(href_sinistre)
-                        }else{
-                             notifySuccess(response.message, function () {
-                                location.reload();
-                            });
-                        }
-
-                    } else {
-
-                        let errors = JSON.parse(JSON.stringify(response.errors));
-                        let errors_list_to_display = '';
-                        for (field in errors) {
-                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
-                        }
-
-                        $('#modal-avenant_sinistre .alert .message').html(errors_list_to_display);
-
-                        $('#modal-avenant_sinistre .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                            $(this).slideUp(500);
-                        }).removeClass('alert-success').addClass('alert-warning');
-
-                    }
-
-                },
-                error: function (request, status, error) {
-
-                    notifyWarning("Erreur lors de l'enregistrement");
-                }
-
-            });
-
-        } else {
-
-            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
-
-            let validator = formulaire.validate();
-
-            $.each(validator.errorMap, function (index, value) {
-
-                console.log('Id: ' + index + ' Message: ' + value);
-
-            });
-
-            notifyWarning('Veuillez renseigner tous les champs obligatoires');
-        }
-
-
-    });
-
-    //Changement de mouvement, charger les motifs liés
-    $('#mouvement_sinistre').on('change', function () {
-
-            let mouvement_id = $(this).val();
-            $('#motif').html('<option value="">---------------------------</option>');
-
-            $.ajax({
-                type: 'get',
-                url: '/production/mouvement/' + mouvement_id + '/motifs',
-                success: function (motifs) {
-
-                    $('#motif').html('').append('<option value="">Sélectionnez un motif</option>');
-
-                    motifs.forEach(function (motif) {
-                        $('#motif').append('<option value="' + motif.pk + '">' + motif.fields.libelle + '</option>');
-                    });
-
-                },
-                error: function () { }
-            });
-
-            //
-            if (mouvement_id == 21) {
-                $('#box_date_cloture_sinistre').show();
-                $('#date_cloture_sinistre').attr('required', 'true');
-            } else {
-                $('#box_date_cloture_sinistre').hide();
-                $('#date_cloture_sinistre').removeAttr('required');
-            }
-
-        });
 
     //fin ajout d'un avenant sur un sinistre
 

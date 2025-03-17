@@ -4588,7 +4588,6 @@ def police_sinistres_datatable(request, police_id):
 
         # etat sinistre = dernier motif
         etat_sinistre = s.etat_sinistre
-        print('etat_sinistre ', transformer_statut(etat_sinistre))
         statut_html = f'<span class="badge badge-{transformer_statut(etat_sinistre)}">{etat_sinistre}</span>'
 
         data_iten = {
@@ -4764,10 +4763,48 @@ def modifier_sinistre(request, sinistre_id):
     else:
 
         sinistre = Sinistre.objects.get(id=sinistre_id)
+        police = Police.objects.filter(id=sinistre.police_id, bureau=request.user.bureau, statut_validite=StatutValidite.VALIDE).first()
+        client = Client.objects.filter(id=police.client_id).first()
 
-        print('modal doit se lancer')
+        # Récupérer le dernier historique
+        dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+        # Récupérer les assureurs associés à l'historique
+        assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id,
+                                                        type_compagnie_id=1).first() if dernier_historique else []
+        today = datetime.now(tz=timezone.utc)
+
+        mouvements = Mouvement.objects.filter(type_mouvement_id=2).order_by('libelle')
+        typesinistres = TypeSinistre.objects.filter(statut=1).order_by('libelle')
+        typeintervenants = TypeIntervenant.objects.filter(statut=1).order_by('libelle')
+        typedocuments = TypeDocument.objects.filter(is_sinistre=1).order_by('libelle')
+        responsabilites = Responsabilite.objects.filter(statut=1)
+        circonstances = Circonstance.objects.filter(statut=1).order_by('libelle')
+        pays = Pays.objects.all().order_by('nom')
+
+        aliments = 0
+        aliment = 0
+        if police.produit.code == '10001' or police.produit.code == '10002':
+            aliments = AlimentPolice.objects.filter(police_id=police.id)
+        else:
+            aliment = AlimentPolice.objects.filter(police_id=police.id).first()
+
         return render(request, 'sinistre/modal_sinistre_modification.html',{
           'sinistre': sinistre,
+          'police': police,
+          'client': client,
+          'dernier_historique': dernier_historique,
+          'assureur_police': assureur_police,
+          'today': today,
+          'mouvements': mouvements,
+          'typesinistres': typesinistres,
+          'typeintervenants': typeintervenants,
+          'typedocuments': typedocuments,
+          'responsabilites': responsabilites,
+          'circonstances': circonstances,
+          'pays': pays,
+          'aliments': aliments,
+          'aliment': aliment
         })
 
 
