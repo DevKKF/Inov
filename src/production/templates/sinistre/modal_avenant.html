@@ -20,7 +20,7 @@
                         <div class="form-group row">
                             <label class="col-sm-5 col-form-label">{{_('Mouvement')}} <span class="required">*</span></label>
                             <div class="col-sm-7">
-                                <select class="form-control mouvement" name="mouvement" id="mouvement_sinistre" autocomplete="off" required>
+                                <select class="form-control mouvement_sinistre" name="mouvement" id="mouvement_sinistre" autocomplete="off" required>
                                     <option value="">{{_('Choisir')}}</option>
                                     {% for mouvement in mouvements %}
                                         <option value="{{ mouvement.id }}" data-code="{{ mouvement.code }}">{{ mouvement.libelle }}</option>

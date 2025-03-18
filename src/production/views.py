@@ -4497,7 +4497,7 @@ class PoliceSinistresView(TemplateView):
                 aliments = AlimentPolice.objects.filter(police_id=police.id)
             else:
                 aliment = AlimentPolice.objects.filter(police_id=police.id).first()
-
+            print('Autre aliment : ', aliment)
             context_perso = {
                 'police': police,
                 'client': client,
@@ -4747,14 +4747,8 @@ def modifier_sinistre(request, sinistre_id):
 
         response = {
             'statut': 1,
-            'message': "Police modifiée avec succès !",
+            'message': "Sinistre modifié avec succès !",
             'data': {
-                'id': police.pk,
-                'numero': police.numero,
-                'prime_ht': dernier_historique.prime_ht,
-                'prime_ttc': dernier_historique.prime_ttc,
-                'commission_courtage': dernier_historique.commission_courtage,
-                'statut': police.statut,
             }
         }
 
@@ -4804,9 +4798,8 @@ def modifier_sinistre(request, sinistre_id):
           'circonstances': circonstances,
           'pays': pays,
           'aliments': aliments,
-          'aliment': aliment
+          'aliment': aliment,
         })
-
 
 
 # ajout d'avenant
@@ -4910,6 +4903,7 @@ def police_save_sinistre(request, police_id):
 
         if form.is_valid():
             vehicule_id = request.POST.get('vehicule_id')
+            autre_risque_id = request.POST.get('autre_risque_id')
             compagnie_id = request.POST.get('compagnie_id')
             date_survenance = request.POST.get('date_survenance')
             date_ouverture = request.POST.get('date_ouverture')
@@ -4975,13 +4969,31 @@ def police_save_sinistre(request, police_id):
             ms.save()
 
             # Créer la ligne de l'aliment lié au sinistre
-            aliment_sinitre_created = AlimentPoliceSinistre(
-                police=police,
-                sinistre=sinistre,
-                aliment_police=AlimentPolice.objects.get(vehicule_id=vehicule_id),
-                risque=risque,
-            )
-            aliment_sinitre_created.save()
+            aliment_police = None
+
+            if vehicule_id:
+                try:
+                    aliment_police = AlimentPolice.objects.get(vehicule_id=vehicule_id)
+                except AlimentPolice.DoesNotExist:
+                    pass  # Gérer l'absence de l'objet si nécessaire
+
+            if not aliment_police and autre_risque_id:
+                try:
+                    aliment_police = AlimentPolice.objects.get(autre_risque_id=autre_risque_id)
+                except AlimentPolice.DoesNotExist:
+                    pass  # Gérer l'absence de l'objet si nécessaire
+
+            if aliment_police:
+                aliment_sinitre_created = AlimentPoliceSinistre(
+                    police=police,
+                    sinistre=sinistre,
+                    aliment_police=aliment_police,
+                    risque=risque,
+                )
+                aliment_sinitre_created.save()
+            else:
+                # Ajouter une gestion si l'aliment_police n'existe pas.
+                print(f"Aucun AlimentPolice trouvé pour vehicule_id={vehicule_id} ou autre_risque_id={autre_risque_id}")
 
             # Récupérer les intervenants de la session
             intervenants = request.session.get('intervenants', [])
@@ -5085,6 +5097,58 @@ def information_vehicule(request, vehicule_id):
     }
 
     return JsonResponse(data)
+
+
+@csrf_exempt
+def get_sinistre_intervenants_session(request):
+    try:
+        sinistre_id = request.GET.get('sinistre_id')
+        print(f"Récupération et mise en session des intervenants pour le sinistre {sinistre_id}")
+
+        sinistre = Sinistre.objects.filter(id=sinistre_id).first()
+
+        if not sinistre:
+            print(f"Sinistre {sinistre_id} non trouvé.")
+            return JsonResponse({'success': False, 'message': "Sinistre non trouvé."}, status=404)
+
+        intervenants_sinistre = SinistreIntervenant.objects.filter(sinistre=sinistre)
+        intervenants_session = request.session.setdefault('intervenants', [])
+
+        for intervenant_sinistre in intervenants_sinistre:
+            intervenant_dict = {
+                'id': str(uuid.uuid4()),  # ID unique
+                'sinistre_id': sinistre.id,
+                'type_intervenant_id': intervenant_sinistre.intervenant.type_intervenant_id,
+                'typeintervenant': intervenant_sinistre.intervenant.type_intervenant.libelle,
+                'nom': intervenant_sinistre.intervenant,
+                'prenoms': intervenant_sinistre.intervenant.prenoms,
+                'portable': intervenant_sinistre.intervenant.portable if intervenant_sinistre.intervenant.portable else '',
+                'telephone': intervenant_sinistre.intervenant.telephone if intervenant_sinistre.intervenant.telephone else '',
+                'email': intervenant_sinistre.intervenant.email.strip().lower() if intervenant_sinistre.intervenant.email else '',
+                'code_postal': intervenant_sinistre.intervenant.code_postal,
+                'boite_postale': intervenant_sinistre.intervenant.boite_postale,
+                'ville': intervenant_sinistre.intervenant.ville,
+                'pays_id': intervenant_sinistre.intervenant.pays_id
+            }
+
+            # Vérification de l'existence de l'intervenant
+            existe_deja = any(
+                intervenant['nom'] == intervenant_dict['nom'] and
+                intervenant['prenoms'] == intervenant_dict['prenoms'] and
+                intervenant['typeintervenant'] == intervenant_dict['typeintervenant']
+                for intervenant in intervenants_session
+            )
+
+            if not existe_deja:
+                intervenants_session.append(intervenant_dict)
+
+        request.session['intervenants'] = intervenants_session
+        print(f"Intervenants en session : {intervenants_session}")
+        return JsonResponse({'success': True, 'data': intervenants_session}, status=200)
+
+    except Exception as e:
+        print(f"Erreur lors de la récupération et de la mise en session des intervenants : {e}")
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 
 @csrf_exempt
@@ -5205,6 +5269,58 @@ def add_intervenant_session(request):
             return JsonResponse({'success': False, 'message': f"Erreur lors de l'enregistrement : {str(e)}"}, status=500)
 
     return JsonResponse({'success': False, 'message': 'Requête invalide.'}, status=400)
+
+
+@csrf_exempt
+def modif_add_intervenant_session(request):
+    try:
+        sinistre_id = request.POST.get('sinistre_id')
+        typeintervenant_id = request.POST.get('typeintervenant_id')
+        nom = request.POST.get('nom')
+        prenoms = request.POST.get('prenoms')
+        portable = request.POST.get('portable')
+        telephone = request.POST.get('telephone')
+        email = request.POST.get('email')
+        code_postal = request.POST.get('code_postal')
+        boite_postale = request.POST.get('boite_postale')
+        ville = request.POST.get('ville')
+        pays_id = request.POST.get('pays_id')
+
+        sinistre = Sinistre.objects.filter(id=sinistre_id).first()
+        typeintervenant = TypeIntervenant.objects.filter(id=typeintervenant_id).first()
+
+        if not sinistre:
+            return JsonResponse({'success': False, 'message': "Sinistre non trouvé."}, status=404)
+
+        if not typeintervenant:
+            return JsonResponse({'success': False, 'message': "Type d'intervenant non trouvé."}, status=404)
+
+        # Ajouter l'intervenant à la session
+        intervenants_session = request.session.setdefault('intervenants', [])
+        intervenant_dict = {
+            'id': str(uuid.uuid4()),
+            'sinistre_id': sinistre.id,
+            'type_intervenant_id': typeintervenant.id,
+            'typeintervenant': typeintervenant.libelle,
+            'nom': nom.strip().upper(),
+            'prenoms': prenoms.strip().upper(),
+            'portable': portable.strip() if portable else '',
+            'telephone': telephone.strip() if telephone else '',
+            'email': email.strip().lower() if email else '',
+            'code_postal': code_postal,
+            'boite_postale': boite_postale,
+            'ville': ville,
+            'pays_id': pays_id
+        }
+
+        intervenants_session.append(intervenant_dict)
+        request.session['intervenants'] = intervenants_session
+
+        return JsonResponse({'success': True, 'message': "Intervenant ajouté avec succès."}, status=200)
+
+    except Exception as e:
+        print(f"Erreur lors de l'ajout de l'intervenant : {e}")
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 
 @csrf_exempt

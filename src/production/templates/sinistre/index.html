@@ -176,7 +176,7 @@
                     <div class="form-group row">
                         <label class="col-sm-6 col-form-label">Risque</label>
                         <div class="col-sm-6">
-                        <span class="form-control">{{aliment_police_sinistre.risque|default_if_none:""}}</span>
+                        <span class="form-control" title="{{aliment_police_sinistre.risque|default_if_none:''}}">{{aliment_police_sinistre.risque|default_if_none:""|slice:":36"}}</span>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -203,86 +203,6 @@
                 </div>
             </div>
             <hr>
-            <h6 class="o-primary d-none">LA PRIME</h6>
-             <hr class="d-none">
-            <div class="row mb-3 d-none">
-                <div class="col-md-6">
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">Prime HT</label>
-                        <div class="col-sm-6">
-                        <span class="form-control money_field">{{dernier_historique.prime_ht}}</span>
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">Taxe</label>
-                        <div class="col-sm-6">
-                        <span class="form-control money_field">{{dernier_historique.taxe}}</span>
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">Coût police cie</label>
-                        <div class="col-sm-6">
-                        <span class="form-control money_field">{{dernier_historique.cout_police_compagnie}}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="vl"></div>
-                <div class="col-md-5">
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">Coût police courtier</label>
-                        <div class="col-sm-6">
-                        <span class="form-control money_field">{{dernier_historique.cout_police_courtier}}</span>
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">Autres taxes</label>
-                        <div class="col-sm-6">
-                        <span class="form-control money_field">{{dernier_historique.autres_taxes}}</span>
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">Prime TTC</label>
-                        <div class="col-sm-6">
-                        <span class="form-control money_field"> {{dernier_historique.prime_ttc}}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-             <hr class="d-none">
-            <h6 class="o-primary d-none">COMMISSIONS</h6>
-             <hr class="d-none">
-            <div class="row mb-3 d-none">
-                <div class="col-md-6">
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">Taux Com Courtage</label>
-                        <div class="col-sm-6">
-                        <span class="form-control text-right">{{dernier_historique.taux_com_courtage|default_if_none:''}} %</span>
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">Participation Bénéf.</label>
-                        <div class="col-sm-6">
-                        <span class="form-control ">{{dernier_historique.participation}}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="vl"></div>
-                <div class="col-md-5">
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">Com de Courtage</label>
-                        <div class="col-sm-6">
-                        <span class="form-control money_field">{{dernier_historique.commission_courtage}}</span>
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-sm-6 col-form-label">Taux Participation</label>
-                        <div class="col-sm-6">
-                        <span class="form-control text-right">{{dernier_historique.taux_participation|default_if_none:''}} %</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <hr class="d-none">
             <h6 class="o-primary">GARANTIES MISES EN CAUSE</h6>
             <hr>
             <div class="row mb-3">

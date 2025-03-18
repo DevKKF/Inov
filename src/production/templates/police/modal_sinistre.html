@@ -89,7 +89,8 @@
 													{% endfor %}
 												</select>
 											{% else %}
-											<input type="text" class="form-control" readonly>
+												<input type="text" class="form-control" readonly>
+												<input type="hidden" class="form-control" name="autre_risque_id" value="{{ aliment.autre_risque_id }}">
 											{% endif %}
 										</div>
 									</div>
@@ -121,7 +122,7 @@
 											{% if police.produit.code == '10001' or police.produit.code == '10002' %}
 												<input type="text" class="form-control" name="risque" id="risque" readonly required>
 											{% else %}
-												<input type="text" class="form-control" name="risque" id="risque" value="{{ aliment.autre_risque.risque }}" required>
+												<input type="text" class="form-control" name="risque" id="risque" value="{{ aliment.autre_risque.libelle }}" required>
 											{% endif %}
 										</div>
 									</div>

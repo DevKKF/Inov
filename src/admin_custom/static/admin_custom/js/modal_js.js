@@ -105,11 +105,7 @@ $(document).ready(function () {
 
     // Déclencher manuellement l'événement 'change' au chargement de la page
     $('#motif').trigger('change');
-});
 
-
-//TODO Traitement des importations / enregistrements des aliments
-$(document).ready(function () {
     $("#importation_aliment_modification").on("click", function () {
         const inputFichier = $("#fichier_aliment_modification");
         const fichier = inputFichier.prop("files")[0];
@@ -320,11 +316,7 @@ $(document).ready(function () {
     }
 
     var csrftoken = getCookie('csrftoken');
-});
 
-
-//TODO affichage du tableau des aliments
-$(document).ready(function () {
     function ajouterAlimentsDansTableau(data) {
         const tbody = $("#table_liste_aliment_modification tbody");
         tbody.empty();
@@ -962,10 +954,3 @@ $(document).ready(function () {
         loadProduits(branche_id);
     });
 });
-
-
-//TODO SINISTRE VALIDATION
-$(document).ready(function () {
-
-});
-

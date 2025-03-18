@@ -4669,7 +4669,111 @@ $(document).ready(function () {
     //fin ajout d'un avenant sur une police
 
 
+    //ajout d'un avenant sur le sinistre
+    $("#btn_save_avenant_sinistre").on('click', function () {
 
+        let formulaire = $('#form_add_avenant_sinistre');
+        let href = formulaire.attr('action');
+        let href_sinistre = $(this).attr('data-href_sinistre');
+        let mouvement = $('#mouvement_sinistre').val();
+
+        console.log('href_sinistre', href_sinistre);
+
+        if (formulaire.valid()) {
+
+            $.ajax({
+                type: 'post',
+                url: href,
+                data: formulaire.serialize(),
+                success: function (response) {
+
+                    if (response.statut == 1) {
+
+                        //Vider le formulaire
+                        resetFields('#' + formulaire.attr('id'));
+                        console.log(mouvement);
+                        console.log(typeof(mouvement));
+                        if(mouvement === '19' || mouvement === '20'){
+                            helper_modification_sinistre(href_sinistre)
+                        }else{
+                            notifySuccess(response.message, function () {
+                                location.reload();
+                            });
+                        }
+
+                    } else {
+
+                        let errors = JSON.parse(JSON.stringify(response.errors));
+                        let errors_list_to_display = '';
+                        for (field in errors) {
+                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                        }
+
+                        $('#modal-avenant_sinistre .alert .message').html(errors_list_to_display);
+
+                        $('#modal-avenant_sinistre .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                            $(this).slideUp(500);
+                        }).removeClass('alert-success').addClass('alert-warning');
+
+                    }
+
+                },
+                error: function (request, status, error) {
+
+                    notifyWarning("Erreur lors de l'enregistrement");
+                }
+
+            });
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner tous les champs obligatoires');
+        }
+
+    });
+
+
+    //Changement de mouvement, charger les motifs liés
+    $('#mouvement_sinistre').on('change', function () {
+
+        let mouvement_id = $(this).val();
+        $('#motif').html('<option value="">---------------------------</option>');
+
+        $.ajax({
+            type: 'get',
+            url: '/production/mouvement/' + mouvement_id + '/motifs',
+            success: function (motifs) {
+
+                $('#motif').html('').append('<option value="">Sélectionnez un motif</option>');
+
+                motifs.forEach(function (motif) {
+                    $('#motif').append('<option value="' + motif.pk + '">' + motif.fields.libelle + '</option>');
+                });
+
+            },
+            error: function () { }
+        });
+
+        //
+        if (mouvement_id == 21) {
+            $('#box_date_cloture_sinistre').show();
+            $('#date_cloture_sinistre').attr('required', 'true');
+        } else {
+            $('#box_date_cloture_sinistre').hide();
+            $('#date_cloture_sinistre').removeAttr('required');
+        }
+
+    });
 
     //fin ajout d'un avenant sur un sinistre
 
@@ -6153,6 +6257,53 @@ $(document).ready(function () {
     //fin modification de police
 
     //TODO:modification de sinistre
+    // Fonction pour charger les intervenants
+    function chargerIntervenants(sinistreId) {
+        $.ajax({
+            url: '/production/get_sinistre_intervenants_session/',
+            type: 'GET',
+            data: { sinistre_id: sinistreId },
+            success: function (response) {
+                if (response.success) {
+                    // Traiter les données des intervenants ici
+                    console.log("Intervenants récupérés :", response.data);
+                    // Mettre à jour le tableau des intervenants dans le modal
+                    mettreAJourTableauIntervenants(response.data);
+                } else {
+                    console.error(response.message);
+                }
+            },
+            error: function (xhr) {
+                console.error("Une erreur est survenue lors de la récupération des intervenants.");
+            }
+        });
+    }
+
+    // Fonction pour mettre à jour le tableau des intervenants dans le modal
+    function mettreAJourTableauIntervenants(intervenants) {
+    const intervenantTableBody = $('#modal-modification_sinistre #table_intervenant_sinistre tbody');
+    intervenantTableBody.empty();
+
+    intervenants.forEach((intervenant, index) => {
+        const row = $(`
+            <tr data-id="${intervenant.id}">
+                <td><button class="btn btn-danger btn-sm btn-delete-intervenant" data-id="${intervenant.id}"><i class="fa fa-trash-o"></i></button></td>
+                <td>${intervenant.nom || ''}</td>
+                <td>${intervenant.prenoms || ''}</td>
+                <td>${intervenant.typeintervenant || ''}</td> // Supprimer __libelle
+                <td>${intervenant.portable || ''}</td>
+                <td>${intervenant.email || ''}</td>
+                <td>${intervenant.code_postal || ''}</td>
+                <td>${intervenant.ville || ''}</td>
+            </tr>
+        `);
+        if (index === 0) {
+            row.find('.btn-delete-intervenant').prop('disabled', true);
+        }
+        intervenantTableBody.append(row);
+    });
+}
+
     // Créer une function
     function helper_modification_sinistre(href, modal_title, model_name) {
         $('#olea_std_dialog_box').load(href, function () {
@@ -6167,9 +6318,20 @@ $(document).ready(function () {
             $('#modal-modification_sinistre').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
 
             //
-            $('#modal-modification_sinistre').modal();
+            $('#modal-modification_sinistre').modal('show'); // Afficher le modal de modification
 
-            $('#option_calcul_prime_modification').change();
+            // Ajustement des z-index
+            $('#modal-avenant_sinistre').css('z-index', '1040'); // Assurez-vous que c'est inférieur à 1050
+            $('#modal-modification_sinistre').css('z-index', '1050');
+
+            // Gestionnaire d'événement pour la fermeture du modal de modification
+            $('#modal-modification_sinistre').on('hidden.bs.modal', function () {
+                $('#modal-avenant_sinistre').css('z-index', ''); // Réinitialiser le z-index du modal d'avenant
+            });
+
+            // Récupération des intervenants dès l'ouverture du modal
+            const sinistreId = $('#modal-modification_sinistre #sinistre_id').val();
+            chargerIntervenants(sinistreId);
 
             //gestion du clique sur valider les modifications
             $("#btn_save_modification_sinistre").on('click', function () {
@@ -6305,8 +6467,6 @@ $(document).ready(function () {
 
         });
     }
-
-    //fin modification du sinistre
 
     $("#modal-police #compagnie, #modal-police #produit").on('change', function () {
 
@@ -26052,6 +26212,151 @@ $(document).ready(function () {
             }
         });
     }
+
+
+
+    //TODO MODIFICATION SINISTRE DEBUT
+
+        function chargerIntervenants() {
+            const sinistreId = $('#sinistre_id').data('sinistre-id');
+            const intervenantTableBody = $('#table_intervenant_sinistre tbody'); // Récupération de l'élément tbody
+            $.ajax({
+                url: '/production/get_sinistre_intervenants_session/',
+                type: 'GET',
+                data: { sinistre_id: sinistreId },
+                success: function (response) {
+                    if (response.success) {
+                        intervenantTableBody.empty();
+                        response.data.forEach((intervenant, index) => {
+                            const row = $(`
+                                <tr data-id="${intervenant.id}">
+                                    <td><button class="btn btn-danger btn-sm btn-delete-intervenant" data-id="${intervenant.id}"><i class="fa fa-trash-o"></i></button></td>
+                                    <td>${intervenant.nom || ''}</td>
+                                    <td>${intervenant.prenoms || ''}</td>
+                                    <td>${intervenant.typeintervenant || ''}</td>
+                                    <td>${intervenant.portable || ''}</td>
+                                    <td>${intervenant.email || ''}</td>
+                                    <td>${intervenant.code_postal || ''}</td>
+                                    <td>${intervenant.ville || ''}</td>
+                                </tr>
+                            `);
+                            if (index === 0) {
+                                row.find('.btn-delete-intervenant').prop('disabled', true);
+                            }
+                            intervenantTableBody.append(row);
+                        });
+                    } else {
+                        console.error(response.message);
+                    }
+                },
+                error: function (xhr) {
+                    console.error("Une erreur est survenue lors de la récupération des intervenants.");
+                }
+            });
+        }
+
+        // Appel initial pour charger les intervenants
+        chargerIntervenants();
+
+        // Gestionnaire d'événement pour la suppression d'un intervenant
+        $(document).off('click', '.btn-delete-intervenant').on('click', '.btn-delete-intervenant', function () {
+            const intervenantId = $(this).data('id');
+            const sinistreId = $('#sinistre_id').data('sinistre-id');
+            console.log("ID de l'intervenant à supprimer:", intervenantId);
+            let n = noty({
+                text: 'Voulez-vous supprimer cet intervenant ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary',
+                        text: 'Confirmer',
+                        onClick: function ($noty) {
+                            $.ajax({
+                                url: '/production/delete_intervenant_session/',
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ intervenant_id: intervenantId, sinistre_id: sinistreId }),
+                                success: function (response) {
+                                    if (response.success) {
+                                        chargerIntervenants();
+                                    } else {
+                                        console.error(response.message);
+                                    }
+                                },
+                                error: function (xhr) {
+                                    console.error("Une erreur est survenue lors de la suppression de l'intervenant.");
+                                }
+                            });
+                            $noty.close();
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger',
+                        text: 'Annuler',
+                        onClick: function ($noty) {
+                            $noty.close();
+                        }
+                    }
+                ]
+            });
+        });
+
+        // Gestionnaire d'événement pour l'ajout/modification d'un intervenant
+        $('#btn_save_sinistre_intervenant_modification').off('click').on('click', function () {
+    const sinistreId = $('#sinistre_id').data('sinistre-id');
+
+    $('.intervenant_champ_obligatoire').removeClass('is-invalid is-valid');
+    $('#intervenant-modal-error, #intervenant-modal-warning, #intervenant-modal-success').text('').hide();
+
+    let valide = true;
+    $('.intervenant_champ_obligatoire').each(function () {
+        let value = $(this).val().trim();
+        if (!value) {
+            $(this).addClass('is-invalid');
+            valide = false;
+        } else {
+            $(this).removeClass('is-invalid').addClass('is-valid');
+        }
+    });
+
+    if (!valide) {
+        $('#intervenant-modal-error').text('Veuillez remplir tous les champs obligatoires.').show();
+        return;
+    }
+
+    const formData = new FormData($('#form_add_sinistre_intervenant_modification')[0]);
+    formData.append('sinistre_id', sinistreId);
+
+    $.ajax({
+        url: '/production/modif_add_intervenant_session/',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (response) {
+            if (response.success) {
+                $("#intervenant-modal-success").text(response.message).show();
+                chargerIntervenants();
+                setTimeout(() => {
+                    $("#form_add_sinistre_intervenant_modification").trigger("reset");
+                    $('.intervenant_champ_obligatoire').removeClass('is-valid is-invalid');
+                    $("#intervenant-modal-success").fadeOut();
+                }, 1000);
+            } else {
+                $("#intervenant-modal-warning").text(response.message).show().delay(5000).fadeOut();
+            }
+        },
+        error: function (xhr) {
+            const response = xhr.responseJSON;
+            $("#intervenant-modal-error").text(response?.message || "Une erreur est survenue.").show().delay(5000).fadeOut();
+        },
+    });
+});
+
+    //TODO MODIFICATION SINISTRE FIN
 
 });
 

@@ -147,8 +147,10 @@ urlpatterns = [
     path('police/information-vehicule/<int:vehicule_id>', views.information_vehicule, name='information_vehicule'),
 
     path('add_intervenant_session/', views.add_intervenant_session, name='add_intervenant_session'),
+    path('modif_add_intervenant_session/', views.modif_add_intervenant_session, name='modif_add_intervenant_session'),
     path('vider_intervenants_garanties/', views.vider_intervenants_garanties_session, name='vider_intervenants_garanties_session'),
     path('get_intervenants_session/', views.get_intervenants_session, name='get_intervenants_session'),
+    path('get_sinistre_intervenants_session/', views.get_sinistre_intervenants_session, name='get_sinistre_intervenants_session'),
     path('delete_intervenant_session/', views.delete_intervenant_session, name='delete_intervenant_session'),
 
     path('recuperer_garantie_circonstance/', views.recuperer_garantie_circonstance, name='recuperer_garantie_circonstance'),
