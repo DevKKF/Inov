@@ -484,13 +484,3 @@ $(document).on('click', '.btn_supprimer_postedommage', function () {
 
 
 
-
-
-
-
-
-
-
-
-
-

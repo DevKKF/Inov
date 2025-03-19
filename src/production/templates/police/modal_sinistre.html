@@ -103,7 +103,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Date ouverture")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_ouverture" id="date_ouverture" autocomplete="off" value="{{ today|date:'Y-m-d' }}" required>
+											<input type="date" class="form-control" name="date_ouverture" id="date_ouverture" autocomplete="off" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" required>
 										</div>
 									</div>
 									<div class="form-group row">

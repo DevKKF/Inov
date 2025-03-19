@@ -150,9 +150,9 @@ urlpatterns = [
     path('modif_add_intervenant_session/', views.modif_add_intervenant_session, name='modif_add_intervenant_session'),
     path('vider_intervenants_garanties/', views.vider_intervenants_garanties_session, name='vider_intervenants_garanties_session'),
     path('get_intervenants_session/', views.get_intervenants_session, name='get_intervenants_session'),
-    path('get_sinistre_intervenants_session/', views.get_sinistre_intervenants_session, name='get_sinistre_intervenants_session'),
     path('delete_intervenant_session/', views.delete_intervenant_session, name='delete_intervenant_session'),
 
+    path('charger_garanties_circonstance_session/', views.charger_garanties_circonstance_session, name='charger_garanties_circonstance_session'),
     path('recuperer_garantie_circonstance/', views.recuperer_garantie_circonstance, name='recuperer_garantie_circonstance'),
     path('vider_garanties_sinistre/', views.vider_garanties_sinistre, name='vider_garanties_sinistre'),
 

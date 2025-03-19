@@ -4677,8 +4677,6 @@ $(document).ready(function () {
         let href_sinistre = $(this).attr('data-href_sinistre');
         let mouvement = $('#mouvement_sinistre').val();
 
-        console.log('href_sinistre', href_sinistre);
-
         if (formulaire.valid()) {
 
             $.ajax({
@@ -6257,53 +6255,6 @@ $(document).ready(function () {
     //fin modification de police
 
     //TODO:modification de sinistre
-    // Fonction pour charger les intervenants
-    function chargerIntervenants(sinistreId) {
-        $.ajax({
-            url: '/production/get_sinistre_intervenants_session/',
-            type: 'GET',
-            data: { sinistre_id: sinistreId },
-            success: function (response) {
-                if (response.success) {
-                    // Traiter les données des intervenants ici
-                    console.log("Intervenants récupérés :", response.data);
-                    // Mettre à jour le tableau des intervenants dans le modal
-                    mettreAJourTableauIntervenants(response.data);
-                } else {
-                    console.error(response.message);
-                }
-            },
-            error: function (xhr) {
-                console.error("Une erreur est survenue lors de la récupération des intervenants.");
-            }
-        });
-    }
-
-    // Fonction pour mettre à jour le tableau des intervenants dans le modal
-    function mettreAJourTableauIntervenants(intervenants) {
-    const intervenantTableBody = $('#modal-modification_sinistre #table_intervenant_sinistre tbody');
-    intervenantTableBody.empty();
-
-    intervenants.forEach((intervenant, index) => {
-        const row = $(`
-            <tr data-id="${intervenant.id}">
-                <td><button class="btn btn-danger btn-sm btn-delete-intervenant" data-id="${intervenant.id}"><i class="fa fa-trash-o"></i></button></td>
-                <td>${intervenant.nom || ''}</td>
-                <td>${intervenant.prenoms || ''}</td>
-                <td>${intervenant.typeintervenant || ''}</td> // Supprimer __libelle
-                <td>${intervenant.portable || ''}</td>
-                <td>${intervenant.email || ''}</td>
-                <td>${intervenant.code_postal || ''}</td>
-                <td>${intervenant.ville || ''}</td>
-            </tr>
-        `);
-        if (index === 0) {
-            row.find('.btn-delete-intervenant').prop('disabled', true);
-        }
-        intervenantTableBody.append(row);
-    });
-}
-
     // Créer une function
     function helper_modification_sinistre(href, modal_title, model_name) {
         $('#olea_std_dialog_box').load(href, function () {
@@ -6317,21 +6268,17 @@ $(document).ready(function () {
             $('#modal-modification_sinistre').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
             $('#modal-modification_sinistre').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
 
-            //
-            $('#modal-modification_sinistre').modal('show'); // Afficher le modal de modification
+            //Ouverture du modal
+            $('#modal-modification_sinistre').modal('show');
 
             // Ajustement des z-index
-            $('#modal-avenant_sinistre').css('z-index', '1040'); // Assurez-vous que c'est inférieur à 1050
+            $('#modal-avenant_sinistre').css('z-index', '1040');
             $('#modal-modification_sinistre').css('z-index', '1050');
 
             // Gestionnaire d'événement pour la fermeture du modal de modification
             $('#modal-modification_sinistre').on('hidden.bs.modal', function () {
-                $('#modal-avenant_sinistre').css('z-index', ''); // Réinitialiser le z-index du modal d'avenant
+                $('#modal-avenant_sinistre').css('z-index', '');
             });
-
-            // Récupération des intervenants dès l'ouverture du modal
-            const sinistreId = $('#modal-modification_sinistre #sinistre_id').val();
-            chargerIntervenants(sinistreId);
 
             //gestion du clique sur valider les modifications
             $("#btn_save_modification_sinistre").on('click', function () {
@@ -6340,19 +6287,6 @@ $(document).ready(function () {
                 let href = formulaire.attr('action');
 
                 console.log(href);
-
-                let police_date_debut = $('#modal-modification_sinistre #date_debut_effet').val();
-                let police_date_fin = $('#modal-modification_sinistre #date_fin_effet').val();
-
-                console.log("Début :", police_date_debut, "Fin :", police_date_fin);
-
-                // Vérification des dates avant toute autre action
-                if (police_date_debut && police_date_fin) {
-                    if (new Date(police_date_debut) >= new Date(police_date_fin)) {
-                        notifyWarning('La date de fin de la police doit être strictement postérieure à la date de début.');
-                        return;
-                    }
-                }
 
                 $.validator.setDefaults({ ignore: [] });
 
@@ -10957,7 +10891,6 @@ $(document).ready(function () {
 
     });
 
-
     //soumission d'un sinistre via une police
     $(document).on('click', "#btn_save_police_sinistre", function () {
 
@@ -10967,6 +10900,20 @@ $(document).ready(function () {
         $.validator.setDefaults({ ignore: [] });
 
         let formData = new FormData();
+
+        let date_survenance = $('#modal-sinistre #date_survenance').val();
+        let date_declaration = $('#modal-sinistre #date_declaration').val();
+        let date_ouverture = $('#modal-sinistre #date_ouverture').val();
+
+        console.log("Survenance :", date_survenance, "Déclaration :", date_declaration, "Ouverture :", date_ouverture);
+
+        // Vérification des dates avant toute autre action
+        if (date_survenance && date_declaration) {
+            if (new Date(date_survenance) >= new Date(date_declaration)) {
+                notifyWarning('La date de survenance du sinistre doit être strictement postérieure à la date de déclaration.');
+                return;
+            }
+        }
 
         if (formulaire.valid()) {
 
@@ -23969,7 +23916,7 @@ $(document).ready(function () {
         });
     }
 
-    // Insertion ligne supplémentaire dans l'onglet GARANTIES/GARANTIES - lors de la modification
+    // Insertion ligne supplémentaire dans l'onglet GARANTIES/FORMULES - lors de la modification
     $(document).on("click", "#table_garanties_modification #btnAddLigneGarantie_modification", function () {
         let allValid = true;
         $('#table_garanties_modification tbody tr').each(function () {
@@ -24126,7 +24073,7 @@ function updateOptions() {
     });
 }
 
-// Insertion ligne supplémentaire dans l'onglet GARANTIES/GARANTIES - lors de la modification
+// Insertion ligne supplémentaire dans l'onglet GARANTIES/CIRCONSTANCES - lors de la modification
 $(document).on("click", "#table_garanties_modification #btnAddLigneGarantieCirconstance_modification", function () {
     let allValid = true;
     $('#table_garanties_modification tbody tr').each(function () {
@@ -25947,7 +25894,7 @@ $(document).ready(function () {
         });
     }
 
-    afficherGarantiesSession(); // Afficher les garanties au chargement de la page
+    afficherGarantiesSession();
 
     // Surveiller les changements des cases à cocher
     $(document).on('change', '.sinistre_garantie-checkbox', function () {
@@ -26216,145 +26163,6 @@ $(document).ready(function () {
 
 
     //TODO MODIFICATION SINISTRE DEBUT
-
-        function chargerIntervenants() {
-            const sinistreId = $('#sinistre_id').data('sinistre-id');
-            const intervenantTableBody = $('#table_intervenant_sinistre tbody'); // Récupération de l'élément tbody
-            $.ajax({
-                url: '/production/get_sinistre_intervenants_session/',
-                type: 'GET',
-                data: { sinistre_id: sinistreId },
-                success: function (response) {
-                    if (response.success) {
-                        intervenantTableBody.empty();
-                        response.data.forEach((intervenant, index) => {
-                            const row = $(`
-                                <tr data-id="${intervenant.id}">
-                                    <td><button class="btn btn-danger btn-sm btn-delete-intervenant" data-id="${intervenant.id}"><i class="fa fa-trash-o"></i></button></td>
-                                    <td>${intervenant.nom || ''}</td>
-                                    <td>${intervenant.prenoms || ''}</td>
-                                    <td>${intervenant.typeintervenant || ''}</td>
-                                    <td>${intervenant.portable || ''}</td>
-                                    <td>${intervenant.email || ''}</td>
-                                    <td>${intervenant.code_postal || ''}</td>
-                                    <td>${intervenant.ville || ''}</td>
-                                </tr>
-                            `);
-                            if (index === 0) {
-                                row.find('.btn-delete-intervenant').prop('disabled', true);
-                            }
-                            intervenantTableBody.append(row);
-                        });
-                    } else {
-                        console.error(response.message);
-                    }
-                },
-                error: function (xhr) {
-                    console.error("Une erreur est survenue lors de la récupération des intervenants.");
-                }
-            });
-        }
-
-        // Appel initial pour charger les intervenants
-        chargerIntervenants();
-
-        // Gestionnaire d'événement pour la suppression d'un intervenant
-        $(document).off('click', '.btn-delete-intervenant').on('click', '.btn-delete-intervenant', function () {
-            const intervenantId = $(this).data('id');
-            const sinistreId = $('#sinistre_id').data('sinistre-id');
-            console.log("ID de l'intervenant à supprimer:", intervenantId);
-            let n = noty({
-                text: 'Voulez-vous supprimer cet intervenant ?',
-                type: 'warning',
-                dismissQueue: true,
-                layout: 'center',
-                theme: 'defaultTheme',
-                buttons: [
-                    {
-                        addClass: 'btn btn-primary',
-                        text: 'Confirmer',
-                        onClick: function ($noty) {
-                            $.ajax({
-                                url: '/production/delete_intervenant_session/',
-                                type: 'POST',
-                                contentType: 'application/json',
-                                data: JSON.stringify({ intervenant_id: intervenantId, sinistre_id: sinistreId }),
-                                success: function (response) {
-                                    if (response.success) {
-                                        chargerIntervenants();
-                                    } else {
-                                        console.error(response.message);
-                                    }
-                                },
-                                error: function (xhr) {
-                                    console.error("Une erreur est survenue lors de la suppression de l'intervenant.");
-                                }
-                            });
-                            $noty.close();
-                        }
-                    },
-                    {
-                        addClass: 'btn btn-danger',
-                        text: 'Annuler',
-                        onClick: function ($noty) {
-                            $noty.close();
-                        }
-                    }
-                ]
-            });
-        });
-
-        // Gestionnaire d'événement pour l'ajout/modification d'un intervenant
-        $('#btn_save_sinistre_intervenant_modification').off('click').on('click', function () {
-    const sinistreId = $('#sinistre_id').data('sinistre-id');
-
-    $('.intervenant_champ_obligatoire').removeClass('is-invalid is-valid');
-    $('#intervenant-modal-error, #intervenant-modal-warning, #intervenant-modal-success').text('').hide();
-
-    let valide = true;
-    $('.intervenant_champ_obligatoire').each(function () {
-        let value = $(this).val().trim();
-        if (!value) {
-            $(this).addClass('is-invalid');
-            valide = false;
-        } else {
-            $(this).removeClass('is-invalid').addClass('is-valid');
-        }
-    });
-
-    if (!valide) {
-        $('#intervenant-modal-error').text('Veuillez remplir tous les champs obligatoires.').show();
-        return;
-    }
-
-    const formData = new FormData($('#form_add_sinistre_intervenant_modification')[0]);
-    formData.append('sinistre_id', sinistreId);
-
-    $.ajax({
-        url: '/production/modif_add_intervenant_session/',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function (response) {
-            if (response.success) {
-                $("#intervenant-modal-success").text(response.message).show();
-                chargerIntervenants();
-                setTimeout(() => {
-                    $("#form_add_sinistre_intervenant_modification").trigger("reset");
-                    $('.intervenant_champ_obligatoire').removeClass('is-valid is-invalid');
-                    $("#intervenant-modal-success").fadeOut();
-                }, 1000);
-            } else {
-                $("#intervenant-modal-warning").text(response.message).show().delay(5000).fadeOut();
-            }
-        },
-        error: function (xhr) {
-            const response = xhr.responseJSON;
-            $("#intervenant-modal-error").text(response?.message || "Une erreur est survenue.").show().delay(5000).fadeOut();
-        },
-    });
-});
 
     //TODO MODIFICATION SINISTRE FIN
 

@@ -25,6 +25,7 @@ class Sinistre(models.Model):
     police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
     type_sinistre = models.ForeignKey(TypeSinistre, null=True, on_delete=models.RESTRICT)
     responsabilite = models.ForeignKey(Responsabilite, null=True, on_delete=models.RESTRICT)
+    circonstance = models.ForeignKey(Circonstance, null=True, on_delete=models.RESTRICT)
     created_by = models.ForeignKey(User, related_name="created_by_sinistre", null=True, on_delete=models.RESTRICT)
     updated_by = models.ForeignKey(User, related_name="updated_by_sinistre", null=True, on_delete=models.RESTRICT)
 
@@ -117,6 +118,7 @@ class HistoriqueSinistre(models.Model):
     police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
     type_sinistre = models.ForeignKey(TypeSinistre, null=True, on_delete=models.RESTRICT)
     responsabilite = models.ForeignKey(Responsabilite, null=True, on_delete=models.RESTRICT)
+    circonstance = models.ForeignKey(Circonstance, null=True, on_delete=models.RESTRICT)
     created_by = models.ForeignKey(User, related_name="histo_created_by_sinistre", null=True, on_delete=models.RESTRICT)
     updated_by = models.ForeignKey(User, related_name="histo_updated_by_sinistre", null=True, on_delete=models.RESTRICT)
 
