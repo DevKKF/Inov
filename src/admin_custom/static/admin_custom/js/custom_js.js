@@ -25749,6 +25749,10 @@ $(document).ready(function () {
         });
     });
 
+
+
+
+
     //Vérification avant affichage du modal des garanties
     let circonstanceIdPrecedent = $('#circonstance_id').val();
 
@@ -26159,12 +26163,6 @@ $(document).ready(function () {
             }
         });
     }
-
-
-
-    //TODO MODIFICATION SINISTRE DEBUT
-
-    //TODO MODIFICATION SINISTRE FIN
 
 });
 

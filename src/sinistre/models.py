@@ -205,6 +205,21 @@ class AlimentPoliceSinistre(models.Model):
 
 
 #
+class HistoriqueAlimentPoliceSinistre(models.Model):
+    historique_sinistre = models.ForeignKey(HistoriqueSinistre, null=True, on_delete=models.RESTRICT)
+    police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
+    sinistre = models.ForeignKey(Sinistre, null=True, on_delete=models.RESTRICT)
+    aliment_police = models.ForeignKey(AlimentPolice, null=True, on_delete=models.RESTRICT)
+    risque = models.TextField(blank=True, null=True)
+
+
+    class Meta:
+        db_table = 'historique_aliment_police_sinistre'
+        verbose_name = 'Historique sinistre aliment police'
+        verbose_name_plural = 'Historique sinistre aliment police'
+
+
+#
 class Intervenant(models.Model):
     type_intervenant = models.ForeignKey(TypeIntervenant, null=True, on_delete=models.RESTRICT)
     pays = models.ForeignKey(Pays, null=True, on_delete=models.RESTRICT)
@@ -313,6 +328,28 @@ class Provision(models.Model):
         db_table = 'provisions'
         verbose_name = 'Provisions'
         verbose_name_plural = 'Provisions'
+
+
+#
+class HistoriqueProvision(models.Model):
+    historique_sinistre = models.ForeignKey(HistoriqueSinistre, related_name='provisions', null=True, on_delete=models.RESTRICT)
+    provision = models.ForeignKey(Provision, null=True, on_delete=models.RESTRICT)
+    sinistre = models.ForeignKey(Sinistre, null=True, on_delete=models.RESTRICT)
+    garantie = models.ForeignKey(Garantie, null=True, on_delete=models.RESTRICT)
+    poste_dommage = models.ForeignKey(PosteDommage, null=True, on_delete=models.RESTRICT)
+
+    estimation = models.BigIntegerField(null=True)
+    deja_regle = models.BigIntegerField(null=True)
+    provision = models.BigIntegerField(null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        db_table = 'historique_provisions'
+        verbose_name = 'Historique provisions'
+        verbose_name_plural = 'Historique provisions'
 
 
 class ReglementSinistre(models.Model):

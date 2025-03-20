@@ -2,7 +2,7 @@
 <div  class="modal fade modal_interne"  id="modal-sinistre_intervenant_modification" data-backdrop="static" data-keyboard="false" aria-hidden="true" style="display: none">
 	<div class="modal-dialog modal-xl" style="width:;">
 		<div class="modal-content">
-			<form id="form_add_sinistre_intervenant_modification" action="" method="post" enctype="multipart/form-data">
+			<form id="form_add_sinistre_intervenant" action="" method="post" enctype="multipart/form-data">
 				{% csrf_token %}
 				<input type="hidden" name="police_id" value="{{ police.id }}">
                 <div class="modal-header">

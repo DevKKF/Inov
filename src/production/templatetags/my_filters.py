@@ -20,7 +20,7 @@ register = template.Library()
 def money_field(montant):
     if montant == "" or montant is None: montant = 0
     money = intcomma(int(montant))
-    money = money.replace(',', ' ')# remplacer la virgule quand le systeme est anglais
+    money = money.replace(',', ' ')
     return money
 
 
@@ -250,4 +250,9 @@ def transformer_statut(statut):
         return slugify(statut)
     else:
         return ""  # Retourne une chaîne vide si le statut est None
+
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
 

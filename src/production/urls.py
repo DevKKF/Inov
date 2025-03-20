@@ -147,19 +147,27 @@ urlpatterns = [
     path('police/information-vehicule/<int:vehicule_id>', views.information_vehicule, name='information_vehicule'),
 
     path('add_intervenant_session/', views.add_intervenant_session, name='add_intervenant_session'),
-    path('modif_add_intervenant_session/', views.modif_add_intervenant_session, name='modif_add_intervenant_session'),
     path('vider_intervenants_garanties/', views.vider_intervenants_garanties_session, name='vider_intervenants_garanties_session'),
     path('get_intervenants_session/', views.get_intervenants_session, name='get_intervenants_session'),
+    path('get_intervenants_session_sinistre/', views.get_intervenants_session_sinistre, name='get_intervenants_session_sinistre'),
     path('delete_intervenant_session/', views.delete_intervenant_session, name='delete_intervenant_session'),
+    path('delete_intervenant_session_sinistre/', views.delete_intervenant_session_sinistre, name='delete_intervenant_session_sinistre'),
 
-    path('charger_garanties_circonstance_session/', views.charger_garanties_circonstance_session, name='charger_garanties_circonstance_session'),
+    path('add_intervenant_session_sinistre/', views.add_intervenant_session_sinistre, name='add_intervenant_session_sinistre'),
+
+    path('charger_garanties_circonstance_session_sinistre/', views.charger_garanties_circonstance_session_sinistre, name='charger_garanties_circonstance_session_sinistre'),
     path('recuperer_garantie_circonstance/', views.recuperer_garantie_circonstance, name='recuperer_garantie_circonstance'),
+    path('recuperer_garantie_circonstance_sinistre/', views.recuperer_garantie_circonstance_sinistre, name='recuperer_garantie_circonstance_sinistre'),
     path('vider_garanties_sinistre/', views.vider_garanties_sinistre, name='vider_garanties_sinistre'),
 
     path("enregistrer_garanties_sinistre/", views.enregistrer_garanties_sinistre, name="enregistrer_garanties_sinistre"),
+    path("enregistrer_garanties_circonstance_sinistre/", views.enregistrer_garanties_circonstance_sinistre, name="enregistrer_garanties_circonstance_sinistre"),
     path("recuperer_garanties_sinistre/", views.recuperer_garanties_sinistre, name="recuperer_garanties_sinistre"),
     path('afficher_provision_sinistre/', views.afficher_provision_sinistre, name='afficher_provision_sinistre'),
+    path("recuperer_garanties_circonstance_sinistre/", views.recuperer_garanties_circonstance_sinistre, name="recuperer_garanties_circonstance_sinistre"),
+    path('afficher_provision_circonstance_sinistre/', views.afficher_provision_circonstance_sinistre, name='afficher_provision_circonstance_sinistre'),
     path('enregistrer_montant_garantie_sinistre/', views.enregistrer_montant_garantie_sinistre, name='enregistrer_montant_garantie_sinistre'),
+    path('enregistrer_montant_garantie_circonstance_sinistre/', views.enregistrer_montant_garantie_circonstance_sinistre, name='enregistrer_montant_garantie_circonstance_sinistre'),
     path('delete_garantie_session/', views.delete_garantie_session, name='delete_garantie_session'),
 
     path('police/<int:police_id>/courriers', CourrierView.as_view(), name='police_courrier'),

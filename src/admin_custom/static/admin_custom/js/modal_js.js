@@ -949,7 +949,7 @@ $(document).ready(function () {
 });
 
 
-//TODO action sur les mouvements du sinistres
+//TODO action sur les mouvements sur les sinistres
 $(document).ready(function () {
     function getCSRFToken() {
         let csrfToken = null;
@@ -1025,37 +1025,293 @@ $(document).ready(function () {
         });
     });
 
-
-
-
-
     // Gestion de l'ouverture du modal
     $('#modal-modification_sinistre').on('shown.bs.modal', function () {
-        let circonstance_id = $('#circonstance_id').val();
-        if (circonstance_id) {
-            console.log('circonstance id : ', circonstance_id);
+        let circonstanceId = $('#circonstance_id').val();
+        let sinistreId = $('#sinistre_id').val();
+
+        /**** Bloc du traitement des garanties et des provisions Début ****/
+
+        //Récupérer les garanties du sinistre et de la circonstance
+        if (circonstanceId !== '') {
+            $.ajax({
+                url: '/production/charger_garanties_circonstance_session_sinistre/',
+                type: 'POST',
+                headers: { "X-CSRFToken": getCSRFToken() },
+                contentType: "application/json",
+                data: JSON.stringify({
+                    circonstance_id: circonstanceId,
+                    sinistre_id: sinistreId
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        afficherGarantiesSessionSinistre();
+                    } else {
+                        console.error("Aucune garantie chargée.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Erreur lors du chargement initial des garanties :", error);
+                }
+            });
         }
-    });
 
-    //Vérification avant affichage du modal des garanties
-    let circonstanceIdPrecedent = $('#circonstance_id').val();
+        $('#btn_ajout_garantie').click(function(event) {
+            event.preventDefault();
+            chargerGarantiesSinistre();
+        });
 
-    $('#btn_ajout_garantie').click(function(event) {
-        event.preventDefault();
-        chargerGaranties();
-    });
+        $('#circonstance_id').change(function() {
+            viderGarantiesSessionSinistre();
+            circonstanceId = $(this).val();
+        });
 
-    $('#circonstance_id').change(function() {
-        viderGarantiesSession();
-        circonstanceIdPrecedent = $(this).val();
-    });
+        function chargerGarantiesSinistre() {
+            var circonstanceId = $('#circonstance_id').val();
 
-    function chargerGaranties() {
-        var circonstanceId = $('#circonstance_id').val();
+            if (circonstanceId === '') {
+                let n = noty({
+                    text: "Veuillez choisir une circonstance avant d'ajouter une garantie.",
+                    type: 'warning',
+                    dismissQueue: true,
+                    layout: 'center',
+                    theme: 'defaultTheme',
+                    buttons: [
+                        {
+                            addClass: 'btn btn-primary',
+                            text: 'Fermer',
+                            onClick: function ($noty) {
+                                $noty.close();
+                            }
+                        }
+                    ]
+                });
+            } else {
+                $("#circonstance_garantie_null").hide();
+                $.ajax({
+                    url: '/production/recuperer_garantie_circonstance_sinistre/',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        circonstance_id: circonstanceId,
+                        sinistre_id: sinistreId
+                    }),
+                    success: function (response) {
+                        if (response.status === 'no_garanties') {
+                            let n = noty({
+                                text: "Cette circonstance n'a aucune garantie affiliée.",
+                                type: 'warning',
+                                dismissQueue: true,
+                                layout: 'center',
+                                theme: 'defaultTheme',
+                                buttons: [
+                                    {
+                                        addClass: 'btn btn-primary',
+                                        text: 'Fermer',
+                                        onClick: function ($noty) {
+                                            $noty.close();
+                                        }
+                                    }
+                                ]
+                            });
+                        } else {
+                            $('#modal-sinistre_garantie').modal('show');
+                            $("#circonstance_garantie_existe").html(response);
+                            $("#circonstance_garantie_existe").show();
+                            $("#table_add_sinistre_garantie").html(response);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Une erreur est survenue lors de la récupération des garanties.");
+                    }
+                });
+            }
+        }
 
-        if (circonstanceId === '') {
+        function viderGarantiesSessionSinistre() {
+            $.ajax({
+                url: '/production/vider_garanties_sinistre/',
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        afficherGarantiesSessionSinistre();
+                    } else {
+                        console.error("Erreur lors du vidage des garanties en session.");
+                    }
+                },
+                error: function(xhr) {
+                    console.error("Erreur lors du vidage des garanties en session.");
+                }
+            });
+        }
+        
+        function afficherGarantiesSessionSinistre() {
+            $.ajax({
+                url: "/production/recuperer_garanties_circonstance_sinistre/",
+                type: "GET",
+                cache: false, // Désactiver le cache
+                success: function (response) {
+                    let table2 = $("#table_garantie_sinistre tbody");
+                    table2.empty();
+
+                    if (response.garanties && response.garanties.length > 0) {
+                        // Garanties présentes, cacher garantie_null
+                        $("#garantie_null").hide();
+
+                        $.ajax({
+                            url: "/production/afficher_provision_circonstance_sinistre/",
+                            type: "GET",
+                            data: {
+                                sinistre_id: sinistreId
+                            },
+                            success: function (response) {
+                                console.log(response);
+                                $("#garantie_existe").show();
+                                $("#garantie_existe").html(response);
+                                $("#table_provision_sinistre_container").html(response);
+                            },
+                            error: function (xhr, status, error) {
+                                console.error("Erreur lors du chargement du tableau des provisions :", error);
+                            }
+                        });
+
+                        response.garanties.forEach(function (garantie) {
+                            let row = `
+                                <tr data-id="${garantie.id}">
+                                    <td><span class="btn btn-danger btn-sm btn-delete-garantie" data-id="${garantie.id}"><i class="fa fa-trash-o"></i></span></td>
+                                    <td>${garantie.nom}</td>
+                                    <td class="text-center">${garantie.mouvement}</td>
+                                    <td class="text-center">${garantie.date}</td>
+                                </tr>
+                            `;
+                            table2.append(row);
+                        });
+
+                    } else {
+                        // Aucune garantie, afficher garantie_null et cacher garantie_existe
+                        $("#garantie_existe").hide();
+                        $("#garantie_null").show();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Erreur :", error);
+                }
+            });
+        }
+
+        afficherGarantiesSessionSinistre();
+
+        // Surveiller les changements des cases à cocher
+        $(document).on('change', '.sinistre_garantie_checkbox', function () {
+            // Récupérer la ligne parente (tr) de la case cochée/décochée
+            const parentRow = $(this).closest('tr');
+
+            // Trouver les champs franchise et capital associés
+            const SinistrefranchiseInput = parentRow.find('.sinistre_franchise_input');
+            const SinistrecapitalInput = parentRow.find('.sinistre_capital_input');
+            const SinistreprimenetInput = parentRow.find('.sinistre_prime_net_input');
+            const SinistreprimettcInput = parentRow.find('.sinistre_prime_ttc_input');
+
+            if ($(this).is(':checked')) {
+                // Activer les champs si la case est cochée
+                SinistrefranchiseInput.prop('disabled', false);
+                SinistrecapitalInput.prop('disabled', false);
+                SinistreprimenetInput.prop('disabled', false);
+                SinistreprimettcInput.prop('disabled', false);
+            } else {
+                // Désactiver et vider les champs si la case est décochée
+                SinistrefranchiseInput.prop('disabled', true).val('');
+                SinistrecapitalInput.prop('disabled', true).val('');
+                SinistreprimenetInput.prop('disabled', true).val('');
+                SinistreprimettcInput.prop('disabled', true).val('');
+            }
+        });
+
+        mettreAJourTableauSinistre();
+        
+        $("#btn_save_sinistre_garantie").on("click", function () {
+            let garanties = [];
+    
+            $("#table_add_sinistre_garantie tbody .sinistre_garantie_checkbox:checked").each(function () {
+                let row = $(this).closest("tr");
+                let garantieId = $(this).val();
+                let garantieNom = row.find("td:nth-child(2)").text();
+                let franchise = row.find(".sinistre_franchise_input").val();
+                let capital = row.find(".sinistre_capital_input").val();
+                let primeNet = row.find(".sinistre_prime_net_input").val();
+                let primeTTC = row.find(".sinistre_prime_ttc_input").val();
+    
+                garanties.push({
+                    id: garantieId,
+                    sinistre_id: sinistreId,
+                    nom: garantieNom,
+                    franchise: franchise,
+                    capital: capital,
+                    prime_net: primeNet,
+                    prime_ttc: primeTTC,
+                });
+            });
+    
+            enregistrerGarantiesSinistre(garanties);
+        });
+
+        function mettreAJourTableauSinistre() {
+            $.ajax({
+                url: "/production/recuperer_garanties_circonstance_sinistre/",
+                type: "GET",
+                data: {sinistre_id: sinistreId},
+                cache: false, // Désactiver le cache
+                success: function (response) {
+                    let table2 = $("#table_garantie_sinistre tbody");
+                    table2.empty();
+    
+                    if (response.garanties && response.garanties.length > 0) {
+                        // Garanties présentes, cacher garantie_null
+                        $("#garantie_null").hide();
+    
+                        $.ajax({
+                            url: "/production/afficher_provision_circonstance_sinistre/",
+                            type: "GET",
+                            data: {sinistre_id: sinistreId},
+                            success: function (response) {
+                                console.log(response);
+                                $("#garantie_existe").show();
+                                $("#garantie_existe").html(response);
+                                $("#table_provision_sinistre_container").html(response);
+                            },
+                            error: function (xhr, status, error) {
+                                console.error("Erreur lors du chargement du tableau des provisions :", error);
+                            }
+                        });
+    
+                        response.garanties.forEach(function (garantie) {
+                            let row = `
+                                <tr data-id="${garantie.id}">
+                                    <td><span class="btn btn-danger btn-sm btn-delete-garantie" data-id="${garantie.id}"><i class="fa fa-trash-o"></i></span></td>
+                                    <td>${garantie.nom}</td>
+                                    <td class="text-center">${garantie.mouvement}</td>
+                                    <td class="text-center">${garantie.date}</td>
+                                </tr>
+                            `;
+                            table2.append(row);
+                        });
+                    } else {
+                        // Aucune garantie, afficher garantie_null et cacher garantie_existe
+                        $("#garantie_existe").hide();
+                        $("#garantie_null").show();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Erreur :", error);
+                }
+            });
+        }
+
+        $(document).off('click', '.btn-delete-garantie').on('click', '.btn-delete-garantie', function () {
+            const GarantieId = $(this).data('id');
+            console.log("ID de la garantie à supprimer:", GarantieId);
             let n = noty({
-                text: "Veuillez choisir une circonstance avant d'ajouter une garantie.",
+                text: 'Voulez-vous supprimer cette garantie ?',
                 type: 'warning',
                 dismissQueue: true,
                 layout: 'center',
@@ -1063,385 +1319,211 @@ $(document).ready(function () {
                 buttons: [
                     {
                         addClass: 'btn btn-primary',
-                        text: 'Fermer',
+                        text: 'Confirmer',
+                        onClick: function ($noty) {
+                            $.ajax({
+                                url: '/production/delete_garantie_session/',
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ garantie_id: GarantieId}),
+                                success: function (response) {
+                                    if (response.success) {
+                                        mettreAJourTableauSinistre();
+                                    } else {
+                                        console.error(response.message);
+                                    }
+                                },
+                                error: function (xhr) {
+                                    console.error("Une erreur est survenue lors de la suppression de la garantie.");
+                                }
+                            });
+                            $noty.close();
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger',
+                        text: 'Annuler',
                         onClick: function ($noty) {
                             $noty.close();
                         }
                     }
                 ]
             });
-        } else {
-            $("#circonstance_garantie_null").hide();
+        });
+          
+        function enregistrerGarantiesSinistre(garanties) {
             $.ajax({
-                url: '/production/recuperer_garantie_circonstance/',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ circonstance_id: circonstanceId }),
+                url: "/production/enregistrer_garanties_circonstance_sinistre/",
+                type: "POST",
+                data: {sinistre_id: sinistreId},
+                headers: { "X-CSRFToken": getCSRFToken() },
+                contentType: "application/json",
+                data: JSON.stringify({ garanties: garanties }),
                 success: function (response) {
-                    if (response.status === 'no_garanties') {
-                        let n = noty({
-                            text: "Cette circonstance n'a aucune garantie affiliée.",
-                            type: 'warning',
-                            dismissQueue: true,
-                            layout: 'center',
-                            theme: 'defaultTheme',
-                            buttons: [
-                                {
-                                    addClass: 'btn btn-primary',
-                                    text: 'Fermer',
-                                    onClick: function ($noty) {
-                                        $noty.close();
-                                    }
-                                }
-                            ]
+                    if (response.success) {
+                        mettreAJourTableauSinistre();
+                        resetTableFormSinistre();
+                    } else {
+                        alert("Erreur lors de l'enregistrement.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Erreur :", error);
+                }
+            });
+        }
+
+        function resetTableFormSinistre() {
+            $("#table_add_sinistre_garantie tbody tr").each(function () {
+                $(this).find(".sinistre_garantie_checkbox").prop("checked", false);
+                $(this).find("input[type=text]").val("").prop("disabled", true);
+            });
+        }
+
+        /**** Bloc du traitement des garanties et des provisions Fin ****/
+
+        /**** Bloc du traitement des intervenants Début ****/
+
+        const intervenantSinistreTableBody = $('#table_intervenant_sinistre tbody');
+
+        function chargerIntervenantsSinistre() {
+            $.ajax({
+                url: '/production/get_intervenants_session_sinistre/',
+                type: 'GET',
+                data: { sinistre_id: sinistreId },
+                success: function (response) {
+                    let table2 = $("#table_intervenant_sinistre tbody");
+                    table2.empty();
+
+                    if (response.intervenants && response.intervenants.length > 0) {
+                        console.log('Les intervenants seront visible ici');
+                        response.intervenants.forEach(function (intervenant) {
+                            let row = `
+                                <tr data-id="${intervenant.id}">
+                                    <td><span class="btn btn-danger btn-sm btn-delete-intervenant" data-id="${intervenant.id}"><i class="fa fa-trash-o"></i></span></td>
+                                    <td>${intervenant.nom || ''}</td>
+                                    <td>${intervenant.prenoms || ''}</td>
+                                    <td>${intervenant.typeintervenant || ''}</td>
+                                    <td>${intervenant.portable || ''}</td>
+                                    <td>${intervenant.email || ''}</td>
+                                    <td>${intervenant.code_postal || ''}</td>
+                                    <td>${intervenant.ville || ''}</td>
+                                </tr>
+                            `;
+                            table2.append(row);
                         });
                     } else {
-                        $('#modal-sinistre_garantie').modal('show');
-                        $("#circonstance_garantie_existe").html(response);
-                        $("#circonstance_garantie_existe").show();
-                        $("#table_add_sinistre_garantie").html(response);
+                        // Rien à signaler
                     }
                 },
                 error: function (xhr) {
-                    console.error("Une erreur est survenue lors de la récupération des garanties.");
+                    console.error("Une erreur est survenue lors de la récupération des intervenants.");
                 }
             });
         }
-    }
 
-    function viderGarantiesSession() {
-        $.ajax({
-            url: '/production/vider_garanties_sinistre/',
-            type: 'POST',
-            success: function(response) {
-                if (response.success) {
-                    afficherGarantiesSession();
-                } else {
-                    console.error("Erreur lors du vidage des garanties en session.");
-                }
-            },
-            error: function(xhr) {
-                console.error("Erreur lors du vidage des garanties en session.");
-            }
-        });
-    }
+        chargerIntervenantsSinistre();
 
-    function afficherGarantiesSession() {
-        $.ajax({
-            url: "/production/recuperer_garanties_sinistre/",
-            type: "GET",
-            cache: false, // Désactiver le cache
-            success: function (response) {
-                let table2 = $("#table_garantie_sinistre tbody");
-                table2.empty();
+        $(document).off('click', '.btn-delete-intervenant').on('click', '.btn-delete-intervenant', function () {
+            const intervenantId = $(this).data('id');
 
-                if (response.garanties && response.garanties.length > 0) {
-                    // Garanties présentes, cacher garantie_null
-                    $("#garantie_null").hide();
-
-                    $.ajax({
-                        url: "/production/afficher_provision_sinistre/",
-                        type: "GET",
-                        success: function (response) {
-                            console.log(response);
-                            $("#garantie_existe").show();
-                            $("#garantie_existe").html(response);
-                            $("#table_provision_sinistre_container").html(response);
-                        },
-                        error: function (xhr, status, error) {
-                            console.error("Erreur lors du chargement du tableau des provisions :", error);
-                        }
-                    });
-
-                    response.garanties.forEach(function (garantie) {
-                        let row = `
-                            <tr id="row_${garantie.id}" data-id="${garantie.id}">
-                                <td>
-                                    <button class="btn btn-danger btn-sm btn-supprimer-garantie" data-id="${garantie.id}">
-                                        <i class="fa fa-trash-o"></i>
-                                    </button>
-                                </td>
-                                <td>${garantie.nom}</td>
-                                <td class="text-center">${garantie.mouvement}</td>
-                                <td class="text-center">${garantie.date}</td>
-                            </tr>
-                        `;
-                        table2.append(row);
-                    });
-                } else {
-                    // Aucune garantie, afficher garantie_null et cacher garantie_existe
-                    $("#garantie_existe").hide();
-                    $("#garantie_null").show();
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Erreur :", error);
-            }
-        });
-    }
-
-    afficherGarantiesSession();
-
-    // Surveiller les changements des cases à cocher
-    $(document).on('change', '.sinistre_garantie-checkbox', function () {
-        // Récupérer la ligne parente (tr) de la case cochée/décochée
-        const parentRow = $(this).closest('tr');
-
-        // Trouver les champs franchise et capital associés
-        const SinistrefranchiseInput = parentRow.find('.sinistre_franchise-input');
-        const SinistrecapitalInput = parentRow.find('.sinistre_capital-input');
-        const SinistreprimenetInput = parentRow.find('.sinistre_prime_net-input');
-        const SinistreprimettcInput = parentRow.find('.sinistre_prime_ttc-input');
-
-        if ($(this).is(':checked')) {
-            // Activer les champs si la case est cochée
-            SinistrefranchiseInput.prop('disabled', false);
-            SinistrecapitalInput.prop('disabled', false);
-            SinistreprimenetInput.prop('disabled', false);
-            SinistreprimettcInput.prop('disabled', false);
-        } else {
-            // Désactiver et vider les champs si la case est décochée
-            SinistrefranchiseInput.prop('disabled', true).val('');
-            SinistrecapitalInput.prop('disabled', true).val('');
-            SinistreprimenetInput.prop('disabled', true).val('');
-            SinistreprimettcInput.prop('disabled', true).val('');
-        }
-    });
-
-    mettreAJourTableau();
-
-    $("#btn_save_sinistre_garantie").on("click", function () {
-        let garanties = [];
-
-        $("#table_add_sinistre_garantie tbody .sinistre_garantie-checkbox:checked").each(function () {
-            let row = $(this).closest("tr");
-            let garantieId = $(this).val();
-            let garantieNom = row.find("td:nth-child(2)").text();
-            let franchise = row.find(".sinistre_franchise-input").val();
-            let capital = row.find(".sinistre_capital-input").val();
-            let primeNet = row.find(".sinistre_prime_net-input").val();
-            let primeTTC = row.find(".sinistre_prime_ttc-input").val();
-
-            garanties.push({
-                id: garantieId,
-                nom: garantieNom,
-                franchise: franchise,
-                capital: capital,
-                prime_net: primeNet,
-                prime_ttc: primeTTC,
-            });
-        });
-
-        enregistrerGaranties(garanties);
-    });
-
-    function mettreAJourTableau() {
-        $.ajax({
-            url: "/production/recuperer_garanties_sinistre/",
-            type: "GET",
-            cache: false, // Désactiver le cache
-            success: function (response) {
-                let table2 = $("#table_garantie_sinistre tbody");
-                table2.empty();
-
-                if (response.garanties && response.garanties.length > 0) {
-                    // Garanties présentes, cacher garantie_null
-                    $("#garantie_null").hide();
-
-                    $.ajax({
-                        url: "/production/afficher_provision_sinistre/",
-                        type: "GET",
-                        success: function (response) {
-                            console.log(response);
-                            $("#garantie_existe").show();
-                            $("#garantie_existe").html(response);
-                            $("#table_provision_sinistre_container").html(response);
-                        },
-                        error: function (xhr, status, error) {
-                            console.error("Erreur lors du chargement du tableau des provisions :", error);
-                        }
-                    });
-
-                    response.garanties.forEach(function (garantie) {
-                        let row = `
-                            <tr data-id="${garantie.id}">
-                                <td><span class="btn btn-danger btn-sm btn-delete-garantie" data-id="${garantie.id}"><i class="fa fa-trash-o"></i></span></td>
-                                <td>${garantie.nom}</td>
-                                <td class="text-center">${garantie.mouvement}</td>
-                                <td class="text-center">${garantie.date}</td>
-                            </tr>
-                        `;
-                        table2.append(row);
-                    });
-                } else {
-                    // Aucune garantie, afficher garantie_null et cacher garantie_existe
-                    $("#garantie_existe").hide();
-                    $("#garantie_null").show();
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Erreur :", error);
-            }
-        });
-    }
-
-    $(document).off('click', '.btn-delete-garantie').on('click', '.btn-delete-garantie', function () {
-        const GarantieId = $(this).data('id');
-        let n = noty({
-            text: 'Voulez-vous supprimer cette garantie ?',
-            type: 'warning',
-            dismissQueue: true,
-            layout: 'center',
-            theme: 'defaultTheme',
-            buttons: [
-                {
-                    addClass: 'btn btn-primary',
-                    text: 'Confirmer',
-                    onClick: function ($noty) {
-                        $.ajax({
-                            url: '/production/delete_garantie_session/',
-                            type: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify({ garantie_id: GarantieId}),
-                            success: function (response) {
-                                if (response.success) {
-                                    mettreAJourTableau();
-                                } else {
-                                    console.error(response.message);
+            let n = noty({
+                text: 'Voulez-vous supprimer cet intervenant ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary',
+                        text: 'Confirmer',
+                        onClick: function ($noty) {
+                            $.ajax({
+                                url: '/production/delete_intervenant_session_sinistre/',
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ intervenant_id: intervenantId, sinistre_id: sinistreId }),
+                                success: function (response) {
+                                    if (response.success) {
+                                        chargerIntervenantsSinistre();
+                                        // Affiche un message de succès à l'utilisateur
+                                        $('#intervenant-modal-success').text("Intervenant supprimé avec succès !").show().delay(3000).fadeOut();
+                                    } else {
+                                        console.error(response.message);
+                                        // Affiche un message d'erreur à l'utilisateur
+                                        $('#intervenant-modal-error').text("Erreur lors de la suppression de l'intervenant : " + response.message).show().delay(5000).fadeOut();
+                                    }
+                                },
+                                error: function (xhr) {
+                                    console.error("Une erreur est survenue lors de la suppression de l'intervenant.");
+                                    // Affiche un message d'erreur à l'utilisateur
+                                    $('#intervenant-modal-error').text("Une erreur est survenue lors de la suppression de l'intervenant.").show().delay(5000).fadeOut();
                                 }
-                            },
-                            error: function (xhr) {
-                                console.error("Une erreur est survenue lors de la suppression de la garantie.");
-                            }
-                        });
-                        $noty.close();
+                            });
+                            $noty.close();
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger',
+                        text: 'Annuler',
+                        onClick: function ($noty) {
+                            $noty.close();
+                        }
+                    }
+                ]
+            });
+        });
+
+        $('#btn_save_sinistre_intervenant').off('click').on('click', function () {
+            $('.intervenant_champ_obligatoire').removeClass('is-invalid is-valid');
+            $('#intervenant-modal-error, #intervenant-modal-warning, #intervenant-modal-success').text('').hide();
+
+            let valide = true;
+            $('.intervenant_champ_obligatoire').each(function () {
+                let value = $(this).val().trim();
+                if (!value) {
+                    $(this).addClass('is-invalid');
+                    valide = false;
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                }
+            });
+
+            if (!valide) {
+                $('#intervenant-modal-error').text('Veuillez remplir tous les champs obligatoires.').show();
+                return;
+            }
+
+            const formData = new FormData($('#form_add_sinistre_intervenant')[0]);
+            formData.append('sinistre_id', sinistreId);
+
+            $.ajax({
+                url: '/production/add_intervenant_session_sinistre/',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        $("#intervenant-modal-success").text(response.message).show();
+                        chargerIntervenantsSinistre();
+                        setTimeout(() => {
+                            $("#form_add_sinistre_intervenant").trigger("reset");
+                            $('.intervenant_champ_obligatoire').removeClass('is-valid is-invalid');
+                            $("#intervenant-modal-success").fadeOut();
+                        }, 3000);
+                    } else {
+                        $("#intervenant-modal-warning").text(response.message).show().delay(5000).fadeOut();
                     }
                 },
-                {
-                    addClass: 'btn btn-danger',
-                    text: 'Annuler',
-                    onClick: function ($noty) {
-                        $noty.close();
-                    }
-                }
-            ]
-        });
-    });
-
-    function enregistrerGaranties(garanties) {
-        $.ajax({
-            url: "/production/enregistrer_garanties_sinistre/",
-            type: "POST",
-            headers: { "X-CSRFToken": getCSRFToken() },
-            contentType: "application/json",
-            data: JSON.stringify({ garanties: garanties }),
-            success: function (response) {
-                if (response.success) {
-                    mettreAJourTableau();
-                    resetTableForm();
-                } else {
-                    alert("Erreur lors de l'enregistrement.");
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Erreur :", error);
-            }
-        });
-    }
-
-    function resetTableForm() {
-        $("#table_add_sinistre_garantie tbody tr").each(function () {
-            $(this).find(".sinistre_garantie-checkbox").prop("checked", false);
-            $(this).find("input[type=text]").val("").prop("disabled", true);
-        });
-    }
-
-    $(document).on("keyup change", "#table_provision_sinistre .calculs_montant_garantie_sinistre", function (event) {
-        if (event.which == 13) {
-            event.preventDefault();
-        }
-        calculer_montant_garantie_sinistre();
-        enregistrer_montant_garantie_sinistre($(this));
-    });
-
-    function calculer_montant_garantie_sinistre() {
-        let totaux = {};  // Stocker les totaux par garantie
-
-        $("#table_provision_sinistre tbody tr").each(function () {
-            let postedommageId = $(this).find("td:first").text().trim().toLowerCase(); // Nom du poste dommage
-            let isFranchise = postedommageId.includes("franchise");
-
-            $(this).find("input").each(function () {
-                let input = $(this);
-                let idParts = input.attr("id").split("_");
-                let garantieId = idParts[idParts.length - 1];
-                let type = input.data("type");
-                let valeur = parseInt(input.val().replaceAll(' ', '')) || 0;
-
-                if (isFranchise) {
-                    valeur *= -1;
-                }
-
-                // Initialiser l'objet de stockage des totaux
-                if (!totaux[garantieId]) {
-                    totaux[garantieId] = { estimation: 0, deja_regle: 0, provision: 0 };
-                }
-                totaux[garantieId][type] += valeur;
+                error: function (xhr) {
+                    const response = xhr.responseJSON;
+                    $("#intervenant-modal-error").text(response?.message || "Une erreur est survenue.").show().delay(5000).fadeOut();
+                },
             });
         });
 
-        // Mise à jour des champs de total
-        for (const [garantieId, total] of Object.entries(totaux)) {
-            $(`#total_estimation_${garantieId}`).val(total.estimation.toLocaleString());
-            $(`#total_deja_regle_${garantieId}`).val(total.deja_regle.toLocaleString());
-            $(`#total_provision_${garantieId}`).val(total.provision.toLocaleString());
-        }
-    }
+        /**** Bloc du traitement des intervenants Fin ****/
 
-    function enregistrer_montant_garantie_sinistre(input) {
-        let idParts = input.attr("id").split("_");
-        let postedommageId = idParts[1];
-        let garantieId = idParts[2];
-        let type = input.data("type");
-        let valeur = parseInt(input.val().replaceAll(' ', '')) || 0;
-
-        // Vérifier si c'est "Franchise" pour inverser la valeur
-        let postedommageNom = $(`#table_provision_sinistre tbody tr td:first:contains('${postedommageId}')`).text().trim().toLowerCase();
-        if (postedommageNom.includes("franchise")) {
-            valeur *= -1;
-        }
-
-        console.log('Poste dommage ID:', postedommageId);
-        console.log('Garantie ID:', garantieId);
-        console.log('Valeur envoyée:', valeur);
-
-        $.ajax({
-            url: "/production/enregistrer_montant_garantie_sinistre/",
-            type: "POST",
-            headers: { "X-CSRFToken": getCSRFToken() },
-            contentType: "application/json",
-            data: JSON.stringify({
-                postedommageId: postedommageId,
-                garantieId: garantieId,
-                type: type,
-                valeur: valeur,
-            }),
-            success: function (response) {
-                if (response.success) {
-                    let totaux = response.totaux;
-
-                    for (const [garantieId, total] of Object.entries(totaux)) {
-                        //$(`#total_estimation_${garantieId}`).val(total.estimation.toLocaleString());
-                        //$(`#total_deja_regle_${garantieId}`).val(total.deja_regle.toLocaleString());
-                        //$(`#total_provision_${garantieId}`).val(total.provision.toLocaleString());
-                    }
-                } else {
-                    console.error("Erreur lors de l'enregistrement en session.");
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Erreur de communication avec le serveur.");
-            }
-        });
-    }
+    });
 });

@@ -39,3 +39,20 @@
     </tbody>
 </table>
 
+<script>
+    function formatMontant(input) {
+        // Supprimez d'abord tous les caractères non numériques
+        var montant = input.value.replace(/\D/g, '');
+
+        // Ajoutez un espace comme séparateur pour les milliers
+        montant = addSpacesForThousands(montant);
+
+        // Mettez à jour la valeur de l'input
+        input.value = montant;
+    }
+
+    // Fonction pour ajouter un espace comme séparateur pour les milliers
+    function addSpacesForThousands(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+</script>
