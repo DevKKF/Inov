@@ -11110,15 +11110,15 @@ $(document).ready(function () {
         let date_survenance = $('#modal-sinistre #date_survenance').val();
         let date_declaration = $('#modal-sinistre #date_declaration').val();
         let date_ouverture = $('#modal-sinistre #date_ouverture').val();
+        let date_reouverture = $('#modal-sinistre #date_reouverture').val();
         let date_cloture = $('#modal-sinistre #date_cloture').val();
 
-        console.log("Survenance :", date_survenance, "Déclaration :", date_declaration, "Ouverture :", date_ouverture, "Clôture :", date_cloture);
-
         // Validation des dates
-        if (date_survenance && date_declaration && date_ouverture && date_cloture) {
+        if (date_survenance && date_declaration && date_ouverture && date_reouverture && date_cloture) {
             let survenance = new Date(date_survenance);
             let declaration = new Date(date_declaration);
             let ouverture = new Date(date_ouverture);
+            let reouverture = new Date(date_reouverture);
             let cloture = new Date(date_cloture);
 
             if (survenance > declaration) {
@@ -11133,6 +11133,11 @@ $(document).ready(function () {
 
             if (ouverture > cloture) {
                 notifyWarning('La date d\'ouverture doit être antérieure ou égale à la date de clôture.');
+                return;
+            }
+
+            if (ouverture > reouverture) {
+                notifyWarning('La date d\'ouverture doit être antérieure ou égale à la date de réouverture.');
                 return;
             }
         }
@@ -25600,7 +25605,7 @@ $(document).ready(function () {
                         let compagnieHeader = `
                             <tr>
                                 <td colspan="5" class="fw-bold text-primary">${compagnie}</td>
-                                <td class="fw-bold text-inov_green">TOTAL CIE</td>
+                                <td class="fw-bold text-inov_green">TOTAL</td>
                                 <td class="fw-bold text-inov_green">${details.compagnie_total_ht}</td>
                                 <td class="fw-bold text-inov_green">${details.compagnie_com_courtage}</td>
                             </tr>
@@ -25683,7 +25688,7 @@ $(document).ready(function () {
                         let commercialHeader = `
                             <tr>
                                 <td colspan="5" class="fw-bold text-primary">${commercial}</td>
-                                <td class="fw-bold text-inov_green">TOTAL COM</td>
+                                <td class="fw-bold text-inov_green">TOTAL</td>
                                 <td class="fw-bold text-inov_green">${details.commercial_total_ht}</td>
                                 <td class="fw-bold text-inov_green">${details.commercial_com_courtage}</td>
                             </tr>
@@ -25766,7 +25771,7 @@ $(document).ready(function () {
                         let business_unitHeader = `
                             <tr>
                                 <td colspan="5" class="fw-bold text-primary">${business_unit}</td>
-                                <td class="fw-bold text-inov_green">TOTAL BUS</td>
+                                <td class="fw-bold text-inov_green">TOTAL</td>
                                 <td class="fw-bold text-inov_green">${details.business_unit_total_ht}</td>
                                 <td class="fw-bold text-inov_green">${details.business_unit_com_courtage}</td>
                             </tr>
@@ -26216,21 +26221,15 @@ $(document).ready(function () {
         // Trouver les champs franchise et capital associés
         const SinistrefranchiseInput = parentRow.find('.sinistre_franchise-input');
         const SinistrecapitalInput = parentRow.find('.sinistre_capital-input');
-        const SinistreprimenetInput = parentRow.find('.sinistre_prime_net-input');
-        const SinistreprimettcInput = parentRow.find('.sinistre_prime_ttc-input');
 
         if ($(this).is(':checked')) {
             // Activer les champs si la case est cochée
             SinistrefranchiseInput.prop('disabled', false);
             SinistrecapitalInput.prop('disabled', false);
-            SinistreprimenetInput.prop('disabled', false);
-            SinistreprimettcInput.prop('disabled', false);
         } else {
             // Désactiver et vider les champs si la case est décochée
             SinistrefranchiseInput.prop('disabled', true).val('');
             SinistrecapitalInput.prop('disabled', true).val('');
-            SinistreprimenetInput.prop('disabled', true).val('');
-            SinistreprimettcInput.prop('disabled', true).val('');
         }
     });
 
@@ -26245,16 +26244,12 @@ $(document).ready(function () {
             let garantieNom = row.find("td:nth-child(2)").text();
             let franchise = row.find(".sinistre_franchise-input").val();
             let capital = row.find(".sinistre_capital-input").val();
-            let primeNet = row.find(".sinistre_prime_net-input").val();
-            let primeTTC = row.find(".sinistre_prime_ttc-input").val();
 
             garanties.push({
                 id: garantieId,
                 nom: garantieNom,
                 franchise: franchise,
                 capital: capital,
-                prime_net: primeNet,
-                prime_ttc: primeTTC,
             });
         });
 

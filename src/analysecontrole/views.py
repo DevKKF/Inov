@@ -109,18 +109,16 @@ class AnalysePortefeuilleView(PermissionRequiredMixin,TemplateView):
 
 # Portefeuille par compagnie
 def generate_excel_portefeuille_compagnie(compagnies, date_requete):
-    """Génère un fichier Excel unique regroupant les portefeuilles de toutes les compagnies."""
+    """Génère un fichier Excel unique regroupant les portefeuilles de toutes les compagnies, sans les totaux et avec un en-tête unique."""
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Portefeuille"
-
-    # En-tête du fichier
-    sheet.append(["", "DATE DE LA REQUÊTE", date_requete])
 
     headers = [
         "POLICE", "COMPAGNIE", "CLIENT", "TYPE DE CLIENT", "BRANCHE", "PRODUIT", "ÉCHÉANCE",
         "PRIME HT EX N-1", "PRIME HT EX N", "PRIME TTC EX N", "STATUT"
     ]
+    sheet.append(headers)  # Ajout de l'en-tête une seule fois
 
     for compagnie in compagnies:
         polices_qs = Police.objects.filter(
@@ -132,16 +130,7 @@ def generate_excel_portefeuille_compagnie(compagnies, date_requete):
         if not polices_qs.exists():
             continue  # Si aucune police, on passe à la compagnie suivante
 
-        # Ajout du titre de la compagnie
-        sheet.append([])
-        sheet.append([])
-        sheet.append(headers)
-
         compagnie_nom = compagnie.nom
-
-        total_ht = 0
-        total_ttc = 0
-        total_ht_n = 0
 
         for police in polices_qs:
             dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
@@ -164,11 +153,6 @@ def generate_excel_portefeuille_compagnie(compagnies, date_requete):
                 prime_ht = dernier_historique.prime_ht if dernier_historique and dernier_historique.prime_ht else 0
                 prime_ttc = dernier_historique.prime_ttc if dernier_historique and dernier_historique.prime_ttc else 0
                 prime_ht_n = historique_annee_precedente.prime_ht if historique_annee_precedente and historique_annee_precedente.prime_ht else 0
-
-                # Mise à jour des totaux
-                total_ht += prime_ht
-                total_ttc += prime_ttc
-                total_ht_n += prime_ht_n
 
             dernier_mouvement = MouvementPolice.objects.filter(police_id=police.id).order_by('-created_at').first()
             date_for_calcul = datetime.today().date()
@@ -206,9 +190,6 @@ def generate_excel_portefeuille_compagnie(compagnies, date_requete):
                 prime_ttc,
                 statut
             ])
-
-        # Ajout des totaux pour la compagnie
-        sheet.append(["", "", "", "", "", "", "TOTAL", total_ht_n, total_ht, total_ttc, ""])
 
     # Générer le fichier en mémoire
     output = BytesIO()
@@ -453,35 +434,24 @@ def get_client_by_compagnie(request):
 
 # Portefeuille par commercial
 def generate_excel_portefeuille_commercial(commercials, date_requete, sans_commercial):
-    """Génère un fichier Excel unique regroupant les portefeuilles de tous les commerciaux, y compris les polices sans commercial."""
+    """Génère un fichier Excel unique regroupant les portefeuilles de tous les commerciaux, y compris les polices sans commercial, sans les totaux et avec un en-tête unique."""
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Portefeuille"
-
-    # En-tête du fichier
-    sheet.append(["", "DATE DE LA REQUÊTE", date_requete])
 
     headers = [
         "POLICE", "COMMERCIAL", "CLIENT", "TYPE DE CLIENT", "BRANCHE", "PRODUIT", "ÉCHÉANCE",
         "PRIME HT EX N-1", "PRIME HT EX N", "PRIME TTC EX N", "STATUT", "COM ENCAISSEE", "COM ATTENDUE"
     ]
+    sheet.append(headers)  # Ajout de l'en-tête une seule fois
 
     def ajouter_polices_dans_excel(polices_qs, titre):
         """Ajoute les polices d'un commercial ou des 'Autres Polices' dans le fichier Excel."""
-        somme_prime_ht_n = somme_prime_ht = somme_prime_ttc = somme_commission_enc = somme_commission_att = 0
 
         if not polices_qs.exists():
             return  # Ne rien ajouter si aucune police
 
-        # Ajout du titre (Nom du commercial ou "Autres Polices")
-        sheet.append([])
-        sheet.append([])
-        sheet.append(headers)
-
         commercial_nom = titre
-
-        total_ht_n = total_ht = total_ttc = 0
-        commission_enc = commission_att = 0
 
         for police in polices_qs:
             dernier_historique = HistoriquePolice.objects.filter(police=police).order_by('-date_du_jour').first()
@@ -500,17 +470,13 @@ def generate_excel_portefeuille_commercial(commercials, date_requete, sans_comme
                         date_du_jour__year=derniere_annee_precedente
                     ).order_by('-date_du_jour').first()
                     prime_ht_n = historique_annee_precedente.prime_ht if historique_annee_precedente else 0
-                    total_ht_n += prime_ht_n
 
                 # Détermination des primes actuelles
                 prime_ht = dernier_historique.prime_ht if dernier_historique else 0
                 prime_ttc = dernier_historique.prime_ttc if dernier_historique else 0
-                total_ht += prime_ht
-                total_ttc += prime_ttc
 
                 # Détermination des commissions attendues
                 police_com_att = dernier_historique.commission_courtage if dernier_historique.commission_courtage else 0
-                commission_att += police_com_att
             else:
                 prime_ht_n = prime_ht = prime_ttc = 0
                 police_com_att = 0
@@ -545,7 +511,6 @@ def generate_excel_portefeuille_commercial(commercials, date_requete, sans_comme
             )
 
             police_com_enc = sum_quittance
-            commission_enc += police_com_enc
 
             # Ajout des données dans la feuille Excel
             sheet.append([
@@ -564,21 +529,6 @@ def generate_excel_portefeuille_commercial(commercials, date_requete, sans_comme
                 police_com_att,
             ])
 
-        # Ajout des totaux
-        sheet.append(["", "", "", "", "", "", "TOTAL", total_ht_n, total_ht, total_ttc, "", commission_enc, commission_att])
-
-        somme_prime_ht_n += total_ht_n
-        somme_prime_ht += total_ht
-        somme_prime_ttc += total_ttc
-        somme_commission_enc += commission_enc
-        somme_commission_att += commission_att
-
-        print('somme_prime_ht_n', somme_prime_ht_n)
-        print('somme_prime_ht', somme_prime_ht)
-        print('somme_prime_ttc', somme_prime_ttc)
-        print('somme_commission_enc', somme_commission_enc)
-        print('somme_commission_att', somme_commission_att)
-
     if sans_commercial == 0:
         polices_sans_commercial = Police.objects.filter(
             client__isnull=False,
@@ -588,7 +538,7 @@ def generate_excel_portefeuille_commercial(commercials, date_requete, sans_comme
 
         ajouter_polices_dans_excel(polices_sans_commercial, "Aucun commercial")
     elif sans_commercial == 1:
-        # 📌 **Ajout des polices de chaque commercial**
+        #  **Ajout des polices de chaque commercial**
         for commercial in commercials:
             polices_qs = Police.objects.filter(
                 client__isnull=False,
@@ -606,7 +556,7 @@ def generate_excel_portefeuille_commercial(commercials, date_requete, sans_comme
         ajouter_polices_dans_excel(polices_sans_commercial, "Aucun commercial")
     else:
         print("PAR COMPAGNIE")
-        # 📌 **Ajout des polices de chaque commercial**
+        #  **Ajout des polices de chaque commercial**
         for commercial in commercials:
             polices_qs = Police.objects.filter(
                 client__isnull=False,
@@ -1035,7 +985,7 @@ def get_client_by_commercial(request):
 
 # Portefeuille par business unit
 def generate_excel_portefeuille_business_unit(business_units, date_requete, sans_business_unit):
-    """Génère un fichier Excel unique regroupant les portefeuilles de toutes les business units, y compris celles sans business unit."""
+    """Génère un fichier Excel unique regroupant les portefeuilles de toutes les business units, y compris celles sans business unit, sans les totaux et avec un en-tête unique."""
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Portefeuille"
@@ -1047,20 +997,12 @@ def generate_excel_portefeuille_business_unit(business_units, date_requete, sans
         "POLICE", "BUSINESS UNIT", "CLIENT", "TYPE DE CLIENT", "BRANCHE", "PRODUIT", "ÉCHÉANCE",
         "PRIME HT EX N-1", "PRIME HT EX N", "PRIME TTC EX N", "STATUT", "COM ENCAISSÉE", "COM ATTENDUE"
     ]
+    sheet.append(headers) # Ajout de l'en-tête une seule fois
 
     def ajouter_polices_a_la_feuille(sheet, business_unit_label, polices_qs):
         """Ajoute les polices d'une Business Unit donnée à la feuille Excel."""
         if not polices_qs.exists():
             return
-
-        sheet.append([])
-        sheet.append([])
-        sheet.append(headers)
-
-        business_unit_nom = business_unit_label
-
-        # Initialisation des totaux
-        total_ht_n, total_ht, total_ttc, commission_enc, commission_att = 0, 0, 0, 0, 0
 
         for police in polices_qs:
             dernier_historique = HistoriquePolice.objects.filter(
@@ -1086,15 +1028,11 @@ def generate_excel_portefeuille_business_unit(business_units, date_requete, sans
                         ).order_by('-date_du_jour').first()
 
                         prime_ht_n = historique_annee_precedente.prime_ht if historique_annee_precedente else 0
-                        total_ht_n += prime_ht_n
 
                 police_com_att = dernier_historique.commission_courtage or 0
-                commission_att += police_com_att
 
                 prime_ht = dernier_historique.prime_ht or 0
                 prime_ttc = dernier_historique.prime_ttc or 0
-                total_ht += prime_ht
-                total_ttc += prime_ttc
 
             dernier_mouvement = MouvementPolice.objects.filter(police_id=police.id).order_by('-created_at').first()
             date_for_calcul = datetime.today().date()
@@ -1126,7 +1064,6 @@ def generate_excel_portefeuille_business_unit(business_units, date_requete, sans
             )
 
             police_com_enc = sum_quittance
-            commission_enc += police_com_enc
 
             sheet.append([
                 police.numero,
@@ -1143,8 +1080,6 @@ def generate_excel_portefeuille_business_unit(business_units, date_requete, sans
                 police_com_enc,
                 police_com_att,
             ])
-
-        sheet.append(["", "", "", "", "", "", "TOTAL", total_ht_n, total_ht, total_ttc, "", commission_enc, commission_att])
 
     if sans_business_unit == 0:
         # Ajout des polices sans business unit

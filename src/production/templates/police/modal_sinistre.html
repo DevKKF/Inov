@@ -133,7 +133,7 @@
 										<label class="col-sm-5 col-form-label">{{_("Risque")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
 											{% if police.produit.code == '10001' or police.produit.code == '10002' %}
-												<input type="text" class="form-control" name="risque" id="aliment" readonly required>
+												<input type="text" class="form-control" name="risque" id="risque" readonly required>
 											{% elif police.produit.code == '50001' or police.produit.code == '50002' %}
 												<input type="text" class="form-control" name="risque" id="marchandise" value="{{ aliment.marchandise.num_certificat }}" required>
 											{% else %}
@@ -154,7 +154,7 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Sinistre en recours")}} ? <span class="required">*</span></label>
+										<label class="col-sm-5 col-form-label">{{_("Sinistre avec recours")}} ? <span class="required">*</span></label>
 										<div class="col-sm-7" style="margin-top:10px">
 											<input type="radio" value="OUI" name="sinistre_recours" id="sinistre_recours_oui">
 											<label class="form-check-label" for="sinistre_recours_oui">OUI</label>
