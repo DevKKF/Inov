@@ -145,6 +145,7 @@ urlpatterns = [
     path('police/<int:police_id>/save-sinistre', views.police_save_sinistre, name='police_save_sinistre'),
     path('police/<int:police_id>/sinistres_datatable', views.police_sinistres_datatable, name='police_sinistres_datatable'),
     path('police/information-vehicule/<int:vehicule_id>', views.information_vehicule, name='information_vehicule'),
+    path('police/information-marchandise/<int:marchandise_id>', views.information_marchandise, name='information_marchandise'),
 
     path('add_intervenant_session/', views.add_intervenant_session, name='add_intervenant_session'),
     path('vider_intervenants_garanties/', views.vider_intervenants_garanties_session, name='vider_intervenants_garanties_session'),

@@ -1204,7 +1204,7 @@ def add_police(request, client_id):
                     num_commande = num_commande,
                     marchandises_description = marchandises_description,
                     poids_net = poids_net,
-                    valeur_assuree = valeur_assuree,
+                    valeur_assuree = valeur_assuree if valeur_assuree else 0,
                     marque_modele_type = marque_modele_type,
                     debut_voyage = debut_voyage if debut_voyage else None,
                     lieu_depart = lieu_depart,
@@ -1213,20 +1213,20 @@ def add_police(request, client_id):
                     code_commissaire = code_commissaire,
                     adresse_commissaire = adresse_commissaire,
                     courriel_commissaire = courriel_commissaire,
-                    taux_risque_ordinaire = taux_risque_ordinaire if taux_risque_ordinaire else None,
-                    taux_risque_guerre = taux_risque_guerre if taux_risque_guerre else None,
-                    taux_supprime = taux_supprime if taux_supprime else None,
-                    taux_taxe = taux_taxe if taux_taxe else None,
-                    taux_reduction_commerciale = taux_reduction_commerciale if taux_reduction_commerciale else None,
-                    accessoires = accessoires if accessoires else None,
-                    autres_frais = autres_frais if autres_frais else None,
-                    prime_risque_ordinaire = prime_risque_ordinaire if prime_risque_ordinaire else None,
-                    prime_risque_guerre = prime_risque_guerre if prime_risque_guerre else None,
-                    prime_supprime = prime_supprime if prime_supprime else None,
-                    prime_brut = prime_brut if prime_brut else None,
-                    prime_reduction=prime_reduction if prime_reduction else None,
-                    total_taxe = total_taxe if total_taxe else None,
-                    prime_ttc_mar = prime_ttc_mar if prime_ttc_mar else None,
+                    taux_risque_ordinaire = taux_risque_ordinaire if taux_risque_ordinaire else 0,
+                    taux_risque_guerre = taux_risque_guerre if taux_risque_guerre else 0,
+                    taux_supprime = taux_supprime if taux_supprime else 0,
+                    taux_taxe = taux_taxe if taux_taxe else 0,
+                    taux_reduction_commerciale = taux_reduction_commerciale if taux_reduction_commerciale else 0,
+                    accessoires = accessoires if accessoires else 0,
+                    autres_frais = autres_frais if autres_frais else 0,
+                    prime_risque_ordinaire = prime_risque_ordinaire if prime_risque_ordinaire else 0,
+                    prime_risque_guerre = prime_risque_guerre if prime_risque_guerre else 0,
+                    prime_supprime = prime_supprime if prime_supprime else 0,
+                    prime_brut = prime_brut if prime_brut else 0,
+                    prime_reduction=prime_reduction if prime_reduction else 0,
+                    total_taxe = total_taxe if total_taxe else 0,
+                    prime_ttc_mar = prime_ttc_mar if prime_ttc_mar else 0,
                     date_liaison=datetime.now(),
                     created_by=request.user,
                     statut=Statut.ACTIF
@@ -1390,7 +1390,7 @@ def modifier_police(request, police_id):
         num_commande = request.POST.get('num_commande')
         marchandises_description = request.POST.get('marchandises_description')
         poids_net = request.POST.get('poids_net')
-        valeur_assuree = supprimer_espaces(request.POST.get('valeur_assuree'))
+        valeur_assuree = supprimer_espaces(request.POST.get('valeur_assuree', ''))
         marque_modele_type = request.POST.get('marque_modele_type')
         debut_voyage = request.POST.get('debut_voyage')
         lieu_depart = request.POST.get('lieu_depart')
@@ -1399,20 +1399,20 @@ def modifier_police(request, police_id):
         code_commissaire = request.POST.get('code')
         adresse_commissaire = request.POST.get('adresse')
         courriel_commissaire = request.POST.get('email')
-        taux_risque_ordinaire = request.POST.get('taux_risque_ordinaire')
-        taux_risque_guerre = request.POST.get('taux_risque_guerre')
-        taux_supprime = request.POST.get('taux_supprime')
-        taux_reduction_commerciale = supprimer_espaces(request.POST.get('taux_reduction_commerciale'))
-        taux_taxe = supprimer_espaces(request.POST.get('taux_taxe'))
-        accessoires = supprimer_espaces(request.POST.get('accessoires'))
-        autres_frais = supprimer_espaces(request.POST.get('autres_frais'))
-        prime_risque_ordinaire = supprimer_espaces(request.POST.get('prime_risque_ordinaire'))
-        prime_risque_guerre = supprimer_espaces(request.POST.get('prime_risque_guerre'))
-        prime_supprime = supprimer_espaces(request.POST.get('prime_supprime'))
-        prime_brut = supprimer_espaces(request.POST.get('prime_brut'))
-        prime_reduction = supprimer_espaces(request.POST.get('prime_reduction'))
-        total_taxe = supprimer_espaces(request.POST.get('total_taxe'))
-        prime_ttc_mar = supprimer_espaces(request.POST.get('prime_ttc_mar'))
+        taux_risque_ordinaire = request.POST.get('taux_risque_ordinaire', '')
+        taux_risque_guerre = request.POST.get('taux_risque_guerre', '')
+        taux_supprime = request.POST.get('taux_supprime', '')
+        taux_reduction_commerciale = supprimer_espaces(request.POST.get('taux_reduction_commerciale', ''))
+        taux_taxe = supprimer_espaces(request.POST.get('taux_taxe', ''))
+        accessoires = supprimer_espaces(request.POST.get('accessoires', ''))
+        autres_frais = supprimer_espaces(request.POST.get('autres_frais', ''))
+        prime_risque_ordinaire = supprimer_espaces(request.POST.get('prime_risque_ordinaire', ''))
+        prime_risque_guerre = supprimer_espaces(request.POST.get('prime_risque_guerre', ''))
+        prime_supprime = supprimer_espaces(request.POST.get('prime_supprime', ''))
+        prime_brut = supprimer_espaces(request.POST.get('prime_brut', ''))
+        prime_reduction = supprimer_espaces(request.POST.get('prime_reduction', ''))
+        total_taxe = supprimer_espaces(request.POST.get('total_taxe', ''))
+        prime_ttc_mar = supprimer_espaces(request.POST.get('prime_ttc_mar', ''))
         moyens_transport_id = request.POST.get('moyens_transport_id')
         conditions_assurance_id = request.POST.get('conditions_assurance_id')
 
@@ -4491,7 +4491,7 @@ class PoliceSinistresView(TemplateView):
 
             aliments = 0
             aliment = 0
-            if police.produit.code == '10001' or police.produit.code == '10002':
+            if police.produit.code == '10001' or police.produit.code == '10002' or police.produit.code == '50001' or police.produit.code == '50002':
                 aliments = AlimentPolice.objects.filter(police_id=police.id)
             else:
                 aliment = AlimentPolice.objects.filter(police_id=police.id).first()
@@ -4837,6 +4837,7 @@ def police_save_sinistre(request, police_id):
 
         if form.is_valid():
             vehicule_id = request.POST.get('vehicule_id')
+            marchandise_id = request.POST.get('marchandise_id')
             autre_risque_id = request.POST.get('autre_risque_id')
             compagnie_id = request.POST.get('compagnie_id')
             date_survenance = request.POST.get('date_survenance')
@@ -4884,7 +4885,7 @@ def police_save_sinistre(request, police_id):
             sinistre_created.save()
 
             code_bureau = request.user.bureau.code
-            sinistre_created.numero_provisoire = str(code_bureau) + 'S' + str(Date.today().year)[-2:] + str(
+            sinistre_created.numero_provisoire = str(code_bureau) + 'P' + str(Date.today().year)[-2:] + str(
                 sinistre_created.pk).zfill(6)
             if sinistre_created.numero == "":
                 sinistre_created.numero = sinistre_created.numero_provisoire
@@ -4912,6 +4913,12 @@ def police_save_sinistre(request, police_id):
                 except AlimentPolice.DoesNotExist:
                     pass  # Gérer l'absence de l'objet si nécessaire
 
+            if marchandise_id:
+                try:
+                    aliment_police = AlimentPolice.objects.get(marchandise_id=marchandise_id)
+                except AlimentPolice.DoesNotExist:
+                    pass  # Gérer l'absence de l'objet si nécessaire
+
             if not aliment_police and autre_risque_id:
                 try:
                     aliment_police = AlimentPolice.objects.get(autre_risque_id=autre_risque_id)
@@ -4928,7 +4935,7 @@ def police_save_sinistre(request, police_id):
                 aliment_sinitre_created.save()
             else:
                 # Ajouter une gestion si l'aliment_police n'existe pas.
-                print(f"Aucun AlimentPolice trouvé pour vehicule_id={vehicule_id} ou autre_risque_id={autre_risque_id}")
+                print(f"Aucun AlimentPolice trouvé pour vehicule_id={vehicule_id} ou marchandise_id={marchandise_id} ou autre_risque_id={autre_risque_id}")
 
             # Récupérer les intervenants de la session
             intervenants = request.session.get('intervenants', [])
@@ -4972,7 +4979,7 @@ def police_save_sinistre(request, police_id):
 
             # Récupérer les données des provisions
             provisions_data = json.loads(request.POST.get('provisions', '{}'))
-
+            print('provisions_data : ', provisions_data)
             # Enregistrer les provisions
             for postedommage_id, garanties in provisions_data.items():
 
@@ -5020,13 +5027,12 @@ def police_save_sinistre(request, police_id):
 def modifier_sinistre(request, sinistre_id):
 
     if request.method == 'POST':
-
         sinistre_old = Sinistre.objects.get(id=sinistre_id)
         alimentpolicesinistre = AlimentPoliceSinistre.objects.filter(sinistre_id=sinistre_old.id).first()
 
         vehicule_id = request.POST.get('vehicule_id')
+        marchandise_id = request.POST.get('marchandise_id')
         autre_risque_id = request.POST.get('autre_risque_id')
-        compagnie_id = request.POST.get('compagnie_id')
         date_survenance = request.POST.get('date_survenance')
         date_ouverture = request.POST.get('date_ouverture')
         date_cloture = request.POST.get('date_cloture')
@@ -5055,6 +5061,7 @@ def modifier_sinistre(request, sinistre_id):
             circonstance_id=sinistre_old.circonstance_id,
             created_by=sinistre_old.created_by,
             numero=sinistre_old.numero,
+            numero_provisoire=sinistre_old.numero_provisoire,
             created_at=sinistre_old.created_at,
             date_survenance=sinistre_old.date_survenance,
             date_declaration=sinistre_old.date_declaration,
@@ -5094,32 +5101,23 @@ def modifier_sinistre(request, sinistre_id):
         )
         sinistre = Sinistre.objects.get(id=sinistre_id)
 
-        # Commence une transaction pour éviter les incohérences
+        # Provisions sinistre
         with transaction.atomic():
-
-            # 1️⃣ Récupérer les provisions existantes du sinistre
-            provisions_existantes = Provision.objects.filter(sinistre=sinistre)
-
-            # 2️⃣ Enregistrer l'historique
-            historiques = []
-            for provision in provisions_existantes:
-                historiques.append(HistoriqueProvision(
-                    sinistre=provision.sinistre,
-                    historique_sinistre_id=historiq_sinistre.id,
-                    garantie=provision.garantie,
-                    poste_dommage=provision.poste_dommage,
-                    estimation=provision.estimation,
-                    deja_regle=provision.deja_regle,
-                    provision=provision.provision,
-                ))
-            HistoriqueProvision.objects.bulk_create(historiques)  # Insert en masse pour perf
-
-            # 3️⃣ Récupérer les données envoyées depuis le front
+            provisions_existantes = {
+                (p.poste_dommage.libelle, str(p.garantie_id)): p
+                for p in Provision.objects.filter(sinistre=sinistre)
+            }
             provisions_data = json.loads(request.POST.get('provisions', '{}'))
 
-            # 4️⃣ Pour chaque provision reçue
-            for poste_dommage_libelle, garanties in provisions_data.items():
+            historiques = []
+            provisions_a_supprimer = []
+            provisions_a_creer = []
 
+            for poste_dommage_libelle, garanties in provisions_data.items():
+                # Ignorer les provisions avec le libellé "Totaux"
+                if poste_dommage_libelle == "Totaux":
+                    continue
+                print('poste_dommage_libelle : ', poste_dommage_libelle)
                 poste_dommage_obj = PosteDommage.objects.get(libelle=poste_dommage_libelle)
 
                 for garantie_id, montants in garanties.items():
@@ -5127,18 +5125,57 @@ def modifier_sinistre(request, sinistre_id):
                     deja_regle = supprimer_espaces(montants.get("deja_regle")) if montants.get("deja_regle") else None
                     provision_val = supprimer_espaces(montants.get("provision")) if montants.get("provision") else None
 
-                    # 5️⃣ Vérifier si la provision existe déjà
-                    provision_obj, created = Provision.objects.update_or_create(
-                        sinistre=sinistre,
-                        garantie_id=garantie_id,
-                        poste_dommage=poste_dommage_obj,
-                        defaults={
-                            'estimation': estimation,
-                            'deja_regle': deja_regle,
-                            'provision': provision_val
-                        }
-                    )
+                    key = (poste_dommage_libelle, garantie_id)
+                    if key in provisions_existantes:
+                        provision_obj = provisions_existantes[key]
 
+                        # Enregistrer l'historique avant la mise à jour
+                        historiques.append(HistoriqueProvision(
+                            sinistre=provision_obj.sinistre,
+                            historique_sinistre_id=historiq_sinistre.id,
+                            garantie=provision_obj.garantie,
+                            poste_dommage=provision_obj.poste_dommage,
+                            estimation=provision_obj.estimation,
+                            deja_regle=provision_obj.deja_regle,
+                            provision=provision_obj.provision,
+                        ))
+
+                        # Mettre à jour la provision existante
+                        provision_obj.estimation = estimation
+                        provision_obj.deja_regle = deja_regle
+                        provision_obj.provision = provision_val
+                        provision_obj.save()
+
+                        del provisions_existantes[key]  # Supprimer de la liste des provisions existantes
+                    else:
+                        # Créer une nouvelle provision
+                        provisions_a_creer.append(Provision(
+                            sinistre=sinistre,
+                            garantie_id=garantie_id,
+                            poste_dommage=poste_dommage_obj,
+                            estimation=estimation,
+                            deja_regle=deja_regle,
+                            provision=provision_val,
+                        ))
+
+            # Supprimer les provisions restantes (celles qui n'étaient pas dans les données reçues)
+            for provision_obj in provisions_existantes.values():
+                historiques.append(HistoriqueProvision(
+                    sinistre=provision_obj.sinistre,
+                    historique_sinistre_id=historiq_sinistre.id,
+                    garantie=provision_obj.garantie,
+                    poste_dommage=provision_obj.poste_dommage,
+                    estimation=provision_obj.estimation,
+                    deja_regle=provision_obj.deja_regle,
+                    provision=provision_obj.provision,
+                ))
+                provisions_a_supprimer.append(provision_obj)
+
+            HistoriqueProvision.objects.bulk_create(historiques)
+            Provision.objects.bulk_create(provisions_a_creer)
+            Provision.objects.filter(id__in=[p.id for p in provisions_a_supprimer]).delete()
+
+        #Garanties sinistre
         with transaction.atomic():
             # 1️⃣ Récupérer les anciennes garanties du sinistre
             garanties_existantes = GarantieSinistre.objects.filter(sinistre=sinistre)
@@ -5180,6 +5217,7 @@ def modifier_sinistre(request, sinistre_id):
                     }
                 )
 
+        #Intervenants sinistre
         with transaction.atomic():
             # 1️⃣ Récupérer les anciens intervenants liés au sinistre
             anciens_intervenants = SinistreIntervenant.objects.filter(sinistre=sinistre)
@@ -5249,6 +5287,12 @@ def modifier_sinistre(request, sinistre_id):
             except AlimentPolice.DoesNotExist:
                 pass  # Gérer l'absence de l'objet si nécessaire
 
+        elif marchandise_id:
+            try:
+                aliment_police = AlimentPolice.objects.get(marchandise_id=marchandise_id)
+            except AlimentPolice.DoesNotExist:
+                pass  # Gérer l'absence de l'objet si nécessaire
+
         if not aliment_police and autre_risque_id:
             try:
                 aliment_police = AlimentPolice.objects.get(autre_risque_id=autre_risque_id)
@@ -5281,7 +5325,7 @@ def modifier_sinistre(request, sinistre_id):
                 aliment_sinitre_created.save()
         else:
             # Ajouter une gestion si l'aliment_police n'existe pas.
-            print(f"Aucun AlimentPolice trouvé pour vehicule_id={vehicule_id} ou autre_risque_id={autre_risque_id}")
+            print(f"Aucun AlimentPolice trouvé pour vehicule_id={vehicule_id} ou marchandise_id={marchandise_id} ou autre_risque_id={autre_risque_id}")
 
         # Relier l'historique sinistre au mouvement sinistre
         # Obtenir l'avant-dernier mouvement de sinistre
@@ -5338,7 +5382,7 @@ def modifier_sinistre(request, sinistre_id):
 
         aliments = 0
         aliment = 0
-        if police.produit.code == '10001' or police.produit.code == '10002':
+        if police.produit.code == '10001' or police.produit.code == '10002' or police.produit.code == '50001' or police.produit.code == '50002':
             aliments = AlimentPolice.objects.filter(police_id=police.id)
         else:
             aliment = AlimentPolice.objects.filter(police_id=police.id).first()
@@ -5380,6 +5424,24 @@ def information_vehicule(request, vehicule_id):
         'risque_info': vehicule.marque+'-'+vehicule.numero_immatriculation,
         'date_entree': aliment.date_entree if aliment else None,
         'date_sortie': aliment.date_sortie if aliment else None,
+    }
+
+    return JsonResponse(data)
+
+
+def information_marchandise(request, marchandise_id):
+    marchandise = Marchandise.objects.filter(id=marchandise_id).first()
+    if not marchandise:
+        return JsonResponse({'error': 'Marchandise non trouvée'}, status=404)
+
+    # Récupérer les informations de aliment_police associées
+    aliment = AlimentPolice.objects.filter(marchandise=marchandise).first()
+
+    data = {
+        'id': marchandise.id,
+        'numero_certificat': marchandise.num_certificat,
+        'description': marchandise.marchandises_description,
+        'risque_info': marchandise.num_certificat+'-'+marchandise.marchandises_description,
     }
 
     return JsonResponse(data)
@@ -5694,8 +5756,8 @@ def recuperer_garantie_circonstance_sinistre(request):
 
     # Sérialiser postedommages
     garantiecirconstances_list = [{
-        "id": garantiecirconstance.garantie.id,
-        "nom": garantiecirconstance.garantie.nom,
+        "id": garantiecirconstance.garantie_id,
+        "nom": garantiecirconstance.garantie.nom if garantiecirconstance.garantie else '',
         "sinistre_id": sinistre_id,
         # Ajoutez d'autres champs si nécessaire
     } for garantiecirconstance in garantiecirconstances]
@@ -5717,8 +5779,8 @@ def recuperer_garantie_circonstance(request):
 
     # Sérialiser postedommages
     garantiecirconstances_list = [{
-        "id": garantiecirconstance.garantie.id,
-        "nom": garantiecirconstance.garantie.nom,
+        "id": garantiecirconstance.garantie_id,
+        "nom": garantiecirconstance.garantie.nom if garantiecirconstance.garantie else '',
         # Ajoutez d'autres champs si nécessaire
     } for garantiecirconstance in garantiecirconstances]
 
@@ -5900,7 +5962,7 @@ def enregistrer_montant_garantie_sinistre(request):
             montants[garantie_id][type_montant] += valeur
             request.session[session_key] = montants
             request.session.modified = True
-
+            print('montants : ', montants)
             return JsonResponse({"success": True, "totaux": montants})
 
         except Exception as e:

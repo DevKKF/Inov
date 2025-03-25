@@ -444,7 +444,7 @@
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("N° immat")}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<input type="text" class="form-control aliment_champ_obligatoire_modification" name="immatriculation" id="immatriculation" value="{{ mono_vehicule.vehicule.numero_immatriculation|default_if_none:'' }}">
+												<input type="text" class="form-control vehicule_champ_obligatoire_modification" name="immatriculation" id="immatriculation" value="{{ mono_vehicule.vehicule.numero_immatriculation|default_if_none:'' }}">
 											</div>
 										</div>
 										<div class="form-group row">
@@ -456,7 +456,7 @@
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_('Marque')}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<input type="text" class="form-control aliment_champ_obligatoire_modification" name="marque" id="marque" value="{{ mono_vehicule.vehicule.marque|default_if_none:'' }}">
+												<input type="text" class="form-control vehicule_champ_obligatoire_modification" name="marque" id="marque" value="{{ mono_vehicule.vehicule.marque|default_if_none:'' }}">
 											</div>
 										</div>
 										<div class="form-group row">
@@ -468,7 +468,7 @@
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_('Energie')}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<select class="form-control tags-multiple aliment_champ_obligatoire_modification" name="carburant_id" id="carburant_id" autocomplete="off">
+												<select class="form-control tags-multiple vehicule_champ_obligatoire_modification" name="carburant_id" id="carburant_id" autocomplete="off">
 													<option value="">{{_('Choisir')}}</option>
 													{% for cab in carburants %}
 														<option value="{{ cab.id }}" {% if cab.id == mono_vehicule.vehicule.carburant_id %} selected {% endif %}>{{ cab.libelle }}</option>
@@ -503,7 +503,7 @@
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("Propriétaire")}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<input type="text" class="form-control aliment_champ_obligatoire_modification" name="proprietaire" value="{{  mono_vehicule.proprietaire|default_if_none:'' }}">
+												<input type="text" class="form-control vehicule_champ_obligatoire_modification" name="proprietaire" value="{{  mono_vehicule.proprietaire|default_if_none:'' }}">
 											</div>
 										</div>
 									</div>
@@ -518,7 +518,7 @@
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("Catégorie véhicule")}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<select class="form-control tags-multiple aliment_champ_obligatoire_modification" name="categorie_id" id="categorie_id" autocomplete="off">
+												<select class="form-control tags-multiple vehicule_champ_obligatoire_modification" name="categorie_id" id="categorie_id" autocomplete="off">
 													<option value="">{{_('Choisir')}}</option>
 													{% for cat in catgories %}
 														<option value="{{ cat.id }}" {% if cat.id == mono_vehicule.vehicule.carosserie_id %} selected {% endif %}>{{ cat.libelle }}</option>
@@ -529,7 +529,7 @@
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("Usage")}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<select class="form-control tags-multiple aliment_champ_obligatoire_modification" name="usage_id" id="usage_id" autocomplete="off">
+												<select class="form-control tags-multiple vehicule_champ_obligatoire_modification" name="usage_id" id="usage_id" autocomplete="off">
 													<option value="">{{_('Choisir')}}</option>
 													{% for u in usages %}
 														<option value="{{ u.id }}" {% if u.id == mono_vehicule.usage_id %} selected {% endif %}>{{ u.libelle }}</option>
@@ -557,13 +557,13 @@
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("Mise en circulation")}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<input type="date" class="form-control aliment_champ_obligatoire_modification" name="date_mise_circulation" value="{{ mono_vehicule.date_mis_en_circulation|date:'Y-m-d'|default_if_none:'' }}">
+												<input type="date" class="form-control vehicule_champ_obligatoire_modification" name="date_mise_circulation" value="{{ mono_vehicule.date_mis_en_circulation|date:'Y-m-d'|default_if_none:'' }}">
 											</div>
 										</div>
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_('Puissance')}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<input type="text" class="form-control money_field aliment_champ_obligatoire_modification" name="puissance_fiscale" value="{{  mono_vehicule.vehicule.puissance|default_if_none:'' }}">
+												<input type="text" class="form-control money_field vehicule_champ_obligatoire_modification" name="puissance_fiscale" value="{{  mono_vehicule.vehicule.puissance|default_if_none:'' }}">
 											</div>
 										</div>
 										<div class="form-group row">
@@ -597,9 +597,9 @@
 									</div>
 									<div class="col-md-6">
 										<div class="form-group row">
-											<label class="col-sm-5 col-form-label">{{_("N° de certificat")}}</label>
+											<label class="col-sm-5 col-form-label">{{_("N° de certificat")}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<input type="text" class="form-control" name="num_certificat" id="num_certificat" value="{{ marchandise_first.marchandise.num_certificat|default_if_none:'' }}">
+												<input type="text" class="form-control marchandise_champ_obligatoire_modification" name="num_certificat" id="num_certificat" value="{{ marchandise_first.marchandise.num_certificat|default_if_none:'' }}">
 											</div>
 										</div>
 										<div class="form-group row">

@@ -41,10 +41,9 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Compagnie")}} </label>
+										<label class="col-sm-5 col-form-label">{{_("Branche")}} </label>
 										<div class="col-sm-7">
-											<input type="hidden" name="compagnie_id" id="compagnie_id" value="{{ assureur_police.compagnie_id }}" class="form-control">
-											<span class="form-control">{{ assureur_police.compagnie.nom|default_if_none:"" }}</span>
+											<span class="form-control" title="{{ police.produit.branche.nom|default_if_none:'' }}">{{ police.produit.branche.nom|default_if_none:""|slice:":35" }}</span>
 										</div>
 									</div>
 								</div>
@@ -57,15 +56,16 @@
 										</div>
 									</div>
 									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Compagnie")}} </label>
+										<div class="col-sm-7">
+											<input type="hidden" name="compagnie_id" id="compagnie_id" value="{{ assureur_police.compagnie_id }}" class="form-control">
+											<span class="form-control">{{ assureur_police.compagnie.nom|default_if_none:"" }}</span>
+										</div>
+									</div>
+									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Produit")}} </label>
 										<div class="col-sm-7">
 											<span class="form-control" title="{{ police.produit.nom|default_if_none:'' }}">{{ police.produit.nom|default_if_none:""|slice:":35" }}</span>
-										</div>
-									</div>
-									<div class="form-group row d-none">
-										<label class="col-sm-5 col-form-label">{{_("Numéro Sinistre")}} </label>
-										<div class="col-sm-7">
-											<input type="text" name="numero" id="numero" class="form-control">
 										</div>
 									</div>
 								</div>
@@ -86,6 +86,13 @@
 													<option value=""></option>
 													{% for aliment in aliments %}
 														<option value="{{ aliment.vehicule.id }}">{{ aliment.vehicule.marque|default_if_none:"" }}-{{ aliment.vehicule.numero_immatriculation|default_if_none:"" }}</option>
+													{% endfor %}
+												</select>
+											{% elif police.produit.code == '50001' or police.produit.code == '50002' %}
+												<select class="form-control tags-multiple marchandise" name="marchandise_id" id="marchandise_id">
+													<option value=""></option>
+													{% for aliment in aliments %}
+														<option value="{{ aliment.marchandise.id }}">{{ aliment.marchandise.num_certificat|default_if_none:"" }}</option>
 													{% endfor %}
 												</select>
 											{% else %}
@@ -112,6 +119,12 @@
 											<input type="date" class="form-control" name="date_cloture" id="date_cloture" autocomplete="off" value="">
 										</div>
 									</div>
+									<div class="form-group row d-none">
+										<label class="col-sm-5 col-form-label">{{_("Numéro sinistre")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="numero" autocomplete="off" value="" />
+										</div>
+									</div>
 								</div>
 								<div class="vl"></div>
 								<div class="col-md-5" style="border-left:0px;">
@@ -120,7 +133,9 @@
 										<label class="col-sm-5 col-form-label">{{_("Risque")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
 											{% if police.produit.code == '10001' or police.produit.code == '10002' %}
-												<input type="text" class="form-control" name="risque" id="risque" readonly required>
+												<input type="text" class="form-control" name="risque" id="aliment" readonly required>
+											{% elif police.produit.code == '50001' or police.produit.code == '50002' %}
+												<input type="text" class="form-control" name="risque" id="marchandise" value="{{ aliment.marchandise.num_certificat }}" required>
 											{% else %}
 												<input type="text" class="form-control" name="risque" id="risque" value="{{ aliment.autre_risque.libelle }}" required>
 											{% endif %}

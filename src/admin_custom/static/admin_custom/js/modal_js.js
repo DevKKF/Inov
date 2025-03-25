@@ -601,14 +601,57 @@ $(document).ready(function() {
 
 //TODO affichage sous-menu de la police
 $(document).ready(function () {
+
+    // Fonction utilitaire : Affiche un tab et rend les champs obligatoires
+    function afficherOngletAvecChamps(tabSelector, champSelector) {
+        $(tabSelector).removeClass('d-none');
+        $(champSelector).attr('required', true);
+    }
+
+    // Liste des onglets dynamiques
+    const ongletsDynamiques = ['#risque-tab_modification', '#aliment-tab_modification', '#vehicule-tab_modification', '#marchandise-tab_modification'];
+    const champsDynamiques = ['.marchandise_champ_obligatoire_modification', '.vehicule_champ_obligatoire_modification'];
+
+    // Liste des onglets fixes avec leurs champs obligatoires
+    const ongletsFixes = [
+        { tab: '#garantie-tab_modification', champ: '.garantie_champ_obligatoire' },
+        { tab: '#general-tab_modification' },
+        { tab: '#facturation-tab_modification' },
+        { tab: '#prime-tab_modification' },
+    ];
+
+    // *** Initialisation ***
+    // Masquer les onglets dynamiques
+    $(ongletsDynamiques.join(', ')).addClass('d-none');
+    $(champsDynamiques.join(', ')).removeAttr('required');
+    $('#table_liste_aliment_modification tbody').empty();
+
+    // Afficher les onglets fixes
+    ongletsFixes.forEach(onglet => {
+        $(onglet.tab).removeClass('d-none');
+        if (onglet.champ) {
+            $(onglet.champ).attr('required', true); // rendre les champs obligatoires
+        }
+    });
+
+
     // Fonction pour gérer les changements de produit
     function handleProduitChange(produit_id) {
         // Vérifier si un produit est sélectionné
         if (!produit_id) {
-            // Si aucun produit sélectionné, réinitialiser tout
-            $('#garantie-tab_modification, #risque-tab_modification, #aliment-tab_modification, #vehicule-tab_modification, #marchandise-tab_modification').addClass('d-none');
-            $('.aliment_champ_obligatoire_modification, .marchandise_champ_obligatoire_modification').removeAttr('required');
-            $('#table_liste_aliment_modification tbody');
+            // Si aucun produit sélectionné : masquer dynamiques, réinitialiser champs
+            $(ongletsDynamiques.join(', ')).addClass('d-none');
+            $(champsDynamiques.join(', ')).removeAttr('required');
+            $('#table_liste_aliment tbody').empty();
+
+            // Onglets fixes toujours visibles + champs required actifs
+            ongletsFixes.forEach(onglet => {
+                $(onglet.tab).removeClass('d-none');
+                if (onglet.champ) {
+                    $(onglet.champ).attr('required', true);
+                }
+            });
+
             return;
         }
 
@@ -620,36 +663,32 @@ $(document).ready(function () {
                 let produit_code = produit[0].fields.code;
                 console.log('Produit code (modification) :', produit_code);
 
-                // Réinitialiser les onglets et champs
-                $('#garantie-tab_modification, #risque-tab_modification, #aliment-tab_modification, #vehicule-tab_modification, #marchandise-tab_modification').addClass('d-none');
-                $('.aliment_champ_obligatoire_modification, .marchandise_champ_obligatoire_modification').removeAttr('required');
+                // Réinitialiser les dynamiques
+                $(ongletsDynamiques.join(', ')).addClass('d-none');
+                $(champsDynamiques.join(', ')).removeAttr('required');
+                $('#table_liste_aliment_modification tbody').empty();
 
-                // Effacer les lignes existantes du tableau
-                const tbody = $('#table_liste_aliment_modification tbody');
+                // Réafficher les onglets fixes + champs required
+                ongletsFixes.forEach(onglet => {
+                    $(onglet.tab).removeClass('d-none');
+                    if (onglet.champ) {
+                        $(onglet.champ).attr('required', true);
+                    }
+                });
 
-                // Traitement basé sur la réponse du serveur
+                // Logique produit_code : affichage dynamique
                 if (produit_code == 10001) { // Mono-Véhicule
-                    $('#garantie-tab_modification').removeClass('d-none');
-                    $('#vehicule-tab_modification').removeClass('d-none');
-                    $('.aliment_champ_obligatoire_modification').attr('required', true);
+                    afficherOngletAvecChamps('#vehicule-tab_modification', '.vehicule_champ_obligatoire');
                 } else if (produit_code == 10002) { // Flotte-Auto
-                    $('#garantie-tab_modification').removeClass('d-none');
-                    $('#aliment-tab_modification').removeClass('d-none');
-                    $('.aliment_champ_obligatoire_modification').attr('required', false);
-                } else if (produit_code == 50001 || produit_code == 50002) { // Marchandises transportées
-                    $('#garantie-tab_modification').removeClass('d-none');
-                    $('#marchandise-tab_modification').removeClass('d-none');
-                    $('.marchandise_champ_obligatoire_modification').attr('required', true);
+                    afficherOngletAvecChamps('#aliment-tab_modification', '.mod_aliment_champ_obligatoire');
+                } else if (produit_code == 50001 || produit_code == 50002) { // Produits marchandise
+                    afficherOngletAvecChamps('#marchandise-tab_modification', '.marchandise_champ_obligatoire');
                 } else {
-                    $('#garantie-tab_modification').removeClass('d-none');
                     $('#risque-tab_modification').removeClass('d-none');
-                    $('.marchandise_champ_obligatoire_modification').attr('required', false);
-                    $('.aliment_champ_obligatoire_modification').attr('required', false);
-                    $('.aliment_champ_obligatoire_modification').attr('required', false);
                 }
 
                 // Déclenchement explicite du changement sur le produit pour mettre à jour les autres éléments
-                //$('#produit_modification').trigger('change');
+                $('#produit_modification').trigger('change');
             },
             error: function () {
                 console.error('Erreur lors du chargement des sous-menus pour la modification.');
@@ -1025,6 +1064,32 @@ $(document).ready(function () {
         });
     });
 
+    // Changement des informations de la marchandise
+    $('#marchandise_id').on('change', function () {
+        let marchandise_id = $(this).val();
+        alert(marchandise_id);
+        if (!marchandise_id) return;
+
+        // Requête AJAX
+        $.ajax({
+            type: 'GET',
+            url: '/production/police/information-marchandise/' + marchandise_id,
+            success: function (marchandise) {
+                if (marchandise.error) {
+                    console.error('Erreur:', marchandise.error);
+                    return;
+                }
+
+                // Remplissage du champ "risque"
+                let immat_marchandise = marchandise.risque_info;
+                $('#marchandise').val(immat_marchandise);
+            },
+            error: function () {
+                console.error('Erreur lors du chargement des données.');
+            }
+        });
+    });
+
     // Gestion de l'ouverture du modal
     $('#modal-modification_sinistre').on('shown.bs.modal', function () {
         let circonstanceId = $('#circonstance_id').val();
@@ -1377,6 +1442,92 @@ $(document).ready(function () {
             $("#table_add_sinistre_garantie tbody tr").each(function () {
                 $(this).find(".sinistre_garantie_checkbox").prop("checked", false);
                 $(this).find("input[type=text]").val("").prop("disabled", true);
+            });
+        }
+
+        $(document).on("keyup change", "#table_provision_sinistre .calculs_montant_garantie_sinistre", function (event) {
+        if (event.which == 13) {
+            event.preventDefault();
+        }
+        calculer_montant_garantie_sinistre();
+        enregistrer_montant_garantie_sinistre($(this));
+    });
+
+        function calculer_montant_garantie_sinistre() {
+            let totaux = {};  // Stocker les totaux par garantie
+
+            $("#table_provision_sinistre tbody tr").each(function () {
+                let postedommageId = $(this).find("td:first").text().trim().toLowerCase(); // Nom du poste dommage
+                let isFranchise = postedommageId.includes("franchise");
+
+                $(this).find("input").each(function () {
+                    let input = $(this);
+                    let idParts = input.attr("id").split("_");
+                    let garantieId = idParts[idParts.length - 1];
+                    let type = input.data("type");
+                    let valeur = parseInt(input.val().replaceAll(' ', '')) || 0;
+
+                    if (isFranchise) {
+                        valeur *= -1;
+                    }
+
+                    // Initialiser l'objet de stockage des totaux
+                    if (!totaux[garantieId]) {
+                        totaux[garantieId] = { estimation: 0, deja_regle: 0, provision: 0 };
+                    }
+                    totaux[garantieId][type] += valeur;
+                });
+            });
+
+            // Mise à jour des champs de total
+            for (const [garantieId, total] of Object.entries(totaux)) {
+                $(`#total_estimation_${garantieId}`).val(total.estimation.toLocaleString());
+                $(`#total_deja_regle_${garantieId}`).val(total.deja_regle.toLocaleString());
+                $(`#total_provision_${garantieId}`).val(total.provision.toLocaleString());
+            }
+        }
+
+        function enregistrer_montant_garantie_sinistre(input) {
+            let idParts = input.attr("id").split("_");
+            let postedommageId = idParts[1];
+            let garantieId = idParts[2];
+            let type = input.data("type");
+            let valeur = parseInt(input.val().replaceAll(' ', '')) || 0;
+
+            // Vérifier si c'est "Franchise" pour inverser la valeur
+            let postedommageNom = $(`#table_provision_sinistre tbody tr td:first:contains('${postedommageId}')`).text().trim().toLowerCase();
+            if (postedommageNom.includes("franchise")) {
+                valeur *= -1;
+            }
+
+            console.log('Poste dommage ID:', postedommageId);
+            console.log('Garantie ID:', garantieId);
+            console.log('Valeur envoyée:', valeur);
+
+            $.ajax({
+                url: "/production/enregistrer_montant_garantie_sinistre/",
+                type: "POST",
+                headers: { "X-CSRFToken": getCSRFToken() },
+                contentType: "application/json",
+                data: JSON.stringify({
+                    postedommageId: postedommageId,
+                    garantieId: garantieId,
+                    type: type,
+                    valeur: valeur,
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        let totaux = response.totaux;
+
+                        for (const [garantieId, total] of Object.entries(totaux)) {
+                        }
+                    } else {
+                        console.error("Erreur lors de l'enregistrement en session.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Erreur de communication avec le serveur.");
+                }
             });
         }
 

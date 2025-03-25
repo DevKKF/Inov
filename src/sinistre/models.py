@@ -30,6 +30,7 @@ class Sinistre(models.Model):
     updated_by = models.ForeignKey(User, related_name="updated_by_sinistre", null=True, on_delete=models.RESTRICT)
 
     numero = models.CharField(max_length=50, blank=True, null=True)
+    numero_provisoire = models.CharField(max_length=50, blank=True, null=True)
     lieu_survenance = models.TextField(blank=True, null=True)
     tva_recuperee = models.TextField(blank=True, null=True)
     fait_generateur = models.TextField(blank=True, null=True)
@@ -123,6 +124,7 @@ class HistoriqueSinistre(models.Model):
     updated_by = models.ForeignKey(User, related_name="histo_updated_by_sinistre", null=True, on_delete=models.RESTRICT)
 
     numero = models.CharField(max_length=50, blank=True, null=True)
+    numero_provisoire = models.CharField(max_length=50, blank=True, null=True)
     lieu_survenance = models.TextField(blank=True, null=True)
     tva_recuperee = models.TextField(blank=True, null=True)
     fait_generateur = models.TextField(blank=True, null=True)

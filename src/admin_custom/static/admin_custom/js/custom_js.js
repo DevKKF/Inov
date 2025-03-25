@@ -5922,6 +5922,8 @@ $(document).ready(function () {
         let mode_renouvellement = $('#mode_renouvellement').val();
         let btn_submit = $('#btn_save_police');
 
+
+
         // Réactiver le bouton avant vérification
         btn_submit.removeAttr('disabled');
 
@@ -5956,12 +5958,88 @@ $(document).ready(function () {
         validateDates();
     });
 
+    // Fonction pour gérer l'affichage et la validation des champs
+    function gererApporteurChamps() {
+        if ($('#yes_apporteur').is(':checked')) {
+            $('.apporteur-champs').show();
+            $('.intermediaire_champ_obligatoire').attr('required', true);
+        } else {
+            $('.apporteur-champs').hide();
+            $('.intermediaire_champ_obligatoire').removeAttr('required');
+        }
+    }
+
+    // Appel initial pour gérer l'affichage
+    gererApporteurChamps();
+
+    // Gestionnaire d'événement pour les changements de radio
+    $('input[name="apporteur"]').change(function() {
+        gererApporteurChamps();
+    });
+
     // Gestion de la soumission du formulaire
-    $("#btn_save_police").on('click', function () {
+    $("#btn_save_police").on('click', function (e) {
         let btn_submit = $(this);
 
         // Vérifier les dates avant de désactiver le bouton
         if (!validateDates()) {
+            return;
+        }
+
+        let isValid = true;
+
+        // Validation des champs obligatoires dans les onglets "General", "Facturation" et "Garantie"
+        $('#general-tab, #facturation-tab, #garantie-tab').each(function () {
+            let tabId = $(this).attr('href');
+            $(tabId).find('input[required], select[required]').each(function () {
+                if (!$(this).val()) {
+                    $(this).addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+        });
+
+        // Validation des champs intermediaires
+        if ($('#yes_apporteur').is(':checked')) {
+            $('.intermediaire_champ_obligatoire').each(function() {
+                if (!$(this).val()) {
+                    event.preventDefault(); // Empêcher la soumission
+                    $(this).addClass('is-invalid'); // Ajouter une classe d'erreur
+                    return false; // Sortir de la boucle each
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+        }
+
+        // Validation des champs obligatoires dynamiques
+        if ($('#vehicule-tab').is(':visible')) {
+            $('.vehicule_champ_obligatoire').each(function () {
+                if (!$(this).val()) {
+                    isValid = false;
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+        }
+
+        if ($('#marchandise-tab').is(':visible')) {
+            $('.marchandise_champ_obligatoire').each(function () {
+                if (!$(this).val()) {
+                    isValid = false;
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+        }
+
+        if (!isValid) {
+            e.preventDefault(); // Empêcher la soumission
+            notifyWarning('Veuillez renseigner tous les champs obligatoires.');
             return;
         }
 
@@ -6118,7 +6196,7 @@ $(document).ready(function () {
             $('#option_calcul_prime_modification').change();
 
             //gestion du clique sur valider les modifications
-            $("#btn_save_modification_police").on('click', function () {
+            $("#btn_save_modification_police").on('click', function (e) {
 
                 let formulaire = $('#form_update_police');
                 let href = formulaire.attr('action');
@@ -6136,6 +6214,50 @@ $(document).ready(function () {
                         notifyWarning('La date de fin de la police doit être strictement postérieure à la date de début.');
                         return;
                     }
+                }
+
+                let isValid = true;
+
+                // Validation des champs obligatoires dans les onglets "General", "Facturation" et "Garantie"
+                $('#general-tab_modification, #facturation-tab_modification, #garantie-tab_modification').each(function () {
+                    let tabId = $(this).attr('href');
+                    $(tabId).find('input[required], select[required]').each(function () {
+                        if (!$(this).val()) {
+                            $(this).addClass('is-invalid');
+                            isValid = false;
+                        } else {
+                            $(this).removeClass('is-invalid');
+                        }
+                    });
+                });
+
+                // Validation des champs obligatoires dynamiques
+                if ($('#vehicule-tab_modification').is(':visible')) {
+                    $('.vehicule_champ_obligatoire_modification').each(function () {
+                        if (!$(this).val()) {
+                            isValid = false;
+                            $(this).addClass('is-invalid');
+                        } else {
+                            $(this).removeClass('is-invalid');
+                        }
+                    });
+                }
+
+                if ($('#marchandise-tab_modification').is(':visible')) {
+                    $('.marchandise_champ_obligatoire_modification').each(function () {
+                        if (!$(this).val()) {
+                            isValid = false;
+                            $(this).addClass('is-invalid');
+                        } else {
+                            $(this).removeClass('is-invalid');
+                        }
+                    });
+                }
+
+                if (!isValid) {
+                    e.preventDefault(); // Empêcher la soumission
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires.');
+                    return;
                 }
 
                 $.validator.setDefaults({ ignore: [] });
@@ -6281,7 +6403,7 @@ $(document).ready(function () {
             });
 
             //gestion du clique sur valider les modifications
-            $("#btn_save_modification_sinistre").on('click', function () {
+            $("#btn_save_modification_police_sinistre").on('click', function () {
 
                 let formulaire = $('#form_update_sinistre');
                 let href = formulaire.attr('action');
@@ -6291,6 +6413,60 @@ $(document).ready(function () {
                 $.validator.setDefaults({ ignore: [] });
 
                 let formData = new FormData();
+
+                let date_survenance = $('#modal-sinistre #date_survenance').val();
+                let date_declaration = $('#modal-sinistre #date_declaration').val();
+                let date_ouverture = $('#modal-sinistre #date_ouverture').val();
+                let date_cloture = $('#modal-sinistre #date_cloture').val();
+
+                console.log("Survenance :", date_survenance, "Déclaration :", date_declaration, "Ouverture :", date_ouverture, "Clôture :", date_cloture);
+
+                // Validation des dates
+                if (date_survenance && date_declaration && date_ouverture && date_cloture) {
+                    let survenance = new Date(date_survenance);
+                    let declaration = new Date(date_declaration);
+                    let ouverture = new Date(date_ouverture);
+                    let cloture = new Date(date_cloture);
+
+                    if (survenance > declaration) {
+                        notifyWarning('La date de survenance doit être antérieure ou égale à la date de déclaration.');
+                        return;
+                    }
+
+                    if (declaration > ouverture) {
+                        notifyWarning('La date de déclaration doit être antérieure ou égale à la date d\'ouverture.');
+                        return;
+                    }
+
+                    if (ouverture > cloture) {
+                        notifyWarning('La date d\'ouverture doit être antérieure ou égale à la date de clôture.');
+                        return;
+                    }
+                }
+                else if (date_survenance && date_declaration && date_ouverture) {
+                    let survenance = new Date(date_survenance);
+                    let declaration = new Date(date_declaration);
+                    let ouverture = new Date(date_ouverture);
+
+                        if (survenance > declaration) {
+                        notifyWarning('La date de survenance doit être antérieure ou égale à la date de déclaration.');
+                        return;
+                    }
+
+                    if (declaration > ouverture) {
+                        notifyWarning('La date de déclaration doit être antérieure ou égale à la date d\'ouverture.');
+                        return;
+                    }
+                }
+                else if (date_survenance && date_declaration) {
+                    let survenance = new Date(date_survenance);
+                    let declaration = new Date(date_declaration);
+
+                        if (survenance > declaration) {
+                        notifyWarning('La date de survenance doit être antérieure ou égale à la date de déclaration.');
+                        return;
+                    }
+                }
 
                 if (formulaire.valid()) {
 
@@ -6317,6 +6493,36 @@ $(document).ready(function () {
                                         formData.append(key, valeur);
 
                                     });
+
+                                    // Récupérer les données des provisions
+                                    let provisionsData = {};
+                                    $("#table_provision_sinistre tbody tr").each(function () {
+                                        let postedommageId = $(this).find("td:first").text();
+                                        if (!postedommageId) return; // Skip header row
+
+                                        provisionsData[postedommageId] = {};
+
+                                        $(this).find(".calculs_montant_garantie_sinistre").each(function () {
+                                            let id = $(this).attr("id").split("_");
+                                            let garantieId = id[2];
+                                            let type = $(this).data("type");
+                                            let valeur = $(this).val();
+
+                                            // Appliquer un signe négatif pour les Franchise
+                                            if (postedommageId.toLowerCase().includes("Franchise")) {
+                                                valeur *= -1;
+                                            }
+
+                                            if (!provisionsData[postedommageId][garantieId]) {
+                                                provisionsData[postedommageId][garantieId] = {};
+                                            }
+
+                                            provisionsData[postedommageId][garantieId][type] = valeur;
+                                        });
+                                    });
+
+                                    // Ajouter les données des provisions au formData
+                                    formData.append('provisions', JSON.stringify(provisionsData));
 
                                     $.ajax({
                                         type: 'post',
@@ -10904,13 +11110,53 @@ $(document).ready(function () {
         let date_survenance = $('#modal-sinistre #date_survenance').val();
         let date_declaration = $('#modal-sinistre #date_declaration').val();
         let date_ouverture = $('#modal-sinistre #date_ouverture').val();
+        let date_cloture = $('#modal-sinistre #date_cloture').val();
 
-        console.log("Survenance :", date_survenance, "Déclaration :", date_declaration, "Ouverture :", date_ouverture);
+        console.log("Survenance :", date_survenance, "Déclaration :", date_declaration, "Ouverture :", date_ouverture, "Clôture :", date_cloture);
 
-        // Vérification des dates avant toute autre action
-        if (date_survenance && date_declaration) {
-            if (new Date(date_survenance) >= new Date(date_declaration)) {
-                notifyWarning('La date de survenance du sinistre doit être strictement postérieure à la date de déclaration.');
+        // Validation des dates
+        if (date_survenance && date_declaration && date_ouverture && date_cloture) {
+            let survenance = new Date(date_survenance);
+            let declaration = new Date(date_declaration);
+            let ouverture = new Date(date_ouverture);
+            let cloture = new Date(date_cloture);
+
+            if (survenance > declaration) {
+                notifyWarning('La date de survenance doit être antérieure ou égale à la date de déclaration.');
+                return;
+            }
+
+            if (declaration > ouverture) {
+                notifyWarning('La date de déclaration doit être antérieure ou égale à la date d\'ouverture.');
+                return;
+            }
+
+            if (ouverture > cloture) {
+                notifyWarning('La date d\'ouverture doit être antérieure ou égale à la date de clôture.');
+                return;
+            }
+        }
+        else if (date_survenance && date_declaration && date_ouverture) {
+            let survenance = new Date(date_survenance);
+            let declaration = new Date(date_declaration);
+            let ouverture = new Date(date_ouverture);
+
+                if (survenance > declaration) {
+                notifyWarning('La date de survenance doit être antérieure ou égale à la date de déclaration.');
+                return;
+            }
+
+            if (declaration > ouverture) {
+                notifyWarning('La date de déclaration doit être antérieure ou égale à la date d\'ouverture.');
+                return;
+            }
+        }
+        else if (date_survenance && date_declaration) {
+            let survenance = new Date(date_survenance);
+            let declaration = new Date(date_declaration);
+
+                if (survenance > declaration) {
+                notifyWarning('La date de survenance doit être antérieure ou égale à la date de déclaration.');
                 return;
             }
         }
@@ -25154,11 +25400,11 @@ $(document).ready(function () {
         }
     });
 
-    function toggleDisabledFields(prefix) {
+    function toggleReadonlyFields(prefix) {
         var valeurAssuree = parseFloat($('#valeur_assuree' + prefix).val().replace(/,/g, ''));
-        var disableFields = isNaN(valeurAssuree) || valeurAssuree === 0;
+        var readonlyFields = isNaN(valeurAssuree) || valeurAssuree === 0;
 
-        var fieldsToDisable = $(
+        var fieldsToReadonly = $(
             '#taux_risque_ordinaire' + prefix + ', ' +
             '#taux_risque_guerre' + prefix + ', ' +
             '#taux_supprime' + prefix + ', ' +
@@ -25168,26 +25414,26 @@ $(document).ready(function () {
             '#autres_frais' + prefix
         );
 
-        fieldsToDisable.prop('disabled', disableFields);
+        fieldsToReadonly.prop('readonly', readonlyFields);
 
-        if (disableFields) {
-            fieldsToDisable.addClass('disabled-field');
+        if (readonlyFields) {
+            fieldsToReadonly.addClass('readonly-field');
             // Important : Vider les champs ici pour effacer les valeurs affichées
-            fieldsToDisable.val('');
+            fieldsToReadonly.val('');
         } else {
-            fieldsToDisable.removeClass('disabled-field');
+            fieldsToReadonly.removeClass('readonly-field');
         }
     }
 
     // Initialisation et gestion des événements pour les deux formulaires
-    toggleDisabledFields("");
+    toggleReadonlyFields("");
     $('#valeur_assuree').on('input', function() {
-        toggleDisabledFields("");
+        toggleReadonlyFields("");
     });
 
-    toggleDisabledFields("_modification");
+    toggleReadonlyFields("_modification");
     $('#valeur_assuree_modification').on('input', function() {
-        toggleDisabledFields("_modification");
+        toggleReadonlyFields("_modification");
     });
 
     // Récupérer les éléments
@@ -25226,25 +25472,61 @@ $(document).ready(function () {
         return $("input[name=csrfmiddlewaretoken]").val();
     }
 
-    // Initialisation : masquer tous les onglets spécifiques et réinitialiser les champs
-    $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab, #marchandise-tab').addClass('d-none');
-    $('.aliment_champ_obligatoire, .marchandise_champ_obligatoire').removeAttr('required');
+    // Fonction utilitaire : Affiche un tab et rend les champs obligatoires
+    function afficherOngletAvecChamps(tabSelector, champSelector) {
+        $(tabSelector).removeClass('d-none');
+        $(champSelector).attr('required', true);
+    }
+
+    // Liste des onglets dynamiques
+    const ongletsDynamiques = ['#risque-tab', '#aliment-tab', '#vehicule-tab', '#marchandise-tab'];
+    const champsDynamiques = ['.marchandise_champ_obligatoire', '.vehicule_champ_obligatoire'];
+
+    // Liste des onglets fixes avec leurs champs obligatoires
+    const ongletsFixes = [
+        { tab: '#garantie-tab', champ: '.garantie_champ_obligatoire' },
+        { tab: '#intermediaire-tab', champ: '.intermediaire_champ_obligatoire' },
+        { tab: '#general-tab' },
+        { tab: '#facturation-tab' },
+        { tab: '#prime-tab' },
+    ];
+
+    // *** Initialisation ***
+    // Masquer les onglets dynamiques
+    $(ongletsDynamiques.join(', ')).addClass('d-none');
+    $(champsDynamiques.join(', ')).removeAttr('required');
     $('#table_liste_aliment tbody').empty();
 
-    // Changement de produit, charger les sous-menus liés
+    // Afficher les onglets fixes
+    ongletsFixes.forEach(onglet => {
+        $(onglet.tab).removeClass('d-none');
+        if (onglet.champ) {
+            $(onglet.champ).attr('required', true); // rendre les champs obligatoires
+        }
+    });
+
+    // *** Changement de produit ***
     $('#produit').on('change', function () {
         let produit_id = $(this).val();
 
-        // Vérifier si un produit est sélectionné
         if (!produit_id) {
-            // Si aucun produit sélectionné, réinitialiser tout
-            $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab, #marchandise-tab').addClass('d-none');
-            $('#modal-police .aliment_champ_obligatoire, #modal-police_aliment .marchandise_champ_obligatoire').removeAttr('required');
+            // Si aucun produit sélectionné : masquer dynamiques, réinitialiser champs
+            $(ongletsDynamiques.join(', ')).addClass('d-none');
+            $(champsDynamiques.join(', ')).removeAttr('required');
             $('#table_liste_aliment tbody').empty();
+
+            // Onglets fixes toujours visibles + champs required actifs
+            ongletsFixes.forEach(onglet => {
+                $(onglet.tab).removeClass('d-none');
+                if (onglet.champ) {
+                    $(onglet.champ).attr('required', true);
+                }
+            });
+
             return;
         }
 
-        // Effectuer l'appel AJAX pour charger les sous-menus
+        // Si un produit est sélectionné
         $.ajax({
             type: 'get',
             url: '/production/produit/' + produit_id + '/sous-menu',
@@ -25252,31 +25534,27 @@ $(document).ready(function () {
                 produit_code = produit[0].fields.code;
                 console.log('produit_code', produit_code);
 
-                // Réinitialiser les onglets et champs
-                $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab, #marchandise-tab').addClass('d-none');
-                $('#modal-police .aliment_champ_obligatoire').removeAttr('required');
-                $('#modal-police_aliment .mod_aliment_champ_obligatoire').removeAttr('required');
-                $('#modal-police .marchandise_champ_obligatoire').removeAttr('required');
+                // Réinitialiser les dynamiques
+                $(ongletsDynamiques.join(', ')).addClass('d-none');
+                $(champsDynamiques.join(', ')).removeAttr('required');
+                $('#table_liste_aliment tbody').empty();
 
-                // Effacer les lignes existantes du tableau
-                const tbody = $('#table_liste_aliment tbody');
-                tbody.empty();
+                // Réafficher les onglets fixes + champs required
+                ongletsFixes.forEach(onglet => {
+                    $(onglet.tab).removeClass('d-none');
+                    if (onglet.champ) {
+                        $(onglet.champ).attr('required', true);
+                    }
+                });
 
-                // Traitement basé sur la réponse du serveur
-                if (produit_code == 10001) { //Mono-Véhicule
-                    $('#garantie-tab').removeClass('d-none');
-                    $('#vehicule-tab').removeClass('d-none');
-                    $('#modal-police .aliment_champ_obligatoire').attr('required', true);
-                } else if (produit_code == 10002) { //Flotte-Auto
-                    $('#garantie-tab').removeClass('d-none');
-                    $('#aliment-tab').removeClass('d-none');
-                    $('#modal-police_aliment .mod_aliment_champ_obligatoire').attr('required', true);
-                } else if (produit_code == 50001 || produit_code == 50002) { //
-                    $('#garantie-tab').removeClass('d-none');
-                    $('#marchandise-tab').removeClass('d-none');
-                    $('#modal-police .marchandise_champ_obligatoire').attr('required', true);
-                }else{
-                    $('#garantie-tab').removeClass('d-none');
+                // Logique produit_code : affichage dynamique
+                if (produit_code == 10001) { // Mono-Véhicule
+                    afficherOngletAvecChamps('#vehicule-tab', '.vehicule_champ_obligatoire');
+                } else if (produit_code == 10002) { // Flotte-Auto
+                    afficherOngletAvecChamps('#aliment-tab', '.mod_aliment_champ_obligatoire');
+                } else if (produit_code == 50001 || produit_code == 50002) { // Produits marchandise
+                    afficherOngletAvecChamps('#marchandise-tab', '.marchandise_champ_obligatoire');
+                } else {
                     $('#risque-tab').removeClass('d-none');
                 }
             },
@@ -25285,6 +25563,9 @@ $(document).ready(function () {
             }
         });
     });
+
+
+
 
     //Récupération des polices
     function chargementPoliceCompagnieTable(compagnieId) {
@@ -25590,6 +25871,33 @@ $(document).ready(function () {
                 } else {
                     $('#btn_save_police_sinistre').prop('disabled', false);
                 }
+            },
+            error: function () {
+                console.error('Erreur lors du chargement des données.');
+            }
+        });
+    });
+
+    // Changement des informations de la marchandise
+    $('#marchandise_id').on('change', function () {
+        let marchandise_id = $(this).val();
+
+        if (!marchandise_id) return;
+
+        // Requête AJAX
+        $.ajax({
+            type: 'GET',
+            url: '/production/police/information-marchandise/' + marchandise_id,
+            success: function (marchandise) {
+                if (marchandise.error) {
+                    console.error('Erreur:', marchandise.error);
+                    return;
+                }
+                console.log('marchandise : ', marchandise);
+
+                // Remplissage du champ "risque"
+                let immat_marchandise = marchandise.risque_info;
+                $('#marchandise').val(immat_marchandise);
             },
             error: function () {
                 console.error('Erreur lors du chargement des données.');
