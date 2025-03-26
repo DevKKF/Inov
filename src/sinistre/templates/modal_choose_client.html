@@ -17,27 +17,29 @@
 					</div>
 					<div class="col-md-12 offset-0">
 						<div class="row">
-							<div class="col-md-12" style="border-left:0px;margin-left:-5px;padding-left:15px;">
-								<div class="form-group row">
-									<label class="col-sm-5 col-form-label">{{_('Client')}} <span class="required">*</span></label>
-									<div class="col-sm-7">
-										<select class="form-control tags-multiple" id="client_executant_selected" required style="border:2px solid var(--colorJauneOlea);">
-											<option value="">{{_('Choisir')}}</option>
-											{% for client in clients %}
-											<option value="{{ client.id }}" data-client_id="{{ client.id }}">{{ client.code }} - ({{ client.nom|default_if_none:'' }})</option>
-											{% endfor %}
-										</select>
-									</div>
+							<div class="col-md-6">
+								<div class="form-group">
+									<label>{% trans 'N° Client' %} : </label>
+									<input id="search_numero_client" class="form-control" type="text" name="nc" style="border-radius:3px;border:1px solid rgba(0, 0, 0, 0.3);text-transform:uppercase;" placeholder="N° Client">
 								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="form-group">
+									<label>{% trans 'Nom ou Prénoms complet' %} : </label>
+									<input id="search_nom_client" class="form-control" type="text" name="nomc" style="border-radius:3px;border:1px solid rgba(0, 0, 0, 0.3);text-transform:uppercase;" placeholder="{% trans 'Nom ou Prénoms complet' %}">
+								</div>
+							</div>
+							<div class="col-md-12">
+								<button type="button" id="btn_search_client_police" class="btn btn-sm btn-info" style="float:right"><i class="fa fa-search"></i> Rechercher</button>
 							</div>
 						</div>
 					</div>
-                    <div class="col-md-12" id="list_police">
+                    <div class="col-md-12" id="list_police_client">
                         <hr>
-                        <table id="table_liste_police" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
+                        <table id="table_liste_police" style="width:100%;" class="table table-bordered table-striped dataTable dtr-inline">
                             <thead>
                                 <tr>
-                                    <th style="width:5%"></th>
+                                    <th style="width:5%">##</th>
                                     <th>{{_("Numéro")}}</th>
                                     <th class="text-center">{{_("Produit")}}</th>
                                     <th class="text-center">{{_("Assureur")}}</th>
@@ -62,3 +64,162 @@
 		</div>
 	</div>
 </div>
+<!--script>
+	$(document).ready(function() {
+		$('#list_police_client').hide(); // Cacher le tableau par défaut
+		$('#btn_search_client_police').click(function() {
+			var numeroClient = $('#search_numero_client').val().toUpperCase();
+			var nomClient = $('#search_nom_client').val().toUpperCase();
+			var $tableBody = $('#table_liste_police tbody');
+			$tableBody.empty(); // Vider le tableau avant de nouvelles données
+			$('#loading_gif').show(); // Afficher le loader
+
+			$.ajax({
+				url: '{% url "recherche_client_police" %}',
+				type: 'POST',
+				data: {
+					'nc': numeroClient,
+					'nomc': nomClient,
+					'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+				},
+				dataType: 'json',
+				success: function(data) {
+					$('#loading_gif').hide(); // Cacher le loader
+					if (data.success) {
+						if (data.polices && data.polices.length > 0) {
+							$.each(data.polices, function(index, police) {
+								var row = '<tr>' +
+									'<td><input type="radio" name="selected_police" value="' + police.id + '"></td>' +
+									'<td>' + police.numero + '</td>' +
+									'<td class="text-center">' + police.produit + '</td>' +
+									'<td class="text-center">' + police.assureur + '</td>' +
+									'<td class="text-center">' + police.date_debut + '</td>' +
+									'<td class="text-center">' + police.date_echeance + '</td>' +
+									'</tr>';
+								$tableBody.append(row);
+							});
+							$('#list_police_client').show();
+							$('.error_box_aliment_not_found').hide();
+						} else {
+							$('#list_police_client').hide();
+							$('.error_box_aliment_not_found').text('Aucune police trouvée pour ce client.').show();
+						}
+					} else {
+						$('#list_police_client').hide();
+						$('.error_box_aliment_not_found').text(data.message || 'Client non trouvé.').show();
+					}
+				},
+				error: function() {
+					$('#loading_gif').hide();
+					$('#list_police_client').hide();
+					$('.error_box_aliment_not_found').text('Erreur lors de la recherche.').show();
+				}
+			});
+
+		});
+
+		// Gestion du bouton 'Continuer'
+		$('#btn_confirm_selected_prestataire').click(function() {
+			var selectedPoliceId = $('input[name=selected_police]:checked').val();
+			if (selectedPoliceId) {
+				// Ici, vous pouvez traiter l'ID de la police sélectionnée
+				console.log("Police sélectionnée : " + selectedPoliceId);
+				$('#modal_choose_client').modal('hide');
+				// Ajoutez ici votre logique pour continuer avec la police sélectionnée
+			} else {
+				alert("Veuillez sélectionner une police.");
+			}
+		});
+	});
+</script-->
+
+<script>
+$(document).ready(function() {
+    $('#list_police_client').hide();
+
+    $('#btn_search_client_police').click(function() {
+        var numeroClient = $('#search_numero_client').val().toUpperCase();
+        var nomClient = $('#search_nom_client').val().toUpperCase();
+        var $tableBody = $('#table_liste_police tbody');
+        $tableBody.empty();
+        $('#loading_gif').show();
+
+        $.ajax({
+            url: '{% url "recherche_client_police" %}',
+            type: 'POST',
+            data: {
+                'nc': numeroClient,
+                'nomc': nomClient,
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+            },
+            dataType: 'json',
+            success: function(data) {
+                $('#loading_gif').hide();
+                if (data.success) {
+                    if (data.polices && data.polices.length > 0) {
+                        // Inspecter les données reçues
+                        console.log("Données reçues :", data.polices);
+
+                        // Formatter les données pour DataTable
+                        var formattedData = data.polices.map(function(police) {
+                            return [
+                                '<input type="radio" name="selected_police" value="' + police.id + '">',
+                                police.numero,
+                                police.produit,
+                                police.assureur,
+                                police.date_debut,
+                                police.date_echeance
+                            ];
+                        });
+
+                        $('#list_police_client').show();
+                        $('.error_box_aliment_not_found').hide();
+
+                        if (!$.fn.DataTable.isDataTable('#table_liste_police')) {
+                            // Initialiser DataTable
+                            $('#table_liste_police').DataTable({
+                                "language": {
+                                    "url": "../../static/admin_custom/js/French.json"
+                                },
+                                lengthMenu: [
+                                    [10, 25, 50, 100, -1], [10, 25, 50, 100, "Tout"]
+                                ],
+                                paging: true,
+                                searching: true,
+                                lengthChange: true,
+                                bSort: false,
+                                data: formattedData, // Utiliser les données formatées
+                                columns: [ // Définir les colonnes
+                                    { title: "" },
+                                    { title: "Numéro" },
+                                    { title: "Produit" },
+                                    { title: "Assureur" },
+                                    { title: "Date début" },
+                                    { title: "Date échéance" }
+                                ]
+                            });
+                        } else {
+                            // Recharger les données
+                            $('#table_liste_police').DataTable().clear().rows.add(formattedData).draw();
+                        }
+
+                    } else {
+                        $('#list_police_client').hide();
+                        $('.error_box_aliment_not_found').text('Aucune police trouvée pour ce client.').show();
+                    }
+                } else {
+                    $('#list_police_client').hide();
+                    $('.error_box_aliment_not_found').text(data.message || 'Client non trouvé.').show();
+                }
+            },
+            error: function() {
+                $('#loading_gif').hide();
+                $('#list_police_client').hide();
+                $('.error_box_aliment_not_found').text('Erreur lors de la recherche.').show();
+            }
+        });
+    });
+
+    // ... (votre code existant) ...
+});
+</script>

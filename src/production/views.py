@@ -10864,7 +10864,6 @@ def polices_en_cours_datatable(request):
     search_produit = request.GET.get('search_produit', '').strip()
     search_commercial = request.GET.get('search_commercial', '').strip()
     today = now()
-    in_90_days = today + timedelta(days=90)
 
     user = request.user
     queryset = Police.objects.filter(Q(date_fin_effet__gt=today) | Q(date_fin_police__gt=today))
@@ -10904,9 +10903,6 @@ def polices_en_cours_datatable(request):
 
     paginator = Paginator(queryset, length)
     page_obj = paginator.get_page(page_number)
-
-    print('Date du jour :', today)
-    print('Dans 90 jours :', in_90_days)
 
     # Prepare the data in the expected format
     data = []
@@ -11098,7 +11094,7 @@ class PolicesNonRenouvelleesResilieesView(TemplateView):
         }
 
 
-#Chargement des lignes de polices arrivant non résiliée et renouvelée
+#Chargement des lignes de polices non résiliée et renouvelée
 def polices_non_renouvellees_resiliees_datatable(request):
     items_per_page = 10
     page_number = request.GET.get('page')
@@ -11111,7 +11107,6 @@ def polices_non_renouvellees_resiliees_datatable(request):
     search_produit = request.GET.get('search_produit', '').strip()
     search_commercial = request.GET.get('search_commercial', '').strip()
     today = now()
-    in_90_days = today + timedelta(days=90)
 
     user = request.user
     queryset = Police.objects.filter(Q(date_fin_effet__lt=today) | Q(date_fin_police__lt=today))

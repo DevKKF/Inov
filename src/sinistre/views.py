@@ -23,7 +23,8 @@ from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count
-from django.db.models import Q
+from django.db.models import Q, Subquery, OuterRef
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum
 from django.db.models import Value, F
 from django.db.models.functions import Concat
@@ -35,7 +36,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
-from django.utils.timezone import make_aware
+from django.utils.timezone import make_aware, now
 from django.views.decorators.cache import never_cache
 from django.views.generic import TemplateView, ListView
 from num2words import num2words
@@ -48,7 +49,7 @@ from configurations.models import Compagnie, User, Rubrique, Affection, Acte, Pr
     BackgroundQueryTask, TypePrefinancement
 from production.models import Carte, Aliment, Statut, TypeDocument, Bareme, Client
 #
-from production.models import Police, AlimentFormule
+from production.models import Police, AlimentFormule, HistoriquePolice, PoliceAssureur
 from production.templatetags.my_filters import money_field
 from shared.enum import StatutPolice
 from shared.enum import StatutSinistre, StatutSinistreBordereau, StatutSinistrePrestation, StatutValidite, \
@@ -70,6 +71,217 @@ from sinistre.helper_sinistre import exportation_en_excel_avec_style, \
 # Create your views here.
 from sinistre.models import PaiementComptable, Sinistre, DossierSinistre, DocumentDossierSinistre, ProrogationSinistre, SinistreTemporaire, \
     FacturePrestataire, RemboursementSinistre, BordereauOrdonnancement, HistoriqueOrdonnancementSinistre
+
+
+@method_decorator(login_required, name='dispatch')
+class SaisieSinistreView(TemplateView):
+    template_name = 'form_saisie_sinistre.html'
+    model = Sinistre
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+
+        today = timezone.now().date()
+        clients = Client.objects.order_by('-nom')
+
+        context['today'] = today
+        context['clients'] = clients
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@csrf_exempt
+def rechercheclientpolice(request):
+    if request.method == 'POST':
+        numero_client = request.POST.get('nc', '').upper()
+        nom_client = request.POST.get('nomc', '').upper()
+
+        clients = Client.objects.filter(
+            Q(code__exact=numero_client) |
+            Q(nom__icontains=nom_client)
+        )
+
+        if clients.exists():
+            client = clients.first()
+            today = datetime.date.today()  # Définir la date actuelle
+            #polices = Police.objects.filter(client=client).values( 'id', 'numero', 'produit__nom')
+            polices = Police.objects.filter(
+                client=client
+            ).filter(
+                Q(date_fin_effet__isnull=True) | Q(date_fin_effet__gt=today) |
+                Q(date_fin_police__isnull=True) | Q(date_fin_police__gt=today)
+            ).values(
+                'id',
+                'numero',
+                'produit__nom'
+            )
+            police_list = []
+            for police in polices:
+                police_list.append({
+                    'id': police['id'],
+                    'numero': police['numero'],
+                    'produit': police['produit__nom'],
+                    'assureur': "Moi même",
+                    'date_debut': "Date début",
+                    'date_echeance': "Date fin",
+                })
+            return JsonResponse({'success': True, 'polices': police_list})
+        else:
+            return JsonResponse({'success': False, 'message': 'Client non trouvé.'})
+    return JsonResponse({'success': False, 'message': 'Méthode non autorisée.'})
+
+@csrf_exempt
+def recherche_clientpolice(request):
+    if request.method == 'POST':
+        numero_client = request.POST.get('nc', '').strip().upper()
+        nom_client = request.POST.get('nomc', '').strip().upper()
+
+        # Rechercher d'abord par code strictement égal si un numéro est fourni
+        if numero_client:
+            clients = Client.objects.filter(code=numero_client)
+        else:
+            # Sinon, rechercher par nom et prénoms (recherche approximative)
+            clients = Client.objects.filter(
+                Q(nom__icontains=nom_client) |
+                Q(prenoms__icontains=nom_client)
+            )
+
+        # Vérifier s'il y a au moins un client trouvé
+        if not clients.exists():
+            return JsonResponse({'success': False, 'message': 'Client non trouvé.'})
+
+        client = clients.first()  # Prendre le premier client trouvé
+        today = datetime.date.today()
+
+        # Filtrer les polices du client trouvé
+        polices = Police.objects.filter(client=client, date_fin_effet__isnull=False
+            ).filter(
+                Q(date_fin_effet__isnull=True) | Q(date_fin_effet__gt=today)
+            ).values(
+            'id',
+            'numero',
+            'produit__nom',
+            'date_debut_effet',
+            'date_fin_effet'
+        )
+
+        # Vérifier si des polices existent
+        if not polices.exists():
+            return JsonResponse({'success': False, 'message': 'Aucune police active trouvée pour ce client.'})
+
+        police_list = [
+            {
+                'id': police['id'],
+                'numero': police['numero'],
+                'produit': police['produit__nom'],
+                'assureur': 'assureur',
+                'date_debut': police['date_debut_effet'],
+                'date_echeance': police['date_fin_effet'],
+            }
+            for police in polices
+        ]
+
+        return JsonResponse({'success': True, 'polices': police_list})
+
+    return JsonResponse({'success': False, 'message': 'Méthode non autorisée.'})
+
+@csrf_exempt
+def recherche_client_police(request):
+    if request.method == 'POST':
+        numero_client = request.POST.get('nc', '').strip().upper()
+        nom_client = request.POST.get('nomc', '').strip().upper()
+
+        if not numero_client and not nom_client:
+            return JsonResponse({'success': False, 'message': 'Aucun champ de recherche saisi.'})
+
+        # Recherche stricte par code client si renseigné
+        if numero_client:
+            clients = Client.objects.filter(code=numero_client)
+        else:
+            # Sinon, recherche approximative par nom et prénoms
+            clients = Client.objects.filter(
+                Q(nom__icontains=nom_client) |
+                Q(prenoms__icontains=nom_client)
+            )
+
+        # Vérification si un client a été trouvé
+        if not clients.exists():
+            return JsonResponse({'success': False, 'message': 'Client non trouvé.'})
+
+        client = clients.first()  # Récupérer le premier client trouvé
+        today = datetime.date.today()
+
+        # Sous-requête pour obtenir la dernière ligne de `historique_police`
+        last_historique = HistoriquePolice.objects.filter(
+            police=OuterRef('pk')
+        ).order_by('-created_at').values('id')[:1]
+
+        # Sous-requête pour obtenir la dernière ligne de `assureur_police`
+        last_assureur = PoliceAssureur.objects.filter(
+            historique_police=OuterRef('pk')
+        ).order_by('-created_at').values('compagnie__nom')[:1]
+
+        # Filtrer les polices valides et récupérer la compagnie via les sous-requêtes
+        polices = (Police.objects.filter(
+            client=client,
+            date_fin_effet__isnull=False
+
+        ).filter(
+            Q(date_fin_effet__isnull=True) | Q(date_fin_effet__gt=today)
+        ).annotate(
+            compagnie_nom=Subquery(last_assureur)
+        ).values(
+            'id',
+            'numero',
+            'produit__nom',
+            'compagnie_nom',  # Nom de la compagnie récupéré via les sous-requêtes
+            'date_debut_effet',
+            'date_fin_effet'
+        ))
+
+        # Vérification si des polices existent
+        if not polices.exists():
+            return JsonResponse({'success': False, 'message': 'Aucune police active trouvée pour ce client.'})
+
+        police_list = [
+            {
+                'id': police['id'],
+                'numero': police['numero'],
+                'produit': police['produit__nom'],
+                'assureur': police['compagnie_nom'] if police['compagnie_nom'] else 'Non défini',
+                'date_debut': police['date_debut_effet'],
+                'date_echeance': police['date_fin_effet'],
+            }
+            for police in polices
+        ]
+
+        return JsonResponse({'success': True, 'polices': police_list})
+
+    return JsonResponse({'success': False, 'message': 'Méthode non autorisée.'})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @method_decorator(login_required, name='dispatch')
@@ -1197,34 +1409,6 @@ class AnnulerBordereauOrdonnancementView(TemplateView):
 
             # print(code_dossier_sinistre)
         return self.render_to_response(context)
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            **admin.site.each_context(self.request),
-            "opts": self.model._meta,
-        }
-
-
-# model 2
-@method_decorator(login_required, name='dispatch')
-class SaisieSinistreView(TemplateView):
-    template_name = 'form_saisie_sinistre.html'
-    model = Sinistre
-
-    def get(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-
-        today = timezone.now().date()
-        clients = Client.objects.order_by('-nom')
-
-        context['today'] = today
-        context['clients'] = clients
-
-        return self.render_to_response(context)
-
-    def post(self):
-        pass
 
     def get_context_data(self, **kwargs):
         return {

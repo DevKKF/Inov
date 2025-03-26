@@ -25,7 +25,32 @@ urlpatterns = [
     #
     path('search_benef_by_name_datatable/', views.search_benef_by_name_datatable, name='search_benef_by_name_datatable'),
 
+
+
+
+
+
+
+
+
+
     path('saisie_sinistre/', SaisieSinistreView.as_view(), name='saisie_sinistre'),
+    path('recherche_client_police/', views.recherche_client_police, name='recherche_client_police'),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     path('saisie_prestation/<int:prestataire_id>', SaisieSinistreView.as_view(), name='saisie_prestation'),
     path('popup_add_medicament_session_gestionnaire/<int:acte_id>/<int:aliment_id>/<int:prestataire_id>/<int:prescripteur_id>', views.popup_add_medicament_session_gestionnaire, name='popup_add_medicament_session_gestionnaire'),
     path('remove_medicament_session_gestionnaire/<int:medicament_id>', views.remove_medicament_session_gestionnaire, name='remove_medicament_session_gestionnaire'),

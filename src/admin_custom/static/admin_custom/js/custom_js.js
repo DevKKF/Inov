@@ -7192,7 +7192,6 @@ $(document).ready(function () {
                     });
                     //fin demande confirmation
 
-
                 } else {
 
                     $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
@@ -8847,7 +8846,7 @@ $(document).ready(function () {
                 $("#datatable_stock_input_reg").html("");
                 let href_reglements_a_reverser = $(this).children('option:selected').data('href_reglements_a_reverser');
 
-                calculer_montant_total_a_regler_compagnie();//vider les champs d'aperçu
+                calculer_montant_total_a_regler_compagnie();
 
                 $('#box_reglements_a_reverser_compagnie').load(href_reglements_a_reverser, function () {
                     $('#table_reglements_a_reverser_compagnie').DataTable({
