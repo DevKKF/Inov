@@ -1,514 +1,253 @@
-{% extends 'police/base.html' %} 
+{% extends 'client/menu_client.html' %}
+{% load my_filters %}
+{% load i18n %}
 {% block extrastyle %}
   <style type="text/css">
     .vl {
-        border-left: 2px solid #a75033;
-        height: auto;
-      }
+       border-left: 2px solid var(--colorPrimary);
+       height: auto;
+    }
     .o-primary {
-        color: #a75033;
-      }
+      color: var(--colorPrimary);
+    }
+
+    .o-bg-primary {
+      background-color: var(--colorPrimary);
+      color: #fff;
+    }
+
+    .info-box{
+        cursor:pointer;
+    }
+
+    .info-box .collapsed{
+        background: white;
+        color:var(--colorPrimary);
+    }
+
+    .info-box-icon{
+        background: var(--colorPrimary);
+        color:white;
+    }
+
+    .info-box .collapsed .info-box-icon{
+        background: var(--colorPrimary);
+        color:white;
+    }
+
+    .info-box .collapsed .info-box-icon i{
+        color:white;
+    }
+
+    .info-box:not(.collapsed) .info-box-icon{
+        background: var(--colorAccent);
+    }
+
+
+    .info-box.active .info-box-icon{
+        background: var(--colorAccent);
+    }
+
+    .tab-pane{
+        overflow-x: hidden;
+    }
+
   </style>
 {% endblock %}
-{% block content %}
-<div class="col-md-12">
-  <div class="card offset">
-    <div class="card-header">
-      <h3 class="card-title o-primary">{{_('PAGE_POLICE')}}</h3>
-      <div class="card-tools">
-        <button
-          type="button"
-          class="btn btn-tool"
-          data-card-widget="collapse"
-          title="Collapse"
-        >
-          <i class="fas fa-minus"></i>
-        </button>
-        <button
-          type="button"
-          class="btn btn-tool"
-          data-card-widget="remove"
-          title="Remove"
-        >
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
+{% block content_title %}
+    <div class="row mb-2">
+          <div class="col-sm-6">
+                <h1 class="m-0">Fiche client</h1>
+          </div>
+          <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                      <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
+                      <li class="breadcrumb-item">Production</li>
+                      <li class="breadcrumb-item"><a href="{% url 'clients' %}">Clients</a></li>
+                      <li class="breadcrumb-item active">Fiche client</li>
+                </ol>
+          </div>
     </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-12 col-md-12 order-2 order-md-1">
-          <div class="callout" style="border-left-color: #a75033">
-            <h5>{{_('CLIENT')}}</h5>
-            <div class="row invoice-info">
-              <div class="col-sm-3 invoice-col">
-                <strong>{{_('Nom_assure')}}</strong><br />
-                <span class="">NAS IVOIRE</span>
-              </div>
+{% endblock %}
+{% block content %}
 
-              <div class="col-sm-3 invoice-col">
-                <strong>{{_('ASSUREUR')}}</strong><br />
-                <span class="">NAS IVOIRE</span>
-              </div>
-
-              <div class="col-sm-3 invoice-col">
-                <b>{{_('Reference_police')}}</b><br />
-                <span class="">CI0121-AF001</span>
-              </div>
-              <div class="col-sm-3 invoice-col">
-                <b>{{_('Etat')}}</b><br />
-                <span class="badge badge-success">{{_('En_cours')}}</span>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-12 col-sm-4 col-md-2">
-                <a href="#">
-                  <div class="info-box">
-                      <span class="info-box-icon text-white elevation-1" style="background-color: #a75033"><i class="fas fa-history"></i></span></span>
-                      <div class="info-box-content">
-                        <span class="info-box-text">{{_('AVENANTS')}}</span>
-                      </div>
-                    </div>
-              </a>
-              </div>
-            <div class="col-12 col-sm-4 col-md-2">
-              <a href="#">
-                <div class="info-box">
-                    <span class="info-box-icon text-white elevation-1" style="background-color: #a75033"><i class="fas fa-umbrella"></i></span></span>
-                    <div class="info-box-content">
-                      <span class="info-box-text">{{_('GARANTIES')}}</span>
-                    </div>
-                  </div>
-            </a>
-            </div>
-            <div class="col-12 col-sm-4 col-md-2">
-                <a href="#">
-                  <div class="info-box">
-                      <span class="info-box-icon text-white elevation-1" style="background-color: #a75033"><i class="fas fa-file-invoice-dollar"></i></span></span>
-                      <div class="info-box-content">
-                        <span class="info-box-text">{{_('QUITTANCES')}}</span>
-                      </div>
-                    </div>
-              </a>
-              </div>
-              <div class="col-12 col-sm-4 col-md-2">
-                <a href="#">
-                  <div class="info-box">
-                      <span class="info-box-icon text-white elevation-1" style="background-color: #a75033"><i class="fas fa-folder-open"></i></span></span>
-                      <div class="info-box-content">
-                        <span class="info-box-text">{{_('GED')}}</span>
-                      </div>
-                    </div>
-              </a>
-              </div>
-
-            <div class="col-12 col-sm-4 col-md-2">
-              <a href="#">
-                <div class="info-box mb-3">
-                    <span class="info-box-icon text-white elevation-1" style="background-color: #a75033"><i class="fas fa-users"></i
-                    ></span>
-                    <div class="info-box-content">
-                      <span class="info-box-text">{{_('BENEFICIAIRES')}}</span>
-                    </div>
-                  </div>
-              </a>
-            </div>
-
-            <div class="clearfix hidden-md-up"></div>
-            <div class="col-12 col-sm-4 col-md-2">
-              <a href="#">
-                <div class="info-box mb-3">
-                    <span class="info-box-icon text-white elevation-1" style="background-color: #a75033"><i class="fas fa-pen"></i
-                    ></span>
-                    <div class="info-box-content">
-                      <span class="info-box-text">{{_('MODIFIER')}}</span>
-                    </div>
-                  </div>
-              </a>
-            </div>
-
-            <div class="col-12 col-sm-4 col-md-2">
-              <a href="#">
-                <div class="info-box mb-3">
-                    <span class="info-box-icon text-white elevation-1" style="background-color: #a75033"><i class="fas fa-user-injured"></i
-                    ></span>
-                    <div class="info-box-content">
-                      <span class="info-box-text">{{_('SINISTRES')}}</span>
-                    </div>
-                  </div>
-              </a>
-            </div>
-            <div class="col-12 col-sm-6 col-md-3">
-                <a href="#">
-                  <div class="info-box mb-5">
-                      <span class="info-box-icon text-white elevation-1" style="background-color: #a75033"><i class="fas fa-sync-alt"></i
-                      ></span>
-                      <div class="info-box-content">
-                        <span class="info-box-text">{{_('CHARGER_LES_COEFF_PAR_DEFAUT')}}</span>
-                      </div>
-                    </div>
-                </a>
-              </div>
-          </div>
-          <div class="row">
-            <div class="col-12 col-sm-6 col-md-12">
-              <h4></h4>
-              <div class="card shadow">
-                <div class="card-header" style="background-color: #a75033">
-                <h3 class="card-title text-white">{{_('DETAILS_POLICE')}}</h3>
-                <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i>
-                </button>
-                </div>
-                
-                </div>
-                
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Nom_Societe')}}</label>
-                                <div class="col-sm-6">
-                                <span class="form-control">OLEA Côte d'Ivoire</span>
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Branche')}}</label>
-                                <div class="col-sm-6">
-                                <span class="form-control">OLEA SANTE</span>
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Numero_Police')}}</label>
-                                <div class="col-sm-6">
-                                <span class="form-control">CI0121-AF001</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="vl"></div>
-                        <div class="col-md-5">
-                            <div class="form-group row">
-                                <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Assureur')}}</label>
-                                <div class="col-sm-6">
-                                <span class="form-control">OLEA Côte d'Ivoire</span>
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Produit')}}</label>
-                                <div class="col-sm-6">
-                                <span class="form-control">OLEA SANTE</span>
-                                </div>
-                            </div>
-                        </div>
-                </div>
-                <h6 class="o-primary">{{_('APPORTEUR_ET_PROGRAMME')}}</h6>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Apporteur')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('NON')}}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="vl"></div>
-                    <div class="col-md-5">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Programme_international')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('NON')}}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Placement_et_gestion')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('en local')}}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <h6 class="o-primary">{{_('DATES')}}</h6>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Date_de_effet')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">10/09/2021</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Duree_de_la_police')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">12</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Renouvellement')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('Tacite_reconduction')}}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Prochaine_date_de_effet')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">10-09</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="vl"></div>
-                    <div class="col-md-5">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Preavis_de_resiliation')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">2 MOIS</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Date_de_fin_de_periode_de_garantie')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">09/09/2022</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <h6 class="o-primary">{{_('FACTURATION')}}</h6>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Devise_Police')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">XOF</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Fractionnement')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('Trimestriel')}}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="vl"></div>
-                    <div class="col-md-5">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Mode_de_reglement')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('Virement')}}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Prochaine_date_de_facture')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">10/09/2022</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <h6 class="o-primary">{{_('COMMISSION')}}</h6>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Taux_de_com_global')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">0</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Dont_taux_de_com_de_apport')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">0</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Dont_taux_com_de_gestion')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">0</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="vl"></div>
-                    <div class="col-md-5">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Participation')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('NON')}}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <h6 class="o-primary">{{_('BUDGET_ANNUEL_ESTIMATIF')}}</h6>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Police_TTC')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">468 000 000 XOF</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Com_Annuelle')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">0 XOF</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Frais')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">1 XOF</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="vl"></div>
-                    <div class="col-md-5">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Prime_HT')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">468 000 000 XOF</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Com_totale_annuelle')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">0 XOF</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <h6 class="o-primary">{{_('PARAMETRES_POLICE_SANTE')}}</h6>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Mode_calcul_de_la_prime')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('non_renseignee')}}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Ticket_Moderateur')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('aucun_(TM_deduit_des_remboursement)')}}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Age_maximum_adulte')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">65</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Age_maximum_enfant')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">21</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Calcul_du_TM')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">SURPLAFOND</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="vl"></div>
-                    <div class="col-md-5">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Nb_de_enfants_max_par_famille')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">99</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Nb_de_personnes_max_par_famille')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">99</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Autofinancement')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('NON')}}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <h6 class="o-primary">{{_('GESTIONNAIRES')}}</h6>
-                <hr>
-                <h6 class="o-primary">{{_('SITUATION')}}</h6>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Mouvement')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('Affaire_Nouvelle')}}</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('ID_Police')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">290368</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="vl"></div>
-                    <div class="col-md-5">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Motif')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">{{_('En_cours')}}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <h6 class="o-primary">{{_('COEFFICIENTS_STATS')}}</h6>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Taux_charge_sur_prime_HT')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">0</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Coefficient_N1')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">100</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Coefficient_N3')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">100</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="vl"></div>
-                    <div class="col-md-5">
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Coefficien_N')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">100</span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="inputEmail3" class="col-sm-6 col-form-label">{{_('Coefficient_N2')}}</label>
-                            <div class="col-sm-6">
-                            <span class="form-control">100</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                </div>
-            </div>
-          </div>
+<div class="col-12 col-md-12 order-2 order-md-1" id="accordionClient">
+  <!-- INFORMATIONS CLIENT  -->
+  <div class="row collapse show" id="collapseInfosClient">
+    <div class="col-12 col-sm-6 col-md-12">
+      <h4></h4>
+      <div class="card shadow_OLD">
+        <div class="card-header">
+            <h3 class="card-title">{{_("FICHE DU CLIENT")}}</h3>
         </div>
-      </div>
+
+        <div class="card-body">
+            <div class="row mb-3">
+                {% if request.user.is_production %}
+                    <div class="col-md-12">
+                        <div class="button-link pull-right mb-2">
+                          <span style="cursor:pointer;" class="btn btn-sm btn-warning btn_modifier_client mb-1" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit"></i> {{_("Modifier client")}}</span>&nbsp;
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="col-md-6">
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Nom complet")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control" title="{{ client.nom|default_if_none:'' }} {{ client.prenoms|default_if_none:'' }}">{{ client.nom|default_if_none:"" }} {{ client.prenoms|default_if_none:"" }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Code client")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.code|default:client.code_provisoire|default:"" }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Type personne")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.type_personne|default_if_none:"" }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Type client")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.type_client|default_if_none:"" }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="vl"></div>
+                <div class="col-md-5">
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Date de nais./création")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.date_naissance|default_if_none:""  }}</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Secteur activité")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.secteur_activite.libelle|default_if_none:""  }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Business unit")}}</label>
+                        <div class="col-sm-7">
+                        <span class="form-control">{{ client.business_unit.libelle|default_if_none:"" }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">{{_("Commercial")}}</label>
+                        <div class="col-sm-7">
+                            <span class="form-control" title="{%if client.commercial %} {{ client.commercial.last_name|default:client.commercial.first_name|default:''  }} {{ client.commercial.first_name|default:''  }}{% endif %}">{%if client.commercial %} {{ client.commercial.last_name|default:client.commercial.first_name|default:""  }} {{ client.commercial.first_name|default:""  }}{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        <hr>
+        <h6 class="o-primary">{{_("COORDONNEES & AUTRES")}}</h6>
+        <hr>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Pays')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control">{{ client.pays|default_if_none:"" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Ville')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control">{{ client.ville|default_if_none:"" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Adresse')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control" title="{{ client.adresse|default_if_none:'' }}">{{ client.adresse|default_if_none:""|slice:":37" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("Code postal")}}</label>
+                    <div class="col-sm-7">
+                        <span class="form-control">{{ client.adresse_postale|default_if_none:""|slice:":120" }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="vl"></div>
+            <div class="col-md-5">
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("Tel fixe")}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control">{{ client.telephone_fixe|default_if_none:"" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("Tel mobile")}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control">{{ client.telephone_mobile|default_if_none:"" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("E-mail")}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control">{{ client.email|default_if_none:"" }}</span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("Groupe")}}</label>
+                    <div class="col-sm-7">
+                        <span class="form-control" title="{{ client.groupe.libelle|default_if_none:''|slice:':120' }}">{{ client.groupe.libelle|default_if_none:''|slice:":120" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <h6 class="o-primary">{{_("RESEAUX SOCIAUX")}}</h6>
+        <hr>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_("Site web")}} </label>
+                    <div class="col-sm-7">
+                    <span class="form-control"><a href="https://{{client.site_web}}" target="_blank"> {{ client.site_web|default_if_none:"" }}</a></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Facebook')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control"><a href="https://{{client.facebook}}" target="_blank">{{ client.facebook|default_if_none:"" }}</a></span>
+                    </div>
+                </div>
+            </div>
+            <div class="vl"></div>
+            <div class="col-md-5">
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Twitter')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control"><a href="https://{{client.twitter}}" target="_blank">{{ client.twitter|default_if_none:"" }}</a></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">{{_('Instagram')}}</label>
+                    <div class="col-sm-7">
+                    <span class="form-control"><a href="https://{{client.instagram}}" target="_blank">{{ client.instagram|default_if_none:"" }}</a></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
     </div>
   </div>
 </div>
+    <!-- FIN INFORMATIONS CLIENT  -->
+</div>
+
+<div id="dialogBox"></div>
+
+{% endblock %}
+
+{% block extrajs %}
+
 {% endblock %}

@@ -46,6 +46,7 @@ import os
 from django.core.files import File
 import xlwings as xw
 from django.db.models import Subquery, OuterRef
+from django.template.loader import render_to_string
 
 from configurations.helper_config import verify_sql_query
 from configurations.models import ActionLog, Prescripteur, PrescripteurPrestataire, Prestataire, Specialite, Secteur, \
@@ -289,7 +290,7 @@ def add_portefeuille_compagnie(request):
 
 
 # Chargement des polices liées à la compagnie
-def get_client_by_compagnie(request):
+def get_clientbycompagnie(request):
     compagnie_id = request.GET.get('compagnie_id')
     date_for_calcul = datetime.today().date()
     total_ht = 0
@@ -430,6 +431,101 @@ def get_client_by_compagnie(request):
         'total_ht': money_field(total_ht),
         'total_com_courtage': money_field(total_com_courtage)
     })
+def get_client_by_compagnie(request):
+    compagnie_id = request.GET.get('compagnie_id')
+    date_for_calcul = datetime.today().date()
+    polices_par_compagnie = {}
+    total_ht = 0
+    total_com_courtage = 0
+
+    if compagnie_id == "TOUT":
+        compagnies = Compagnie.objects.all().order_by('nom')
+    else:
+        compagnies = Compagnie.objects.filter(id=compagnie_id)
+
+    for compagnie in compagnies:
+        polices_qs = Police.objects.filter(
+            historique_polices__id__in=PoliceAssureur.objects.filter(
+                compagnie_id=compagnie.id, type_compagnie_id=1
+            ).values('historique_police_id')
+        ).distinct().prefetch_related('client')
+
+        polices = []
+        compagnie_total_ht = 0
+        compagnie_com_courtage = 0
+
+        for plc in polices_qs:
+            # Récupérer le dernier HistoriquePolice
+            dernier_historique = plc.historique_polices.order_by('-date_du_jour').first()
+            dernier_mouvement = plc.mouvements.order_by('-created_at').first()
+
+            prime_ht = dernier_historique.prime_ht if dernier_historique else 0
+            commission_courtage = dernier_historique.commission_courtage if dernier_historique else 0
+
+            compagnie_total_ht += prime_ht
+            compagnie_com_courtage += commission_courtage
+            total_ht += prime_ht
+            total_com_courtage += commission_courtage
+
+            etat_police = calculer_etat_police(dernier_mouvement, plc.etat_police, date_for_calcul)
+
+            detail_url = reverse('police.details', args=[plc.id])
+            numero_html = f'<a href="{detail_url}" class="text-center bouton_action" style="color:#F16623;" target="_blank">{plc.numero}</a>&nbsp;&nbsp;'
+
+            badge_class = "badge-success"
+            if "A renouveler" in etat_police:
+                badge_class = "badge-warning"
+            elif "NON renouvelé" in etat_police:
+                badge_class = "badge-danger"
+            elif "Résilié" in etat_police:
+                badge_class = "badge-yellow"
+
+            polices.append({
+                'id': plc.id,
+                'nom': plc.client.nom if plc.client else '',
+                'prenoms': plc.client.prenoms if plc.client else '',
+                'numero': numero_html,
+                'date_fin_effet': plc.date_fin_effet,
+                'date_creation': plc.created_at,
+                'date_resiliation': dernier_mouvement.date_effet if plc.etat_police == "Résilié" and dernier_mouvement else None,
+                'statut': etat_police,
+                'prime_ht': prime_ht,
+                'commission_courtage': commission_courtage,
+                'badge_class': badge_class,
+            })
+
+        if polices:
+            polices_par_compagnie[compagnie.nom] = {
+                "polices": polices,
+                "compagnie_total_ht": compagnie_total_ht,
+                "compagnie_com_courtage": compagnie_com_courtage,
+            }
+
+    html_content = render_to_string('analyse/polices_compagnies_table.html', {
+        'polices_par_compagnie': polices_par_compagnie,
+        'total_ht': total_ht,
+        'total_com_courtage': total_com_courtage,
+    })
+
+    return JsonResponse({'html': html_content})
+
+def calculer_etat_police(dernier_mouvement, etat_police_plc, date_for_calcul):
+    if dernier_mouvement and dernier_mouvement.date_fin_periode_garantie:
+        date_fin = dernier_mouvement.date_fin_periode_garantie
+        difference_jours = (date_fin - date_for_calcul).days
+
+        if difference_jours > 90:
+            return etat_police_plc
+        elif difference_jours > 0:
+            nombre_total_mois = difference_jours // 30
+            jours_restants = difference_jours % 30
+            return f"A renouveler dans {nombre_total_mois} mois et {jours_restants} jours" if nombre_total_mois else f"A renouveler dans {jours_restants} jours"
+        else:
+            difference_jours = abs(difference_jours)
+            nombre_total_mois = difference_jours // 30
+            jours_ecoules = difference_jours % 30
+            return f"NON renouvelé depuis {nombre_total_mois} mois et {jours_ecoules} jours" if nombre_total_mois else f"NON renouvelé depuis {jours_ecoules} jours"
+    return etat_police_plc if dernier_mouvement else ''
 
 
 # Portefeuille par commercial

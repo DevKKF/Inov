@@ -4,8 +4,8 @@ from django.urls import path
 from . import views
 from .views import ClientsView, ExcelFileView, FormulesUniversellesView, FormulesView, DetailsFormuleView, \
     DetailsClientView, PoliceClientView, ContactClientView, FilialeClientView, AcompteClientView, GEDClientView, QuittancesClientView, \
-    PoliceBeneficiairesView, PoliceGedView, PoliceAvenantsView, PoliceTarifsSpecifiquesView, PoliceQuittancesView, \
-    PoliceSinistresView, PhotosBeneficiairesView, AnnulerQuittanceView, CourrierView, PolicesEncoursView, PolicesArrivantEcheanceView, PolicesNonRenouvelleesResilieesView, \
+    PoliceGedView, PoliceAvenantsView, PoliceTarifsSpecifiquesView, PoliceQuittancesView, \
+    PoliceSinistresView, AnnulerQuittanceView, CourrierView, PolicesEncoursView, PolicesArrivantEcheanceView, PolicesNonRenouvelleesResilieesView, \
     DetailsSinistreView, SinistreGedView, SinistreAvenantsView
 
 urlpatterns = [
@@ -70,8 +70,6 @@ urlpatterns = [
     path('police/generer_exportation_quittance/<int:typefichier_id>', views.generer_exportation_quittance, name='generer_exportation_quittance'),
 
     path('client/<int:client_id>/changement_compagnie',views.changement_compagnie, name='changement_compagnie'),
-    path('client/<int:client_id>/transfert_beneficiaires_datatable', views.transfert_beneficiaires_datatable, name='transfert_beneficiaires_datatable'),
-    path('client/<int:client_id>/transfert_beneficiaires', views.transfert_beneficiaires, name='transfert_beneficiaires'),
 
     path('polices-en-cours/', PolicesEncoursView.as_view(), name='polices_en_cours'),
     path('polices_en_cours_datatable/', views.polices_en_cours_datatable, name='polices_en_cours_datatable'),
@@ -99,24 +97,11 @@ urlpatterns = [
     path('police/<int:police_id>/ged', PoliceGedView.as_view(), name='police_ged'),
     path('police/<int:police_id>/add_document', views.police_add_document, name='police_add_document'),
 
-    path('police/<int:police_id>/beneficiaires', PoliceBeneficiairesView.as_view(), name='police_beneficiaires'),
-    path('police/<int:police_id>/beneficiaires_datatable', views.police_beneficiaires_datatable, name='police_beneficiaires_datatable'),
-    path('police/<int:police_id>/beneficiaires/<int:aliment_id>/', PoliceBeneficiairesView.as_view(), name='auto_open_beneficiaire'),
-    path('police/<int:police_id>/export_beneficiaires', views.export_beneficiaires, name='export_beneficiaires'),
-    path('police/<int:police_id>/export_sinistres_beneficiaire/<int:aliment_id>', views.export_sinistres_beneficiaire, name='export_sinistres_beneficiaire'),
     path('police/<int:police_id>/export_sinistres_famille/<int:aliment_id>', views.export_sinistres_famille, name='export_sinistres_famille'),
     path('police/<int:police_id>/export_sinistres_police', views.export_sinistres_police, name='export_sinistres_police'),
     #
-    path('police/<int:police_id>/details_beneficiaire/<int:aliment_id>/add_membre_famille_beneficiaire', views.police_add_membre_famille_beneficiaire, name='add_membre_famille_beneficiaire'),
-
-    path('police/<int:police_id>/importation_beneficiaire_from_ancienne_police', views.importation_beneficiaire_from_ancienne_police, name='importation_beneficiaire_from_ancienne_police'),
     path('police/get_formules/<int:police_id>/', views.get_formules, name='get_formules'),
     
-    path('police/<int:police_id>/import_beneficiaires', views.import_beneficiaires, name='import_beneficiaires'),
-    path('police/<int:police_id>/verifier_beneficiaires', views.verifier_beneficiaires, name='verifier_beneficiaires'),
-    path('police/<int:police_id>/add_beneficiaire', views.add_beneficiaire, name='add_beneficiaire'),
-    path('police/<int:police_id>/update_beneficiaire/<int:aliment_id>', views.update_beneficiaire, name='update_beneficiaire'),
-    path('police/<int:police_id>/details_beneficiaire/<int:aliment_id>', views.details_beneficiaire, name='details_beneficiaire'),
     path('police/<int:police_id>/vehicules', views.police_vehicules, name='police_vehicules'),
     path('police/<int:police_id>/add_vehicule', views.add_vehicule, name='add_vehicule'),
     path('police/<int:police_id>/update_vehicule/<int:aliment_police_id>', views.update_vehicule, name='update_vehicule'),
@@ -138,8 +123,6 @@ urlpatterns = [
 
     path('police/<int:police_id>/prime_famille', views.prime_famille, name='prime_famille'),
     path('police/<int:police_id>/modifier', views.modifier_police, name='modifier_police'),
-    path('police/<int:police_id>/beneficiaires/photos', PhotosBeneficiairesView.as_view(), name='photos_beneficiaires'),
-    path('upload_photo/<int:beneficiaire_id>/', views.upload_photo, name='upload_photo'),
     path('police/<int:police_id>/<int:aliment_id>/upload_benef_picture', views.upload_benef_picture, name='upload_benef_picture'),
     path('police/<int:police_id>/sinistres', PoliceSinistresView.as_view(), name='police_sinistres'),
     path('police/<int:police_id>/save-sinistre', views.police_save_sinistre, name='police_save_sinistre'),
@@ -199,7 +182,6 @@ urlpatterns = [
     path('formule/detail_bareme/<int:bareme_id>', views.detail_bareme, name='detail_bareme'),
 
     path('aliment/<int:police_id>/change_formule/<int:aliment_id>', views.change_formule, name='change_formule'),
-    path('aliment/<int:police_id>/suspension_beneficiaire/<int:aliment_id>', views.suspension_beneficiaire, name='suspension_beneficiaire'),
     path('aliment/<int:police_id>/remise_en_vigueur/<int:aliment_id>', views.remise_en_vigueur, name='remise_en_vigueur'),
     path('aliment/<int:police_id>/sortie_police/<int:aliment_id>', views.sortie_police, name='sortie_police'),
     path('aliment/<int:aliment_id>/add_carte', views.add_carte, name='add_carte'),
@@ -215,10 +197,6 @@ urlpatterns = [
 
     # generation de qrcode en base pour tous les cartes
     path('generate-qrcode-carte/', views.generate_qrcode, name='generate_qrcode_carte'),
-
-    # generate carte beneficiaire
-    path('carte-pdf/', views.beneficiaire_carte_pdf, name='beneficiaire_carte_pdf'),
-    path('carte-html/', views.beneficiaire_carte_html, name='beneficiaire_carte_html'),
 
     # PROSPECTS VIEWS GRH
     path('prospects/', views.ProspectsGrhView.as_view(), name='prospects'),
