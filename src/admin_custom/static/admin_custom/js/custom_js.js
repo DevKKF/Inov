@@ -5,11 +5,6 @@ $(document).ready(function () {
         alert("open modal benef");
     }
     //dérouler le menu prise en charge
-    //$('.nav-item nav-item_reglements-apporteurs').hide();
-    //$('.nav-item_liste-des-prises-en-charge').closest('ul').find('p').closest('a').first().addClass('active');
-
-    //var menuItem = $('.nav-item_liste-des-prises-en-charge').closest('ul').closest('li').addClass('menu-is-opening menu-open');
-
     //
     if (typeof $.fn.select2 === 'function') {
 
@@ -28,12 +23,6 @@ $(document).ready(function () {
         $('#form_add_sinistre_soins_ambulatoires #affection_id').select2();
         $('#affection_id').select2();
         $('#code_affection_detail_ds').select2();
-
-
-
-        /*$('.select').select2();
-        $('select:not(.not_select2)').select2();
-        */
 
         $('.select2-container').css({
             'width': '100%'
@@ -61,107 +50,6 @@ $(document).ready(function () {
         ]
     });
 
-
-    //    //liste pour les autres:ordre décroissant
-    //    $('#table_dossiers_sinistre').DataTable({
-    //        "language": {
-    //            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-    //        },
-    //        order: [[0, 'desc']],
-    //        lengthMenu: [
-    //            [10, 25, 50, -1],
-    //            [10, 25, 50, 'Tout'],
-    //        ]
-    //    });
-    //
-    //    //liste pour medecin:ordre croissant
-    //    $('#table_dossiers_sinistre_med').DataTable({
-    //        "language": {
-    //            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-    //        },
-    //        order: [[0, 'asc']],
-    //        lengthMenu: [
-    //            [10, 25, 50, -1],
-    //            [10, 25, 50, 'Tout'],
-    //        ]
-    //    });
-
-
-    /*
-    //init datatables
-    $('.dataTable:not(.customDataTable)').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        order: [[0, 'desc']],
-        lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
-        ]
-    });
-
-    $('.dataTable:not(.customDataTable2)').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        // order: [[6, 'desc']],
-        lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
-        ]
-    });
-
-
-    //liste pour les autres:ordre décroissant
-    $('#table_dossiers_sinistre').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        order: [[0, 'desc']],
-        lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
-        ]
-    });
-
-    // Custom 2 order date
-    $('#table_dossiers_sinistre2').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        order: [[6, 'desc']],
-        lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
-        ]
-    });
-
-
-    // Custom 2 order date
-    $('#table_dossiers_sinistre2_med').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        order: [[6, 'desc']],
-        lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
-        ]
-    });
-
-    //liste pour medecin:ordre croissant
-    $('#table_dossiers_sinistre_med').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        order: [[0, 'asc']],
-        lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
-        ]
-    });
-    */
-
     $('#table_apporteurs_details_police').DataTable({
         order: [[0, 'desc']],
         sDom: "<'row'<'col-sm-6'>>t<'row'<'col-sm-6'><'col-sm-6'>>",
@@ -177,10 +65,6 @@ $(document).ready(function () {
         localStorage.removeItem('active_button');
         localStorage.removeItem('active_collapse');
     }
-
-    //init modal-add-sinistre-autre
-    //hideAndEmptyOrShowSibbling("varAlimentSinistreAutre", "form_add_sinistre_autre","hide");
-
 
     // using jQuery
     function getCookie(name) {
@@ -25569,10 +25453,7 @@ $(document).ready(function () {
         });
     });
 
-
-
-
-    //Récupération des polices
+    /*Récupération des polices
     function chargementPoliceCompagnieTable(compagnieId) {
         $("#table_polices_compagnie tbody").empty();
         $("#total_ht").text("");
@@ -25653,7 +25534,138 @@ $(document).ready(function () {
         } else {
             $("#polices_compagnie").hide(); // Masquer le bloc si aucune compagnie n'est sélectionnée
         }
+    });*/
+
+    function chargementPoliceCompagnieTable(compagnieId) {
+        $("#table_polices_compagnie tbody").empty();
+        $("#total_ht").text("");
+        $("#total_com_courtage").text("");
+        $("#btn_save_portefeuille_compagnie").prop("disabled", true);
+
+        $('#message-error').text('').hide();
+        $('#message-warning').text('').hide();
+
+        if (!compagnieId) {
+            $("#polices_compagnie").hide();
+            return;
+        }
+
+        $.ajax({
+            url: "/analysecontrole/get_client_by_compagnie/",
+            type: "GET",
+            data: { compagnie_id: compagnieId },
+            success: function (data) {
+                console.log("Données reçues :", data); // Vérifie ce que le backend envoie
+                console.log("Contenu du tbody après reset :", $("#table_polices_compagnie tbody").html());
+                if (data && data.polices_par_compagnie) {
+                    $("#polices_compagnie").show();
+                    $("#table_polices_compagnie tbody").empty();
+
+                    let total_ht = 0;
+                    let total_com_courtage = 0;
+                    let rows = "";
+
+                    for (const [compagnie, details] of Object.entries(data.polices_par_compagnie)) {
+                        let polices = details.polices; // Vérifie bien que polices est un tableau
+
+                        if (!Array.isArray(polices) || polices.length === 0) {
+                            console.warn(`Aucune police trouvée pour la compagnie ${compagnie}`);
+                            continue; // Passe à la compagnie suivante si aucune police
+                        }
+
+                        let compagnieHeader = `
+                            <tr>
+                                <td colspan="5" class="fw-bold text-primary">${compagnie}</td>
+                                <td class="fw-bold text-inov_green">TOTAL</td>
+                                <td class="fw-bold text-inov_green">${details.compagnie_total_ht}</td>
+                                <td class="fw-bold text-inov_green">${details.compagnie_com_courtage}</td>
+                            </tr>
+                        `;
+
+                        rows += compagnieHeader;
+
+                        polices.forEach(police => {
+                            console.log("Ajout de la police :", police); // Debug des polices
+
+                            total_ht += parseFloat(police.prime_ht.replace(/\s/g, '').replace(',', '.')) || 0;
+                            total_com_courtage += parseFloat(police.commission_courtage.replace(/\s/g, '').replace(',', '.')) || 0;
+
+                            let badgeClass = police.statut.includes("A renouveler") ? "badge-warning" :
+                                police.statut.includes("NON renouvelé") ? "badge-danger" :
+                                police.statut.includes("Résilié") ? "badge-yellow" :
+                                "badge-success";
+
+                            rows += `
+                                <tr>
+                                    <td>${police.nom} ${police.prenoms}</td>
+                                    <td>${police.numero}</td>
+                                    <td>${police.date_fin_effet}</td>
+                                    <td><span class="badge ${badgeClass}">${police.statut}</span></td>
+                                    <td>${police.date_creation}</td>
+                                    <td>${police.date_resiliation}</td>
+                                    <td>${police.prime_ht}</td>
+                                    <td>${police.commission_courtage}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+
+                    if (rows === "") {
+                        console.warn("Aucune ligne de police ajoutée !");
+                        $("#table_polices_compagnie tbody").html('<tr><td colspan="8" class="text-center">Aucune police trouvée</td></tr>');
+                    } else {
+                        $("#table_polices_compagnie tbody").append(rows);
+                    }
+
+                    $("#total_ht").text(total_ht.toLocaleString("fr-FR"));
+                    $("#total_com_courtage").text(total_com_courtage.toLocaleString("fr-FR"));
+                    $("#btn_save_portefeuille_compagnie").prop("disabled", false);
+
+                    // Rechargement de DataTable
+                    if ($.fn.DataTable.isDataTable("#table_polices_compagnie")) {
+                        $('#table_polices_compagnie').DataTable().destroy();
+                    }
+
+                    $('#table_polices_compagnie').DataTable({
+                        "language": {
+                            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+                        },
+                        "order": [[0, 'desc']],
+                        "pageLength": 100,
+                        "lengthMenu": [
+                            [100, 200, 500, -1],
+                            [100, 200, 500, "Tout"]
+                        ],
+                        "paging": true,
+                        "info": true,
+                        "responsive": true,
+                        "retrieve": true,
+                        "destroy": true,
+                    });
+                } else {
+                    $("#table_polices_compagnie tbody").html('<tr><td colspan="8" class="text-center">Aucune police trouvée</td></tr>');
+                }
+            },
+
+            error: function () {
+                $("#message-error").text("Erreur de chargement des polices.").show();
+            }
+        });
+    }
+
+    $("#compagnie").change(function () {
+        let compagnieId = $(this).find(":selected").data("compagnie_id");
+
+        if (compagnieId) {
+            chargementPoliceCompagnieTable(compagnieId);
+        } else {
+            $("#polices_compagnie").hide(); // Masquer le bloc si aucune compagnie n'est sélectionnée
+        }
     });
+
+
+
+
 
     //Récupération des polices
     function chargementPoliceCommercialTable(commercialId) {
@@ -26062,10 +26074,6 @@ $(document).ready(function () {
         });
     });
 
-
-
-
-
     //Vérification avant affichage du modal des garanties
     let circonstanceIdPrecedent = $('#circonstance_id').val();
 
@@ -26387,10 +26395,10 @@ $(document).ready(function () {
     });
 
     function calculer_montant_garantie_sinistre() {
-        let totaux = {};  // Stocker les totaux par garantie
+        let totaux = {};
 
         $("#table_provision_sinistre tbody tr").each(function () {
-            let postedommageId = $(this).find("td:first").text().trim().toLowerCase(); // Nom du poste dommage
+            let postedommageId = $(this).find("td:first").text().trim().toLowerCase();
             let isFranchise = postedommageId.includes("franchise");
 
             $(this).find("input").each(function () {
