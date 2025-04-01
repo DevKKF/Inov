@@ -5,7 +5,7 @@
 <div class="modal modal-choose_client fade" id="modal_choose_client" data-backdrop="static" data-keyboard="false" aria-hidden="true" style="display: none">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
-			<form enctype="multipart/form-data" id="form_choose_client" action="" method="post" target="_blank">
+			<form enctype="multipart/form-data" id="form_choose_client" action="{% url 'recherche_client_police' %}" method="post" target="_blank">
 				{% csrf_token %}
 				<div class="modal-header">
 					<h4 class="modal-title">{{_("CHOIX DU CLIENT")}}</h4>
@@ -57,169 +57,15 @@
 				<div class="modal-footer justify-content-between">
 					<button type="button" class="btn btn-default" data-dismiss="modal">{{_('Fermer')}}</button>
 					<span id="loading_gif" style="display:none;color:#BB4127;">{{_("Chargement en cours")}}... <img src="{% static 'admin_custom/ripple-loader.svg' %}" style="width:50px;"></span>
-					<button type="button" id="btn_confirm_selected_prestataire" class="btn o-bg-primary">{{_('Continuer')}}</button>
+					<button type="button" id="btn_confirm_selected_police_client" class="btn o-bg-primary">{{_('Continuer')}}</button>
 				</div>
 			</form>
-			<div class="form_sinistre_overlay"><div style="margin:auto;padding:20px 0;color:white;text-align:center;">{{_("TRAITEMENT EN COURS")}} ...</div></div>
 		</div>
 	</div>
 </div>
-<!--script>
-	$(document).ready(function() {
-		$('#list_police_client').hide(); // Cacher le tableau par défaut
-		$('#btn_search_client_police').click(function() {
-			var numeroClient = $('#search_numero_client').val().toUpperCase();
-			var nomClient = $('#search_nom_client').val().toUpperCase();
-			var $tableBody = $('#table_liste_police tbody');
-			$tableBody.empty(); // Vider le tableau avant de nouvelles données
-			$('#loading_gif').show(); // Afficher le loader
-
-			$.ajax({
-				url: '{% url "recherche_client_police" %}',
-				type: 'POST',
-				data: {
-					'nc': numeroClient,
-					'nomc': nomClient,
-					'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
-				},
-				dataType: 'json',
-				success: function(data) {
-					$('#loading_gif').hide(); // Cacher le loader
-					if (data.success) {
-						if (data.polices && data.polices.length > 0) {
-							$.each(data.polices, function(index, police) {
-								var row = '<tr>' +
-									'<td><input type="radio" name="selected_police" value="' + police.id + '"></td>' +
-									'<td>' + police.numero + '</td>' +
-									'<td class="text-center">' + police.produit + '</td>' +
-									'<td class="text-center">' + police.assureur + '</td>' +
-									'<td class="text-center">' + police.date_debut + '</td>' +
-									'<td class="text-center">' + police.date_echeance + '</td>' +
-									'</tr>';
-								$tableBody.append(row);
-							});
-							$('#list_police_client').show();
-							$('.error_box_aliment_not_found').hide();
-						} else {
-							$('#list_police_client').hide();
-							$('.error_box_aliment_not_found').text('Aucune police trouvée pour ce client.').show();
-						}
-					} else {
-						$('#list_police_client').hide();
-						$('.error_box_aliment_not_found').text(data.message || 'Client non trouvé.').show();
-					}
-				},
-				error: function() {
-					$('#loading_gif').hide();
-					$('#list_police_client').hide();
-					$('.error_box_aliment_not_found').text('Erreur lors de la recherche.').show();
-				}
-			});
-
-		});
-
-		// Gestion du bouton 'Continuer'
-		$('#btn_confirm_selected_prestataire').click(function() {
-			var selectedPoliceId = $('input[name=selected_police]:checked').val();
-			if (selectedPoliceId) {
-				// Ici, vous pouvez traiter l'ID de la police sélectionnée
-				console.log("Police sélectionnée : " + selectedPoliceId);
-				$('#modal_choose_client').modal('hide');
-				// Ajoutez ici votre logique pour continuer avec la police sélectionnée
-			} else {
-				alert("Veuillez sélectionner une police.");
-			}
-		});
-	});
-</script-->
 
 <script>
 $(document).ready(function() {
-    $('#list_police_client').hide();
 
-    $('#btn_search_client_police').click(function() {
-        var numeroClient = $('#search_numero_client').val().toUpperCase();
-        var nomClient = $('#search_nom_client').val().toUpperCase();
-        var $tableBody = $('#table_liste_police tbody');
-        $tableBody.empty();
-        $('#loading_gif').show();
-
-        $.ajax({
-            url: '{% url "recherche_client_police" %}',
-            type: 'POST',
-            data: {
-                'nc': numeroClient,
-                'nomc': nomClient,
-                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
-            },
-            dataType: 'json',
-            success: function(data) {
-                $('#loading_gif').hide();
-                if (data.success) {
-                    if (data.polices && data.polices.length > 0) {
-                        // Inspecter les données reçues
-                        console.log("Données reçues :", data.polices);
-
-                        // Formatter les données pour DataTable
-                        var formattedData = data.polices.map(function(police) {
-                            return [
-                                '<input type="radio" name="selected_police" value="' + police.id + '">',
-                                police.numero,
-                                police.produit,
-                                police.assureur,
-                                police.date_debut,
-                                police.date_echeance
-                            ];
-                        });
-
-                        $('#list_police_client').show();
-                        $('.error_box_aliment_not_found').hide();
-
-                        if (!$.fn.DataTable.isDataTable('#table_liste_police')) {
-                            // Initialiser DataTable
-                            $('#table_liste_police').DataTable({
-                                "language": {
-                                    "url": "../../static/admin_custom/js/French.json"
-                                },
-                                lengthMenu: [
-                                    [10, 25, 50, 100, -1], [10, 25, 50, 100, "Tout"]
-                                ],
-                                paging: true,
-                                searching: true,
-                                lengthChange: true,
-                                bSort: false,
-                                data: formattedData, // Utiliser les données formatées
-                                columns: [ // Définir les colonnes
-                                    { title: "" },
-                                    { title: "Numéro" },
-                                    { title: "Produit" },
-                                    { title: "Assureur" },
-                                    { title: "Date début" },
-                                    { title: "Date échéance" }
-                                ]
-                            });
-                        } else {
-                            // Recharger les données
-                            $('#table_liste_police').DataTable().clear().rows.add(formattedData).draw();
-                        }
-
-                    } else {
-                        $('#list_police_client').hide();
-                        $('.error_box_aliment_not_found').text('Aucune police trouvée pour ce client.').show();
-                    }
-                } else {
-                    $('#list_police_client').hide();
-                    $('.error_box_aliment_not_found').text(data.message || 'Client non trouvé.').show();
-                }
-            },
-            error: function() {
-                $('#loading_gif').hide();
-                $('#list_police_client').hide();
-                $('.error_box_aliment_not_found').text('Erreur lors de la recherche.').show();
-            }
-        });
-    });
-
-    // ... (votre code existant) ...
 });
 </script>

@@ -111,6 +111,7 @@ class Sinistre(models.Model):
             return "En attente"
 
 
+#
 class HistoriqueSinistre(models.Model):
     sinistre = models.ForeignKey(Sinistre, null=True, on_delete=models.RESTRICT)
     client = models.ForeignKey(Client, null=True, on_delete=models.RESTRICT)

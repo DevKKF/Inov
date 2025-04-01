@@ -53,67 +53,24 @@
 {% block content %}
 
 <div class="col-12 col-md-12 order-2 order-md-1">
-    <form id="form_add_sinistre_bygestionnaire" action="{% url 'add_sinistre_gestionnaire' %}" method="post">
-      {% csrf_token %}
-
-      <div class="card">
+    <div id="default_page">
+        <div class="card">
           <div class="card-header" style="background-color:var(--colorJauneOlea) important!">
-              <h3 class="card-title"><b>{{_("INFORMATIONS DU CLIENT ET DU CONTRAT")}}</b></h3>
-              <div class="card-tools"></div>
+              <h3 class="card-title"><b>{{_("ENREGISTRER UN SINISTRE")}}</b></h3>
+              <div class="card-tools"><a style="cursor: pointer;color:white;" data-toggle="modal" data-target="#modal_choose_client"><i class="fa fa-refresh"></i> {{_("Cliquez pour changer de client")}}</a></b></div>
           </div>
 
           <div class="card-body">
 
             <div class="col-md-12">
                 <div class="row">
-
+                    <div class="col-md-12"><h4 class="text-center text-italic">Veuillez sélectionner une police...</h4></div>
                 </div>
             </div>
           </div>
-
-      </div>
-
-      <div class="card ">
-          <div class="card-header">
-              <h3 class="card-title">
-                  {{_("SAISIE DES INFORMATIONS DU SINISTRE")}}
-              </h3>
-              <div class="card-tools"><a style="cursor: pointer;color:white;" data-toggle="modal" data-target="#modal_choose_client"><i class="fa fa-refresh"></i> {{_("Cliquez pour changer de client")}}</a></b></div>
-          </div>
-
-          <div class="card-body">
-
-                <div class="modal-body" style="padding:0px;margin:0px;">
-                    <div class="alert  alert-dismissible fade show hidden" role="alert">
-                        <span class="message">{{_("TRAITEMENT EN COURS")}}</span>
-                    </div>
-                    <div class="col-md-12 offset-0">
-
-                        <div class="row">
-                            <div class="col-md-6">
-
-                            </div>
-
-                            <div class="vl"></div>
-                            <div class="col-md-6" style="border-left:0px;margin-left:-5px;padding-left:15px;">
-
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="reset" class="btn btn-danger"><i class="fa fa-remove"></i> {{_('Reinitialiser')}}</button>
-                    <img src="" id="loading">
-                    <button type="button" id="btn_save_sinistre_gestionnaire" class="btn btn-info" disabled><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
-                </div>
-            <div class="form_sinistre_gestionnaire_overlay" id="form_sinistre_gestionnaire_overlay"><div style="margin:auto;padding:20px 0;color:white;text-align:center;">{{_("TRAITEMENT EN COURS")}} ...</div></div>
-
         </div>
-
-      </div>
-
-    </form>
+    </div>
+    <div id="formulaire_page"></div>
 </div>
 
 {% endblock %}
@@ -228,5 +185,8 @@
 </script>
 
 {% include 'modal_choose_client.html' %}
+
+{% include 'police/modal_sinistre_garantie.html' %}
+{% include 'police/modal_sinistre_intervenant.html' %}
 
 {% endblock %}

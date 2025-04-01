@@ -26341,6 +26341,146 @@ $(document).ready(function () {
         });
     }
 
+    //TODO MENU SINISTRE
+    $('#list_police_client').hide();
+    $('#default_page').show();
+    $('#formulaire_page').hide();
+
+    $('#btn_search_client_police').click(function() {
+        let formulaire = $('#form_choose_client');
+        let href = formulaire.attr('action');
+        var numeroClient = $('#search_numero_client').val().toUpperCase();
+        var nomClient = $('#search_nom_client').val().toUpperCase();
+        var $tableBody = $('#table_liste_police tbody');
+        $tableBody.empty();
+        $('#loading_gif').show();
+
+        $.ajax({
+            url: href,
+            type: 'POST',
+            data: {
+                'nc': numeroClient,
+                'nomc': nomClient,
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+            },
+            dataType: 'json',
+            success: function(data) {
+                $('#loading_gif').hide();
+                if (data.success) {
+                    if (data.polices && data.polices.length > 0) {
+
+                        // Formatter les données pour DataTable
+                        var formattedData = data.polices.map(function(police) {
+                            return [
+                                '<input type="radio" name="selected_police" value="' + police.id + '">',
+                                police.numero,
+                                police.produit,
+                                police.assureur,
+                                police.date_debut,
+                                police.date_echeance
+                            ];
+                        });
+
+                        $('#list_police_client').show();
+                        $('.error_box_aliment_not_found').hide();
+
+                        if (!$.fn.DataTable.isDataTable('#table_liste_police')) {
+                            // Initialiser DataTable
+                            $('#table_liste_police').DataTable({
+                                "language": {
+                                    "url": "../../static/admin_custom/js/French.json"
+                                },
+                                lengthMenu: [
+                                    [10, 25, 50, 100, -1], [10, 25, 50, 100, "Tout"]
+                                ],
+                                paging: true,
+                                searching: true,
+                                lengthChange: true,
+                                bSort: false,
+                                data: formattedData, // Utiliser les données formatées
+                                columns: [ // Définir les colonnes
+                                    { title: "" },
+                                    { title: "Numéro" },
+                                    { title: "Produit" },
+                                    { title: "Assureur" },
+                                    { title: "Date début" },
+                                    { title: "Date échéance" }
+                                ]
+                            });
+                        } else {
+                            // Recharger les données
+                            $('#table_liste_police').DataTable().clear().rows.add(formattedData).draw();
+                        }
+
+                    } else {
+                        $('#list_police_client').hide();
+                        $('.error_box_aliment_not_found').text('Aucune police trouvée pour ce client.').show();
+                    }
+                } else {
+                    $('#list_police_client').hide();
+                    $('.error_box_aliment_not_found').text(data.message || 'Client non trouvé.').show();
+                }
+            },
+            error: function() {
+                $('#loading_gif').hide();
+                $('#list_police_client').hide();
+                $('.error_box_aliment_not_found').text('Erreur lors de la recherche.').show();
+            }
+        });
+    });
+
+    // Gestion du bouton 'Continuer'
+    $('#btn_confirm_selected_police_client').click(function() {
+        var selectedPoliceId = $('input[name=selected_police]:checked').val();
+        var police_id = selectedPoliceId;
+        if (selectedPoliceId) {
+            // Vider le tableau et les champs
+            $('#search_numero_client').val('');
+            $('#search_nom_client').val('');
+            $('#table_liste_police tbody').empty();
+
+            // Cacher le tableau
+            $('#list_police_client').hide();
+
+            // Appel AJAX pour récupérer les informations de la police
+            $.ajax({
+                url: "/sinistre/recuperer_information_police/",
+                type: "GET",
+                data: {
+                    police_id: police_id
+                },
+                success: function (response) {
+                    console.log(response);
+                    $('#default_page').hide();
+                    $('#formulaire_page').show().html(response);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Erreur lors du chargement des information de la police :", error);
+                }
+            });
+
+            // Appel AJAX pour récupérer l'intervenant par défaut de la police
+            $.ajax({
+                url: "/sinistre/recuperer_intervenant_police/",
+                type: "GET",
+                data: {
+                    police_id: police_id
+                },
+                success: function (response) {
+                    $('#formulaire_page').show().html(response);
+
+                },
+                error: function (xhr, status, error) {
+                    console.error("Erreur lors du chargement de l'intervenant par défaut de la police :", error);
+                }
+            });
+
+            $('#modal_choose_client').modal('hide');
+        } else {
+            alert("Veuillez sélectionner une police.");
+        }
+    });
+
 });
 
 

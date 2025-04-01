@@ -36,6 +36,10 @@ urlpatterns = [
 
     path('saisie_sinistre/', SaisieSinistreView.as_view(), name='saisie_sinistre'),
     path('recherche_client_police/', views.recherche_client_police, name='recherche_client_police'),
+    path('recuperer_information_police/', views.recuperer_information_police, name='recuperer_information_police'),
+    path('recuperer_intervenant_police/', views.recuperer_intervenant_police, name='recuperer_intervenant_police'),
+    path('get_intervenants_session/', views.get_intervenants_session, name='get_intervenants_session'),
+
 
 
 

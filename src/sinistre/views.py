@@ -44,12 +44,12 @@ from xhtml2pdf import pisa
 
 from configurations.helper_config import execute_query, create_query_background_task
 from configurations.models import Compagnie, User, Rubrique, Affection, Acte, Prescripteur, Prestataire, \
-    TypePriseencharge, \
+    TypePriseencharge, Pays, TypeIntervenant, Responsabilite, TypeSinistre, Circonstance, \
     JourFerie, ActionLog, PeriodeComptable, TypeRemboursement, ModeCreation, PrescripteurPrestataire, \
     BackgroundQueryTask, TypePrefinancement
 from production.models import Carte, Aliment, Statut, TypeDocument, Bareme, Client
 #
-from production.models import Police, AlimentFormule, HistoriquePolice, PoliceAssureur
+from production.models import Police, AlimentFormule, HistoriquePolice, PoliceAssureur, Mouvement, AlimentPolice
 from production.templatetags.my_filters import money_field
 from shared.enum import StatutPolice
 from shared.enum import StatutSinistre, StatutSinistreBordereau, StatutSinistrePrestation, StatutValidite, \
@@ -99,101 +99,6 @@ class SaisieSinistreView(TemplateView):
             "opts": self.model._meta,
         }
 
-
-@csrf_exempt
-def rechercheclientpolice(request):
-    if request.method == 'POST':
-        numero_client = request.POST.get('nc', '').upper()
-        nom_client = request.POST.get('nomc', '').upper()
-
-        clients = Client.objects.filter(
-            Q(code__exact=numero_client) |
-            Q(nom__icontains=nom_client)
-        )
-
-        if clients.exists():
-            client = clients.first()
-            today = datetime.date.today()  # Définir la date actuelle
-            #polices = Police.objects.filter(client=client).values( 'id', 'numero', 'produit__nom')
-            polices = Police.objects.filter(
-                client=client
-            ).filter(
-                Q(date_fin_effet__isnull=True) | Q(date_fin_effet__gt=today) |
-                Q(date_fin_police__isnull=True) | Q(date_fin_police__gt=today)
-            ).values(
-                'id',
-                'numero',
-                'produit__nom'
-            )
-            police_list = []
-            for police in polices:
-                police_list.append({
-                    'id': police['id'],
-                    'numero': police['numero'],
-                    'produit': police['produit__nom'],
-                    'assureur': "Moi même",
-                    'date_debut': "Date début",
-                    'date_echeance': "Date fin",
-                })
-            return JsonResponse({'success': True, 'polices': police_list})
-        else:
-            return JsonResponse({'success': False, 'message': 'Client non trouvé.'})
-    return JsonResponse({'success': False, 'message': 'Méthode non autorisée.'})
-
-@csrf_exempt
-def recherche_clientpolice(request):
-    if request.method == 'POST':
-        numero_client = request.POST.get('nc', '').strip().upper()
-        nom_client = request.POST.get('nomc', '').strip().upper()
-
-        # Rechercher d'abord par code strictement égal si un numéro est fourni
-        if numero_client:
-            clients = Client.objects.filter(code=numero_client)
-        else:
-            # Sinon, rechercher par nom et prénoms (recherche approximative)
-            clients = Client.objects.filter(
-                Q(nom__icontains=nom_client) |
-                Q(prenoms__icontains=nom_client)
-            )
-
-        # Vérifier s'il y a au moins un client trouvé
-        if not clients.exists():
-            return JsonResponse({'success': False, 'message': 'Client non trouvé.'})
-
-        client = clients.first()  # Prendre le premier client trouvé
-        today = datetime.date.today()
-
-        # Filtrer les polices du client trouvé
-        polices = Police.objects.filter(client=client, date_fin_effet__isnull=False
-            ).filter(
-                Q(date_fin_effet__isnull=True) | Q(date_fin_effet__gt=today)
-            ).values(
-            'id',
-            'numero',
-            'produit__nom',
-            'date_debut_effet',
-            'date_fin_effet'
-        )
-
-        # Vérifier si des polices existent
-        if not polices.exists():
-            return JsonResponse({'success': False, 'message': 'Aucune police active trouvée pour ce client.'})
-
-        police_list = [
-            {
-                'id': police['id'],
-                'numero': police['numero'],
-                'produit': police['produit__nom'],
-                'assureur': 'assureur',
-                'date_debut': police['date_debut_effet'],
-                'date_echeance': police['date_fin_effet'],
-            }
-            for police in polices
-        ]
-
-        return JsonResponse({'success': True, 'polices': police_list})
-
-    return JsonResponse({'success': False, 'message': 'Méthode non autorisée.'})
 
 @csrf_exempt
 def recherche_client_police(request):
@@ -269,6 +174,171 @@ def recherche_client_police(request):
 
     return JsonResponse({'success': False, 'message': 'Méthode non autorisée.'})
 
+
+@csrf_exempt
+def recuperer_information_police(request):
+    police_id = request.GET.get('police_id')
+
+    try:
+        police = Police.objects.get(id=police_id, bureau=request.user.bureau, statut_validite='VALIDE')
+
+        # TODO: Vider les intervenants et des garanties du sinistre
+        if 'intervenants' in request.session:
+            del request.session['intervenants']
+
+        if 'garanties_sinistre' in request.session:
+            del request.session['garanties_sinistre']
+
+        # Récupération de client
+        client = Client.objects.get(id=police.client_id)
+
+        # Récupérer le dernier historique
+        dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+        # Récupérer les assureurs associés à l'historique
+        assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id, type_compagnie_id=1).first() if dernier_historique else None
+        today = timezone.now().date()
+
+        mouvements = Mouvement.objects.filter(type_mouvement_id=2).order_by('libelle')
+        typesinistres = TypeSinistre.objects.filter(statut=1).order_by('libelle')
+        typeintervenants = TypeIntervenant.objects.filter(statut=1).order_by('libelle')
+        typedocuments = TypeDocument.objects.filter(is_sinistre=1).order_by('libelle')
+        responsabilites = Responsabilite.objects.filter(statut=1)
+        circonstances = Circonstance.objects.filter(statut=1, branche_id=police.produit.branche_id).order_by('libelle')
+
+        garanties = ''
+        pays = Pays.objects.all().order_by('nom')
+
+        aliments = 0
+        aliment = 0
+        if police.produit.code in ['10001', '10002', '50001', '50002']:
+            aliments = AlimentPolice.objects.filter(police_id=police.id)
+        else:
+            aliment = AlimentPolice.objects.filter(police_id=police.id).first()
+
+        context = {
+            'police': police,
+            'client': client,
+            'dossiers_sinistres': None,
+            'sinistres': None,
+            'dernier_historique': dernier_historique,
+            'assureur_police': assureur_police,
+            'today': today,
+            'mouvements': mouvements,
+            'typesinistres': typesinistres,
+            'typeintervenants': typeintervenants,
+            'typedocuments': typedocuments,
+            'responsabilites': responsabilites,
+            'circonstances': circonstances,
+            'garanties': garanties,
+            'pays': pays,
+            'aliments': aliments,
+            'aliment': aliment
+        }
+
+        return render(request, 'formulaire_sinistre.html', context)
+    except Police.DoesNotExist:
+        return JsonResponse({'error': 'Police non trouvée.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def get_intervenants_session(request):
+    try:
+        police_id = request.GET.get('police_id')
+        police = Police.objects.filter(
+            id=police_id,
+            bureau=request.user.bureau,
+            statut_validite=StatutValidite.VALIDE
+        ).first()
+
+        if not police:
+            return JsonResponse({'success': False, 'message': "Police non trouvée."}, status=404)
+
+        client = Client.objects.filter(id=police.client_id).first()
+        intervenants = request.session.setdefault('intervenants', [])
+
+        if client:
+            client_intervenant = {
+                'id': str(uuid.uuid4()),  # ID unique pour le client
+                'police_id': police.id,
+                'type_intervenant_id': 1,
+                'typeintervenant': 'Tiers Personne',
+                'nom': client.nom.strip().upper(),
+                'prenoms': client.prenoms.strip().upper(),
+                'portable': client.telephone_fixe.strip() if client.telephone_fixe else '',
+                'telephone': client.telephone_mobile.strip() if client.telephone_mobile else '',
+                'email': client.email.strip().lower() if client.email else '',
+                'code_postal': client.adresse,
+                'boite_postale': client.adresse_postale,
+                'ville': client.ville,
+                'pays_id': client.pays_id
+            }
+
+            # Vérification simplifiée de l'existence de l'intervenant
+            existe_deja = any(
+                intervenant['nom'] == client_intervenant['nom'] and
+                intervenant['prenoms'] == client_intervenant['prenoms'] and
+                intervenant['typeintervenant'] == client_intervenant['typeintervenant']
+                for intervenant in intervenants
+            )
+
+            if not existe_deja:
+                intervenants.insert(0, client_intervenant)
+                request.session['intervenants'] = intervenants
+
+        return JsonResponse({'success': True, 'data': intervenants}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+def recuperer_intervenant_police(request):
+    police_id = request.GET.get('police_id')
+
+    try:
+        police = Police.objects.get(id=police_id, bureau=request.user.bureau, statut_validite='VALIDE')
+
+        # Récupération de client
+        client = Client.objects.get(id=police.client_id)
+
+        if client:
+            client_intervenant = {
+                'id': str(uuid.uuid4()),  # ID unique pour le client
+                'police_id': police.id,
+                'type_intervenant_id': 1,
+                'typeintervenant': 'Tiers Personne',
+                'nom': client.nom.strip().upper(),
+                'prenoms': client.prenoms.strip().upper(),
+                'portable': client.telephone_fixe.strip() if client.telephone_fixe else '',
+                'telephone': client.telephone_mobile.strip() if client.telephone_mobile else '',
+                'email': client.email.strip().lower() if client.email else '',
+                'code_postal': client.adresse,
+                'boite_postale': client.adresse_postale,
+                'ville': client.ville,
+                'pays_id': client.pays_id
+            }
+
+            # Vérification simplifiée de l'existence de l'intervenant
+            existe_deja = any(
+                intervenant['nom'] == client_intervenant['nom'] and
+                intervenant['prenoms'] == client_intervenant['prenoms'] and
+                intervenant['typeintervenant'] == client_intervenant['typeintervenant']
+                for intervenant in intervenants
+            )
+
+            if not existe_deja:
+                intervenants.insert(0, client_intervenant)
+                request.session['intervenants'] = intervenants
+
+        return JsonResponse({'success': True, 'data': intervenants}, status=200)
+
+    except Police.DoesNotExist:
+        return JsonResponse({'error': 'Police non trouvée.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 

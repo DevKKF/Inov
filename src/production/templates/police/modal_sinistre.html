@@ -21,7 +21,7 @@
 						<li class="nav-item text-uppercase"><a class="nav-link active" id="identity-tab" data-toggle="tab" href="#identity" role="tab" aria-controls="identity" aria-selected="true">{{_("Information du contrat")}}</a></li>
 						<li class="nav-item text-uppercase"><a class="nav-link" id="declaration_sinistre-tab" data-toggle="tab" href="#declaration_sinistre" role="tab" aria-controls="declaration_sinistre" aria-selected="false">{{_("Déclaration du sinistre")}}</a></li>
 						<li class="nav-item text-uppercase"><a class="nav-link" id=intervenant-tab" data-toggle="tab" href="#intervenant" role="tab" aria-controls="intervenant" aria-selected="false">{{_("Intervenants")}}</a></li>
-						<li class="nav-item text-uppercase"><a class="nav-link" id=provision-tab" data-toggle="tab" href="#provision" role="tab" aria-controls="provision" aria-selected="false">{{_("Provision")}}</a></li>
+						<!--li class="nav-item text-uppercase"><a class="nav-link" id=provision-tab" data-toggle="tab" href="#provision" role="tab" aria-controls="provision" aria-selected="false">{{_("Provision")}}</a></li-->
 					</ul>
 					<div class="tab-content" id="myTabContent">
 
@@ -254,10 +254,10 @@
 									</div>
 								</div>
 
-								<div class="col-md-12 text-uppercase" style="margin-bottom:10px !important; border-top:2px solid #F16623">
+								<div class="col-md-12 text-uppercase d-none" style="margin-bottom:10px !important; border-top:2px solid #F16623">
 									<h6><mark class="match">Garanties mise en cause</mark></h6>
 								</div>
-								<div class="col-md-12" id="test_garantie_sinistre">
+								<div class="col-md-12 d-none" id="test_garantie_sinistre">
 									<span class="btn btn-success mb-2" id="btn-ajout-garantie"><i class="fa fa-plus-circle"></i> Ajout de garantie</span>
 									<table id="table_garantie_sinistre" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
 										<thead>

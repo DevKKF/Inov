@@ -4495,7 +4495,7 @@ class PoliceSinistresView(TemplateView):
                 aliments = AlimentPolice.objects.filter(police_id=police.id)
             else:
                 aliment = AlimentPolice.objects.filter(police_id=police.id).first()
-            print('Autre aliment : ', aliment)
+
             context_perso = {
                 'police': police,
                 'client': client,
