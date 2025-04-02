@@ -24,12 +24,10 @@ from django_dump_die.middleware import dd
 from xhtml2pdf import pisa
 import secrets
 
-from configurations.models import Acte, Prestataire, Prescripteur, JourFerie, Periodicite, Tarif, \
-    SousRubriqueRegroupementActe, TypePrefinancement
-from production.models import Aliment, TarifPrestataireClient, Bareme, AlimentFormule, Carte, FormuleGarantie, \
-    FormuleRubriquePrefinance
+from configurations.models import JourFerie, Periodicite, Tarif, TypePrefinancement
+from production.models import FormuleGarantie, FormuleRubriquePrefinance
 from shared.enum import StatutSinistre, Statut, StatutValidite, StatutRemboursement
-from sinistre.models import Sinistre, SinistreTemporaire
+from sinistre.models import Sinistre
 from django.core.files.base import File
 
 
@@ -1925,16 +1923,6 @@ def link_callback(uri, rel):
         mUrl = settings.MEDIA_URL  # Typically /media/
         mRoot = settings.MEDIA_ROOT  # Typically /home/userX/project_static/media/
 
-        pprint("else if not result")
-        pprint("sUrl")
-        pprint(sUrl)
-        pprint("sRoot")
-        pprint(sRoot)
-        pprint("mUrl")
-        pprint(mUrl)
-        pprint("mRoot")
-        pprint(mRoot)
-
         if uri.startswith(mUrl):
             path = os.path.join(mRoot, uri.replace(mUrl, ""))
 
@@ -2008,155 +1996,6 @@ def generer_qrcode_carte(numero_carte):
     return File(image_bytes)
 
 
-
-def generate_numero_famille():
-
-    current_date = datetime.datetime.now(tz=datetime.timezone.utc)
-
-    year_part = str(current_date.year)[2:]
-    month_part = f"{current_date.month:02d}"
-
-    period = f"{month_part}{year_part}" # Exemple '1223' Quand on est dans la period de decembre 2023
-
-    # On trouve le nombre actuelle a incrementer
-    nombre_distinct_numero_famille = Aliment.objects.filter(numero_famille__endswith=period).values('numero_famille').distinct().count()
-
-    current_number = nombre_distinct_numero_famille + 1 # On incremente pour prendre le numero suivant
-
-    numero_famille = f"F{current_number:03d}{month_part}{year_part}"
-    
-    return numero_famille
-
-
-def generate_numero_famille_for_existing_aliment(aliment):
-    date_reference = aliment.date_affiliation
-
-    year_part = str(date_reference.year)[2:]
-    month_part = f"{date_reference.month:02d}"
-
-    period = f"{month_part}{year_part}"  # Exemple '1223' Quand on est dans la period de decembre 2023
-
-    # On trouve le nombre actuelle a incrementer
-    nombre_distinct_numero_famille = Aliment.objects.filter(numero_famille__endswith=period).values('numero_famille').distinct().count()
-
-    current_number = nombre_distinct_numero_famille + 1  # On incremente pour prendre le numero suivant
-
-    numero_famille = f"F{current_number:03d}{month_part}{year_part}"
-
-    return numero_famille
-
-
-def generer_numero_ordre(aliment):
-    numero_ordre = Aliment.objects.filter(adherent_principal=aliment.adherent_principal).count() #pas necessaire de faire + 1 puisqu'il a été déjà enregistré, il est compté
-    return numero_ordre
-
-
-def generer_nombre_famille_du_mois():
-    today = datetime.datetime.now(tz=timezone.utc)
-    #nombre_famille_du_mois = Aliment.objects.filter(qualite_beneficiaire__code="AD", date_affiliation__month=today.month, date_affiliation__year=today.year).count() + 1
-    nombre_famille_du_mois = Aliment.objects.filter(qualite_beneficiaire__code="AD", created_at__month=today.month, created_at__year=today.year).count() + 1
-
-    print("nombre_famille_du_mois")
-    print(nombre_famille_du_mois)
-    return nombre_famille_du_mois
-
-
-def generer_nombre_famille_du_mois_for_existing_aliment(aliment):
-    date_reference = aliment.date_affiliation
-    print(aliment)
-    print(date_reference)
-
-    nombre_famille_du_mois = Aliment.objects.filter(qualite_beneficiaire__code="AD", date_affiliation__month=date_reference.month, date_affiliation__year=date_reference.year,  id__lte=aliment.id).count() + 1
-
-    print("nombre_famille_du_mois")
-    print(nombre_famille_du_mois)
-
-    return nombre_famille_du_mois
-
-
-def generate_numero_carte(aliment):
-    # Nomenclature: X-NOMBRE_FAMILLE_DU_MOIS-MMAA-A*.  exemple: 1-00001-1223-A
-    # nouvelle nomenclature : 7 caract auto incrément, annee
-
-    today = datetime.datetime.now(tz=timezone.utc)
-
-    annee = str(today.year)[2:]
-    mois = f"{today.month:02d}"
-
-    # vérifier s'il a déjà une carte
-    carte_precedente = Carte.objects.filter(aliment=aliment, numero__isnull=False).order_by('-id').first()
-
-    if carte_precedente:
-        # récupérer le dernier caractère
-        lettre_precedente = carte_precedente.numero[-1]
-        liste_lettres = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
-
-        # trouver l'index de la lettre précédente dans la liste
-        index_lettre = liste_lettres.index(lettre_precedente)
-
-        # obtenir la lettre suivante en vérifiant les limites
-        if index_lettre < len(liste_lettres) - 1:
-            lettre_suivante = liste_lettres[index_lettre + 1]
-
-        else:
-            # si la lettre précédente est Z, revenir à A
-            lettre_suivante = liste_lettres[0]
-
-        numero_carte = carte_precedente.numero[:-1] + lettre_suivante
-
-    else:
-         #premiere nomenclature avec les numéros famille mois (abandonné pour souci d'unicité des numeros)
-         # déterminer sa position dans les membres (en fonction de l'id) # après créer peut-être un champ qui sera renseigné à l'enregistrement du bénéficiaire
-         #Abandonné: source de colision de numéros de carte
-         '''
-         position = aliment.numero_ordre
-         nombre_famille_du_mois = aliment.adherent_principal.numero_famille_du_mois
-
-         # si le nombre de famille du mois n'a pas encore ete generer pour un adherent existant
-         if not nombre_famille_du_mois:
-             nombre_famille_du_mois = generer_nombre_famille_du_mois_for_existing_aliment(aliment.adherent_principal)
-             aliment.adherent_principal.numero_famille_du_mois = nombre_famille_du_mois
-             aliment.adherent_principal.save()
-
-         numero_carte = f"{position}{nombre_famille_du_mois:04d}{mois}{annee}A"
-         '''
-
-         # vérification du nombre de combinaison possible pour 7 digits
-         # Si chaque chiffre doit être unique (distinct), on utilise la formule des arrangements, car l'ordre des chiffres compte.
-         # Il y a donc 604 800 combinaisons distinctes possibles pour une séquence de 7 chiffres.
-         # On peut donc générer 604 800 cartes distinctes par année.
-
-         #initialisation
-         digits = 7
-         nbr_combinaison = 604800
-
-         # decompte du nombre de carte enregistré pour l'année en cours
-         # nombre_carte_annee_cours = Carte.objects.filter(created_at__year=today.year).count()
-         # if(nombre_carte_annee_cours >= nbr_combinaison):
-         #     # on est arrivé au nombre de combinaison possible
-         #     digits = 8
-
-
-         # nouvelle nomenclature : 7 caract auto incrément, annee 2 chiffres
-         hotp = pyotp.HOTP(settings.OTP_SECRET_KEY, digits=digits)
-         code_verification = int(datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"))
-         digite_code = hotp.at(code_verification)
-
-         numero_carte = f"{digite_code}{annee}A"
-
-         #verifier si le numero de carte existe deja
-         while Carte.objects.filter(numero=numero_carte).exists():
-                code_verification = int(datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"))
-                digite_code = hotp.at(code_verification)
-                numero_carte = f"{digite_code}{annee}A"
-
-
-
-
-
-    return numero_carte
-
-
 def bool_plafond_atteint(dossier_sinistre):
     plafond_atteint = False
     formule = dossier_sinistre.formulegarantie
@@ -2187,54 +2026,6 @@ def bool_plafond_atteint(dossier_sinistre):
             plafond_atteint = True
 
     return plafond_atteint
-
-
-
-def get_ticket_moderateur_pharmacie(aliment_id, formulegarantie_id, date_survenance):
-    aliment = Aliment.objects.filter(id=aliment_id).first()
-    formulegarantie = FormuleGarantie.objects.filter(id=formulegarantie_id).first()
-
-    tc_generale = formulegarantie.taux_couverture
-    tc = 0
-
-    # vérifier si l'acte est dans les spécificités (et que c'est garanti)
-    criteres_regroupement_acte = Q(Q(regroupement_acte__isnull=True) | Q(regroupement_acte__code='RAPHAR0020'))#pharmacie usuelle
-    criteres_dates = Q(date_debut__lte=date_survenance) & (Q(date_fin__gte=date_survenance) | Q(date_fin__isnull=True))
-    baremes = Bareme.objects.filter(Q(statut=Statut.ACTIF, formulegarantie_id=formulegarantie.id,
-                                      rubrique__code='PHARMACIE',
-                                      acte_id__isnull=True,
-                                      is_garanti=True
-                                      )
-                                    &criteres_regroupement_acte
-                                    & criteres_dates)
-
-    #dd(baremes)
-
-    if baremes:
-
-        # Exclure ceux qui ne respectent pas les conditions (non applicable à l'aliment)
-        for b in baremes:
-            if not respecte_conditions_bareme_pharmacie(date_survenance, b, aliment):
-                baremes.exclude(id=b.id)
-                #pprint(f"-Barème #{b.id} exclu de la liste, car ne respectant pas les conditions: (barème non applicable à l'aliment)")
-
-
-        if baremes.count() == 1:
-            pprint("Un seul barème pharmacie trouvé, on le prend")
-        else:
-            pprint(f"{baremes.count()} barème(s) trouvé(s), on prend le premier barème applicable")
-
-        #on prend le premier
-        bareme = baremes.first()
-        tc = bareme.taux_couverture
-
-    else:
-        tc = tc_generale
-
-
-    tm = 100 - tc
-    return tm
-
 
 
 def respecte_conditions_bareme_pharmacie(date_survenance, bareme_srb, aliment):

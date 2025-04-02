@@ -49,17 +49,17 @@ from django.db.models import Subquery, OuterRef
 from django.template.loader import render_to_string
 
 from configurations.helper_config import verify_sql_query
-from configurations.models import ActionLog, Prescripteur, PrescripteurPrestataire, Prestataire, Specialite, Secteur, \
-    Bureau,TypeActe,BusinessUnit,Branche,Banque,Affection,Apporteur,ApporteurInternational,CategorieAffection,Devise,\
-    TypePrestataire, User, AuthGroup, TypeEtablissement,Tarif, Rubrique, RegroupementActe, Acte, ReseauSoin, \
-    PrestataireReseauSoin, WsBoby, ParamWsBoby, Affection, BackgroundQueryTask, ParamProduitCompagnie, Compagnie, \
-    AlimentMatricule, ParamActe, TypeApporteur, TypePersonne, Pays, TypeCompagnie, TypeGarant, RisqueProduit, Carosserie, \
+from configurations.models import ActionLog, Specialite, Secteur, \
+    Bureau, BusinessUnit, Branche, Banque ,Apporteur, ApporteurInternational, Devise,\
+    User, AuthGroup, TypeEtablissement,Tarif, Rubrique, \
+    WsBoby, ParamWsBoby, BackgroundQueryTask, ParamProduitCompagnie, Compagnie, \
+    TypeApporteur, TypePersonne, Pays, TypeCompagnie, TypeGarant, RisqueProduit, Carosserie, \
     CategorieVehicule, Civilite, CompteTresorerie, ConditionsAssurance, Carburant, Formule, Fractionnement, Garantie, GarantieFormule, \
     Groupe, ModeReglement
 from inov import settings
 # Create your views here.
-from production.models import TarifPrestataireClient, Client, Aliment, AlimentFormule, Mouvement, MouvementAliment, \
-    Carte, Quittance, Reglement, Courrier, Produit, PoliceAssureur, Police, HistoriquePolice, MouvementPolice
+from production.models import Client, Mouvement, \
+    Quittance, Reglement, Courrier, Produit, PoliceAssureur, Police, HistoriquePolice, MouvementPolice
 from analysecontrole.models import AnalysePortefeuille, ControleCommission
 from production.templatetags.my_filters import money_field, convertir_date_multiformat
 from shared.enum import PasswordType, Statut, StatutValidite, BaseCalculTM, StatutPaiementSinistre, TypePortefeuille, \

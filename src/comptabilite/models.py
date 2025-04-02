@@ -1,9 +1,9 @@
 from django.db import models
 
-from configurations.models import User, ModeReglement, Banque, TypeRemboursement, Prestataire, Compagnie, Bureau, \
+from configurations.models import User, ModeReglement, Banque, TypeRemboursement, Compagnie, Bureau, \
     Devise, CompteTresorerie
 # Create your models here.
-from production.models import Reglement, StatutReversementCompagnie, Aliment, Operation
+from production.models import Reglement, StatutReversementCompagnie, Operation
 from shared.enum import StatutValidite, StatutQuittance, TypeEncaissementCommission
 from sinistre.models import BordereauOrdonnancement
 

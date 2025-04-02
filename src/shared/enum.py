@@ -273,3 +273,8 @@ class TypePortefeuille(models.TextChoices):
     PAR_BUS = 'PAR BUSINESS UNIT'
     ALL_BUS = 'TOUS LES BUSINESS UNIT'
 
+
+class TypeEtape(models.TextChoices):
+    FACULTATIF = 'Facultatif'
+    OBLIGATOIRE = 'Obligatoire'
+

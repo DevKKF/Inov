@@ -10,8 +10,7 @@ from datetime import timedelta
 from django.db.models import Q
 
 from api.serializers import BureauSerializer
-from configurations.models import Affection, Rubrique, Prescripteur, Prestataire, User, Bureau, TypeRemboursement, \
-    AdminGroupeBureau
+from configurations.models import Rubrique, User, Bureau, TypeRemboursement, AdminGroupeBureau
 from production.models import Police
 from shared.enum import StatutSinistre, Statut, StatutValidite
 # Register your models here.

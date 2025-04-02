@@ -7,10 +7,10 @@ from django.utils import timezone
 
 
 from configurations.models import CompteTresorerie, Devise, Compagnie, User, Bureau, TypeSinistre, Responsabilite, TypeIntervenant, Pays, Garantie, Circonstance, \
-    PosteDommage, Prestataire, Rubrique, SousRubrique, Acte, RegroupementActe, Medicament, Affection, Prescripteur, ModeReglement, Banque, \
-    BordereauLettreCheque, TypeRemboursement, PeriodeComptable, ModeCreation, TypePrefinancement, TypePriseencharge
+    PosteDommage, Rubrique, SousRubrique, ModeReglement, Banque, \
+    BordereauLettreCheque, TypeRemboursement, PeriodeComptable, ModeCreation, TypePrefinancement, TypePriseencharge, EtapeSinistre
 
-from production.models import TypeDocument, Aliment, Police, PeriodeCouverture, FormuleGarantie, Client, AlimentPolice, Mouvement, Motif, Bareme
+from production.models import TypeDocument, Police, PeriodeCouverture, FormuleGarantie, Client, AlimentPolice, Mouvement, Motif
 from shared.enum import StatutFacture, StatutSinistre, StatutValidite, Statut, StatutRecours, StatutRemboursement, StatutPaiementSinistre, StatutSinistrePrestation, \
     StatutSinistreBordereau, StatutRemboursementSinistre, OptionRefacturation, SatutBordereauDossierSinistres, StatutReglement
 
@@ -62,14 +62,10 @@ class Sinistre(models.Model):
         verbose_name_plural = 'Sinistres'
 
         permissions = [
-            ("can_do_saisie_prestataire", "Peut saisir des PEC en ligne"),
             ("can_do_saisie_gestionnaire", "Peut saisir des PEC physiques"),
             ("can_view_prestations", "Peut afficher les PEC"),
             ("can_do_generation_bordereau_facturation", "Peut générer un bordereau de facturation"),
             ("can_view_bordereaux_facturations", "Peut voir bordereaux de facturations"),
-            ("can_view_facturesprestataires_en_attente", "Peut voir les factures prestataire en attente"),
-            ("can_view_facturesprestataires_validees", "Peut voir les factures prestataire validées"),
-            ("can_do_traitement_factures_prestataire", "Peut traiter les factures prestataires"),
             ("can_view_remboursements_validees", "Peut voir les remboursements validées"),
             ("can_do_ordonnancement", "Peut faire un ordonnancement"),
             ("can_view_bordereaux_ordonnancement", "Peut voir les bordereaux d'ordonnancements"),
@@ -157,14 +153,10 @@ class HistoriqueSinistre(models.Model):
         verbose_name_plural = 'Historique Sinistres'
 
         permissions = [
-            ("can_do_saisie_prestataire", "Peut saisir des PEC en ligne"),
             ("can_do_saisie_gestionnaire", "Peut saisir des PEC physiques"),
             ("can_view_prestations", "Peut afficher les PEC"),
             ("can_do_generation_bordereau_facturation", "Peut générer un bordereau de facturation"),
             ("can_view_bordereaux_facturations", "Peut voir bordereaux de facturations"),
-            ("can_view_facturesprestataires_en_attente", "Peut voir les factures prestataire en attente"),
-            ("can_view_facturesprestataires_validees", "Peut voir les factures prestataire validées"),
-            ("can_do_traitement_factures_prestataire", "Peut traiter les factures prestataires"),
             ("can_view_remboursements_validees", "Peut voir les remboursements validées"),
             ("can_do_ordonnancement", "Peut faire un ordonnancement"),
             ("can_view_bordereaux_ordonnancement", "Peut voir les bordereaux d'ordonnancements"),
@@ -293,6 +285,7 @@ class GarantieSinistre(models.Model):
         verbose_name_plural = 'Garantie Sinistre'
 
 
+#
 class HistoriqueGarantieSinistre(models.Model):
     historique_sinistre = models.ForeignKey(HistoriqueSinistre, related_name='garanties', null=True, on_delete=models.RESTRICT)
     garantie = models.ForeignKey(Garantie, null=True, on_delete=models.RESTRICT)
@@ -402,6 +395,22 @@ class MouvementSinistre(models.Model):
         verbose_name_plural = 'Mouvements du sinistre'
 
 
+class SinistreEtape(models.Model):
+    sinistre = models.ForeignKey(Sinistre, null=True, on_delete=models.RESTRICT)
+    mouvement = models.ForeignKey(Mouvement, null=True, on_delete=models.RESTRICT)
+    etape_sinistre = models.ForeignKey(EtapeSinistre, null=True, on_delete=models.RESTRICT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        db_table = 'sinistre_etape'
+        verbose_name = 'Sinistre étape'
+        verbose_name_plural = 'Sinistre étape'
+
+
+
+
 
 
 
@@ -422,17 +431,9 @@ class DossierSinistre(models.Model):
     updated_by = models.ForeignKey(User, related_name="updated_by", null=True, on_delete=models.RESTRICT)
     type_prefinancement = models.ForeignKey(TypePrefinancement, null=True, on_delete=models.RESTRICT)
     type_priseencharge = models.ForeignKey(TypePriseencharge, null=True, on_delete=models.RESTRICT)
-    prestataire = models.ForeignKey(Prestataire, related_name="dossiers_sinistres", null=True,
-                                    on_delete=models.RESTRICT)
-    centre_prescripteur = models.ForeignKey(Prestataire, related_name="centre_prescripteur", null=True,
-                                            on_delete=models.RESTRICT)
-    pharmacie = models.ForeignKey(Prestataire, related_name="pharmacie", null=True, on_delete=models.RESTRICT)
-    prescripteur = models.ForeignKey(Prescripteur, null=True, on_delete=models.RESTRICT)
-    aliment = models.ForeignKey(Aliment, null=True, on_delete=models.RESTRICT)
     compagnie = models.ForeignKey(Compagnie, null=True, on_delete=models.RESTRICT)
     formulegarantie = models.ForeignKey(FormuleGarantie, null=True, on_delete=models.RESTRICT)
     police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
-    affection = models.ForeignKey(Affection, null=True, on_delete=models.RESTRICT)
     renseignement_clinique = models.TextField(blank=False, null=True)
     commentaire = models.TextField(blank=False, null=True)
     numero = models.CharField(max_length=25, blank=False, null=False)
@@ -590,23 +591,6 @@ class DossierSinistre(models.Model):
 
     # Todo: Tenir compte du fait que sur le dossier_sinistre il peut avoir des sinistres préfinancés et d'autres non.
     @property
-    def new_total_part_assure_medicament_prestataire(self):
-        sinistres_accorde_ou_attente = self.sinistres.filter(
-            type_sinistre="medicament", statut__in=["ACCORDE", "EN ATTENTE"]
-        )
-
-        # si il y a des accorde ou en attente
-        if sinistres_accorde_ou_attente.exists():
-            return sum(0 if sinistre.tm_prefinanced else sinistre.total_part_assure for sinistre in
-                       sinistres_accorde_ou_attente)
-
-        else:
-            # Si tous les sinistres sont "REJETE", calcule leur somme
-            sinistres_rejetes = self.sinistres.filter(type_sinistre="medicament", statut="REJETE")
-            return sum(0 if sinistre.tm_prefinanced else sinistre.total_part_assure for sinistre in sinistres_rejetes)
-
-    # Todo: Tenir compte du fait que sur le dossier_sinistre il peut avoir des sinistres préfinancés et d'autres non.
-    @property
     def new_total_part_compagnie_medicament_gestionnaire(self):
         sinistres_accorde_ou_attente = self.sinistres.filter(
             type_sinistre="medicament", statut__in=["ACCORDE", "EN ATTENTE"]
@@ -620,28 +604,6 @@ class DossierSinistre(models.Model):
             # Si tous les sinistres sont "REJETE", calcule leur somme
             sinistres_rejetes = self.sinistres.filter(type_sinistre="medicament", statut="REJETE")
             return sum(sinistre.total_part_compagnie for sinistre in sinistres_rejetes)
-
-    # Todo: Tenir compte du fait que sur le dossier_sinistre il peut avoir des sinistres préfinancés et d'autres non.
-    @property
-    def new_total_part_compagnie_medicament_prestataire(self):
-        sinistres_accorde_ou_attente = self.sinistres.filter(
-            type_sinistre="medicament", statut__in=["ACCORDE", "EN ATTENTE"]
-        )
-
-        # si il y a des accorde ou en attente
-        if sinistres_accorde_ou_attente.exists():
-            return sum(
-                sinistre.total_frais_reel if sinistre.tm_prefinanced else sinistre.total_part_compagnie for sinistre in
-                sinistres_accorde_ou_attente)
-
-        else:
-            # Si tous les sinistres sont "REJETE", calcule leur somme
-            sinistres_rejetes = self.sinistres.filter(type_sinistre="medicament", statut="REJETE")
-            return sum(
-                sinistre.total_frais_reel if sinistre.tm_prefinanced else sinistre.total_part_compagnie for sinistre in
-                sinistres_rejetes)
-
-    #
 
     @property
     def total_frais_reel_general(self):
@@ -687,22 +649,6 @@ class DossierSinistre(models.Model):
             sinistres_rejetes = self.sinistres.filter(type_sinistre="acte", statut="REJETE")
             return sum(sinistre.total_part_assure for sinistre in sinistres_rejetes)
 
-    # Todo: Tenir compte du fait que sur le dossier_sinistre il peut avoir des sinistres préfinancés et d'autres non.
-    @property
-    def new_total_part_assure_prestataire(self):
-        sinistres_accorde_ou_attente = self.sinistres.filter(
-            type_sinistre="acte", statut__in=["ACCORDE", "EN ATTENTE"]
-        )
-
-        # si il y a des accorde ou en attente
-        if sinistres_accorde_ou_attente.exists():
-            return sum(0 if sinistre.tm_prefinanced else sinistre.total_part_assure for sinistre in
-                       sinistres_accorde_ou_attente)
-
-        else:
-            # Si tous les sinistres sont "REJETE", calcule leur somme
-            sinistres_rejetes = self.sinistres.filter(type_sinistre="acte", statut="REJETE")
-            return sum(0 if sinistre.tm_prefinanced else sinistre.total_part_assure for sinistre in sinistres_rejetes)
 
     # Todo: Tenir compte du fait que sur le dossier_sinistre il peut avoir des sinistres préfinancés et d'autres non.
     @property
@@ -719,26 +665,6 @@ class DossierSinistre(models.Model):
             # Si tous les sinistres sont "REJETE", calcule leur somme
             sinistres_rejetes = self.sinistres.filter(type_sinistre="acte", statut="REJETE")
             return sum(sinistre.total_part_compagnie for sinistre in sinistres_rejetes)
-
-    # Todo: Tenir compte du fait que sur le dossier_sinistre il peut avoir des sinistres préfinancés et d'autres non.
-    @property
-    def new_total_part_compagnie_prestataire(self):
-        sinistres_accorde_ou_attente = self.sinistres.filter(
-            type_sinistre="acte", statut__in=["ACCORDE", "EN ATTENTE"]
-        )
-
-        # si il y a des accorde ou en attente
-        if sinistres_accorde_ou_attente.exists():
-            return sum(
-                sinistre.total_frais_reel if sinistre.tm_prefinanced else sinistre.total_part_compagnie for sinistre in
-                sinistres_accorde_ou_attente)
-
-        else:
-            # Si tous les sinistres sont "REJETE", calcule leur somme
-            sinistres_rejetes = self.sinistres.filter(type_sinistre="acte", statut="REJETE")
-            return sum(
-                sinistre.total_frais_reel if sinistre.tm_prefinanced else sinistre.total_part_compagnie for sinistre in
-                sinistres_rejetes)
 
     @property
     def statut(self):
@@ -805,14 +731,6 @@ class DossierSinistre(models.Model):
         return review_date
 
     @property
-    def has_seances(self):
-        for sinistre in self.sinistres.all():
-            if sinistre.acte and sinistre.acte.option_seance:
-                return True
-
-        return False
-
-    @property
     def has_prorogation(self):
         for sinistre in self.sinistres.all():
             if sinistre.prorogations.exists():
@@ -845,46 +763,6 @@ class DossierSinistre(models.Model):
         return True if (self.type_prefinancement and self.type_prefinancement.code == 'PREF_TOUT') else False
 
 
-def upload_location_factureprestataire(instance, filename):
-    filebase, extension = filename.rsplit('.', 1)
-    file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    return 'dossiers_sinistres/bordereaux/%s.%s' % (file_name, extension)
-
-
-class FacturePrestataire(models.Model):
-    numero = models.CharField(max_length=255, blank=True, null=True, unique=True)
-    bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
-    type_remboursement = models.ForeignKey(TypeRemboursement, null=True, on_delete=models.RESTRICT)
-    prestataire = models.ForeignKey(Prestataire, null=True, on_delete=models.RESTRICT)
-    adherent_principal = models.ForeignKey(Aliment, null=True, on_delete=models.RESTRICT)
-    assure = models.ForeignKey(Client, null=True, on_delete=models.RESTRICT)
-    periode_comptable = models.ForeignKey(PeriodeComptable, null=True, on_delete=models.RESTRICT)
-    fichier = models.FileField(upload_to=upload_location_factureprestataire, blank=True, default=None, null=True)
-    observation = models.CharField(max_length=255, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-    fp_deleted_by = models.ForeignKey(User, related_name="fp_deleted_by", null=True, on_delete=models.RESTRICT)
-    statut = models.fields.CharField(choices=SatutBordereauDossierSinistres.choices,
-                                     default=SatutBordereauDossierSinistres.ATTENTE, max_length=30, null=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
-                                              max_length=15, null=True)
-    net_a_payer = models.FloatField(null=True, )
-
-    def __str__(self):
-        return f'{self.numero} | {self.prestataire}'
-
-    class Meta:
-        db_table = 'factures_prestataires'
-        verbose_name = 'Facture prestataire'
-        verbose_name_plural = 'Factures prestataires'
-
-        permissions = [
-            # ("can_views_factures", "Can do something with this model"),
-            # ("can_do_another_thing", "Can do another thing with this model"),
-        ]
-
-
 def upload_location_bordereauordonnancement(instance, filename):
     filebase, extension = filename.rsplit('.', 1)
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
@@ -895,8 +773,6 @@ class BordereauOrdonnancement(models.Model):
     numero = models.CharField(max_length=255, blank=True, null=True, unique=True)
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     type_remboursement = models.ForeignKey(TypeRemboursement, null=True, on_delete=models.RESTRICT)
-    prestataire = models.ForeignKey(Prestataire, null=True, on_delete=models.RESTRICT)
-    adherent_principal = models.ForeignKey(Aliment, null=True, on_delete=models.RESTRICT)
     assure = models.ForeignKey(Client, null=True, on_delete=models.RESTRICT)
     periode_comptable = models.ForeignKey(PeriodeComptable, null=True, on_delete=models.RESTRICT)
     fichier = models.FileField(upload_to=upload_location_bordereauordonnancement, blank=True, default=None, null=True)
@@ -918,7 +794,7 @@ class BordereauOrdonnancement(models.Model):
                                               max_length=15, null=True)
 
     def __str__(self):
-        return f'{self.numero} | {self.prestataire}'
+        return f'{self.numero}'
 
     @classmethod
     def par_bureau(cls, bureau):
@@ -944,8 +820,6 @@ def upload_location_paiementcomptable(instance, filename):
 class PaiementComptable(models.Model):
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-    adherent_principal = models.ForeignKey(Aliment, null=True, on_delete=models.RESTRICT)
-    prestataire = models.ForeignKey(Prestataire, null=True, on_delete=models.RESTRICT)
     nom_beneficiaire = models.CharField(max_length=100, blank=True, null=True)
     numero_iban = models.CharField(max_length=50, blank=True, null=True)
     bordereau_ordonnancement = models.ForeignKey(BordereauOrdonnancement, null=True, on_delete=models.RESTRICT)
@@ -1157,132 +1031,10 @@ class DocumentDossierSinistre(models.Model):
         verbose_name_plural = 'Documents prises en charge'
 
 
-class ControlePlafond(models.Model):
-    session_pec = models.CharField(max_length=255, blank=True, null=True)
-    plafond_conso_famille = models.CharField(max_length=255, blank=True, null=True)
-    plafond_conso_individuel = models.CharField(max_length=255, blank=True, null=True)
-    plafond_conso_sous_rubrique = models.CharField(max_length=255, blank=True, null=True)
-    plafond_conso_regroupement_acte = models.CharField(max_length=255, blank=True, null=True)
-    plafond_conso_acte = models.CharField(max_length=255, blank=True, null=True)
-    rubrique = models.ForeignKey(Rubrique, on_delete=models.RESTRICT)
-    sous_rubrique = models.ForeignKey(SousRubrique, null=True, on_delete=models.RESTRICT)
-    regroupement_acte = models.ForeignKey(RegroupementActe, null=True, on_delete=models.RESTRICT)
-    acte = models.ForeignKey(Acte, null=True, on_delete=models.RESTRICT)
-    aliment = models.ForeignKey(Aliment, null=True, on_delete=models.RESTRICT)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'controle_plafond'
-        verbose_name = 'Controle plafond'
-        verbose_name_plural = 'Controle plafonds'
-
-
-# pour permettre le calcul de plafond pendant les ambulatoires
-class SinistreTemporaire(models.Model):
-    session_pec = models.CharField(max_length=100, blank=True, null=True)
-    observation = models.CharField(max_length=255, blank=True, null=True)
-
-    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-    updated_price_by = models.ForeignKey(User, related_name="st_updated_price_by", null=True, on_delete=models.RESTRICT)
-    approuved_by = models.ForeignKey(User, related_name="st_approbateur", null=True, on_delete=models.RESTRICT)
-    served_by = models.ForeignKey(User, related_name="st_serveur", null=True, on_delete=models.RESTRICT)
-    dossier_sinistre = models.ForeignKey(DossierSinistre, related_name="st_sinistres", null=True,
-                                         on_delete=models.RESTRICT)
-    aliment = models.ForeignKey(Aliment, null=True, on_delete=models.RESTRICT)
-    adherent_principal = models.ForeignKey(Aliment, related_name="st_famille", null=True, on_delete=models.RESTRICT)
-    compagnie = models.ForeignKey(Compagnie, null=True, on_delete=models.RESTRICT)
-    police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
-    periode_couverture = models.ForeignKey(PeriodeCouverture, null=True, on_delete=models.RESTRICT)
-    formulegarantie = models.ForeignKey(FormuleGarantie, null=True, on_delete=models.RESTRICT)
-    bareme = models.ForeignKey(Bareme, null=True, blank=True, on_delete=models.RESTRICT)
-    acte = models.ForeignKey(Acte, null=True, on_delete=models.RESTRICT)
-    medicament = models.ForeignKey(Medicament, null=True, on_delete=models.RESTRICT)
-    affection = models.ForeignKey(Affection, null=True, on_delete=models.RESTRICT)
-    prestataire = models.ForeignKey(Prestataire, null=True, on_delete=models.RESTRICT)
-    prescripteur = models.ForeignKey(Prescripteur, null=True, on_delete=models.RESTRICT)
-    numero = models.CharField(max_length=50, blank=True, null=True)
-    type_sinistre = models.CharField(max_length=100, blank=False, null=True)
-    prix_unitaire = models.IntegerField(default=0, null=True)
-    frais_reel = models.DecimalField(max_digits=50, decimal_places=16, null=True)
-    ticket_moderateur = models.DecimalField(max_digits=50, decimal_places=16, null=True)
-    depassement = models.DecimalField(max_digits=50, decimal_places=16, null=True)
-
-    nombre_demande = models.IntegerField(null=True, )
-    nombre_accorde = models.IntegerField(null=True, )
-
-    plafond_chambre = models.DecimalField(max_digits=50, decimal_places=16, null=True)
-    plafond_hospit = models.DecimalField(max_digits=50, decimal_places=16, null=True)
-
-    montant_plafond = models.DecimalField(max_digits=50, decimal_places=16, null=True)
-    nombre_plafond = models.IntegerField(null=True, )
-    nature = models.IntegerField(null=True, )
-    frequence = models.IntegerField(null=True, )
-    unite_frequence = models.IntegerField(null=True, )
-    franchise_min = models.FloatField(null=True, )
-    franchise_max = models.FloatField(null=True, )
-    delai_controle = models.IntegerField(null=True, )
-
-    part_assure = models.DecimalField(max_digits=50, decimal_places=16, null=True)
-    part_compagnie = models.DecimalField(max_digits=50, decimal_places=16, null=True)
-
-    date_survenance = models.DateTimeField(null=True)
-    date_entree = models.DateTimeField(null=True)
-    date_sortie = models.DateTimeField(null=True)
-    reference_facture = models.CharField(max_length=50, blank=True, null=True)
-    date_reception_facture = models.DateTimeField(blank=True, null=True)
-    motif_rejet = models.CharField(max_length=255, blank=True, null=True)
-    statut = models.fields.CharField(choices=StatutSinistre.choices, default=StatutSinistre.ACCORDE, max_length=15,
-                                     null=True)
-    statut_prestation = models.fields.CharField(choices=StatutSinistrePrestation.choices,
-                                                default=StatutSinistrePrestation.ATTENTE, max_length=15, null=True)
-    statut_bordereau = models.fields.CharField(choices=StatutSinistreBordereau.choices,
-                                               default=StatutSinistreBordereau.ATTENTE, max_length=20, null=True)
-    statut_synchro_veos = models.fields.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    reviewed_at = models.DateTimeField(null=True)
-
-    class Meta:
-        db_table = 'sinistres_temporaires'
-        verbose_name = 'Sinistre temporaire'
-        verbose_name_plural = 'Sinistres temporaires'
-
-
-class DemandeRemboursementMobile(models.Model):
-    date_sinistre = models.DateField(blank=True)
-    acte = models.ForeignKey(Acte, on_delete=models.RESTRICT)
-    prestataire = models.ForeignKey(Prestataire, on_delete=models.RESTRICT)
-    beneficiaire = models.ForeignKey(Aliment, related_name='beneficiaire_remboursements', on_delete=models.RESTRICT)
-    adherent_principal = models.ForeignKey(Aliment, null=True, on_delete=models.RESTRICT)
-    bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
-    montant_a_rembourser = models.DecimalField(max_digits=20, decimal_places=2)
-    mode_remboursement = models.ForeignKey(ModeReglement, on_delete=models.RESTRICT)
-    numero_remboursement = models.CharField(max_length=100, null=True, blank=True)
-    prescription_medical = models.FileField(upload_to='sinistre/documents/prescription_medical/', blank=True,
-                                            default=None)
-    facture_normalisee = models.FileField(upload_to='sinistre/documents/facture_normalisee/', blank=True, default=None)
-    acquittee_laboratoire = models.FileField(upload_to='sinistre/documents/acquittee_laboratoire/', blank=True,
-                                             default=None, null=True)
-    autre_document = models.FileField(upload_to='sinistre/documents/autres/', null=True, blank=True)
-    statut = models.fields.CharField(choices=StatutRemboursement.choices, default=StatutRemboursement.ATTENTE,
-                                     max_length=25)
-
-    def _str_(self):
-        return f"Demande de remboursement {self.id}"
-
-    class Meta:
-        db_table = 'demande_remboursement_mobile'
-        verbose_name = "Demande de remboursement mobile"
-        verbose_name_plural = "Demandes de remboursement mobiles"
-
-
-# suivi du traitement des factures prestataires
+# suivi du traitement des factures
 class TrackFacture(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-    prestataire = models.ForeignKey(Prestataire, null=True, on_delete=models.RESTRICT)
     code_systeme = models.CharField(max_length=255, blank=True, null=True)
-    reference_facture_prestataire = models.CharField(max_length=255, blank=True, null=True)
     montant_facture = models.DecimalField(max_digits=20, decimal_places=6, null=True)
     nombre_feuilles_soins = models.DecimalField(max_digits=20, decimal_places=6, null=True)
     date_reception = models.CharField(max_length=255, blank=True, null=True)

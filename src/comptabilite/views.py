@@ -38,26 +38,25 @@ from django.db import transaction
 from comptabilite.models import BordereauOrdonnance, CompteComptable, EncaissementCommission, Journal, ReglementReverseCompagnie
 from configurations.helper_config import create_query_background_task, execute_query
 from configurations.models import Bureau, Caution, Compagnie, MailingList, NatureOperation, Devise, ModeReglement, Banque, PeriodeComptable, \
-    CompteTresorerie, ActionLog, TypeRemboursement, Prestataire
+    CompteTresorerie, ActionLog, TypeRemboursement
 from configurations.models import Compagnie, NatureOperation, Devise, ModeReglement, Banque, PeriodeComptable, \
-    CompteTresorerie, ActionLog, TypeRemboursement, Prestataire, ModelLettreCheque, \
+    CompteTresorerie, ActionLog, TypeRemboursement, ModelLettreCheque, \
     BordereauLettreCheque, BusinessUnit
-from production.models import Aliment, Reglement, Police, Quittance, Operation, OperationReglement, MouvementPolice, \
+from production.models import Reglement, Police, Quittance, Operation, OperationReglement, MouvementPolice, \
     Client, PoliceAssureur, HistoriquePolice
 from production.templatetags.my_filters import money_field
 from shared.enum import MoyenPaiement, SatutBordereauDossierSinistres, StatutPaiementSinistre, \
     StatutReversementCompagnie, StatutEncaissementCommission, StatutReglementApporteurs, \
     StatutValidite, Statut
 from shared.helpers import generate_random_string, render_pdf
-from shared.veos import get_taux_euro_by_devise
 from sinistre.helper_sinistre import requete_analyse_prime_compta
-from sinistre.models import FactureCompagnie, FacturePrestataire, ReglementCompagnie, Sinistre, BordereauOrdonnancement, PaiementComptable
+from sinistre.models import FactureCompagnie, ReglementCompagnie, Sinistre, BordereauOrdonnancement, PaiementComptable
 from sinistre.helper_sinistre import requete_analyse_prime_compta, requete_analyse_prime_compta_apporteur
-from sinistre.models import FacturePrestataire, Sinistre, BordereauOrdonnancement, PaiementComptable
+from sinistre.models import Sinistre, BordereauOrdonnancement, PaiementComptable
 from sinistre.helper_sinistre import requete_analyse_prime_compta
-from sinistre.models import FactureCompagnie, FacturePrestataire, ReglementCompagnie, Sinistre, BordereauOrdonnancement, PaiementComptable
+from sinistre.models import FactureCompagnie, ReglementCompagnie, Sinistre, BordereauOrdonnancement, PaiementComptable
 from sinistre.helper_sinistre import exportation_en_excel_avec_style, requete_analyse_prime_compta, requete_liste_paiement_sinistre_sante_entre_deux_dates
-from sinistre.models import FacturePrestataire, Sinistre, BordereauOrdonnancement
+from sinistre.models import Sinistre, BordereauOrdonnancement
 
 from configurations.models import Compagnie, User
 from django.db.models import OuterRef, Subquery, Count, Sum, Min, Max
@@ -97,10 +96,10 @@ class BordereauxOrdonnancesView(TemplateView):
         type_remboursements = TypeRemboursement.objects.all()
 
         prestataire_ids = BordereauOrdonnancement.objects.filter(bureau=request.user.bureau, statut_paiement=StatutPaiementSinistre.ORDONNANCE, statut_validite=StatutValidite.VALIDE).values_list('prestataire_id', flat=True)
-        prestataires = Prestataire.objects.filter(id__in=prestataire_ids).order_by('name')
+        prestataires = ""
 
         adherent_principal_ids = BordereauOrdonnancement.objects.filter(bureau=request.user.bureau, statut_paiement=StatutPaiementSinistre.ORDONNANCE, statut_validite=StatutValidite.VALIDE, type_remboursement__code="RD").values_list('adherent_principal_id', flat=True)
-        adhs = Aliment.objects.filter(id__in=adherent_principal_ids).order_by('nom')
+        adhs = ""
 
         assures_ids = BordereauOrdonnancement.objects.filter(assure_id__isnull=False, bureau=request.user.bureau,statut_paiement=StatutPaiementSinistre.ORDONNANCE, statut_validite=StatutValidite.VALIDE, type_remboursement__code="RD").values_list('assure_id', flat=True).distinct()
         assures = Client.objects.filter(id__in=assures_ids)

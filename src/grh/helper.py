@@ -10,13 +10,10 @@ from inov import settings
 from django.template.loader import get_template
 from django.utils.html import strip_tags
 
-from production.models import Aliment, AlimentFormule, Police
+from production.models import Police
 from shared.enum import Statut, StatutValidite
 
 from django.utils import timezone
-
-
-
 
 
 def generate_uiid(request):

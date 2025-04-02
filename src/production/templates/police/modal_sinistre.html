@@ -43,6 +43,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Branche")}} </label>
 										<div class="col-sm-7">
+											<input type="hidden" name="branche_id" id="branche_id" data-branche-id="{{ police.produit.branche_id }}" value="{{ police.produit.branche_id }}" class="form-control">
 											<span class="form-control" title="{{ police.produit.branche.nom|default_if_none:'' }}">{{ police.produit.branche.nom|default_if_none:""|slice:":35" }}</span>
 										</div>
 									</div>
@@ -113,7 +114,7 @@
 											<input type="date" class="form-control" name="date_ouverture" id="date_ouverture" autocomplete="off" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" required>
 										</div>
 									</div>
-									<div class="form-group row">
+									<div class="form-group row d-none">
 										<label class="col-sm-5 col-form-label">{{_("Date clôture")}}</label>
 										<div class="col-sm-7">
 											<input type="date" class="form-control" name="date_cloture" id="date_cloture" autocomplete="off" value="">
@@ -147,13 +148,13 @@
 											<input type="date" class="form-control" name="date_declaration" id="date_declaration" autocomplete="off" value="" required>
 										</div>
 									</div>
-									<div class="form-group row">
+									<div class="form-group row d-none">
 										<label class="col-sm-5 col-form-label">{{_("Date réouverture")}}</label>
 										<div class="col-sm-7">
 											<input type="date" class="form-control" name="date_reouverture" id="date_reouverture" autocomplete="off" value="">
 										</div>
 									</div>
-									<div class="form-group row">
+									<div class="form-group row d-none">
 										<label class="col-sm-5 col-form-label">{{_("Sinistre avec recours")}} ? <span class="required">*</span></label>
 										<div class="col-sm-7" style="margin-top:10px">
 											<input type="radio" value="OUI" name="sinistre_recours" id="sinistre_recours_oui">
@@ -178,6 +179,12 @@
 													<option value="{{ circonstance.id }}">{{ circonstance.libelle|default_if_none:"" }}</option>
 												{% endfor %}
 											</select>
+										</div>
+									</div>
+									<div class="form-group row" id="saisie_circonstance_bloc" style="display:none">
+										<label class="col-sm-5 col-form-label">{{_("Saisie la circonstance")}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="saisie_circonstance" id="saisie_circonstance" autocomplete="off" value="">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -217,10 +224,10 @@
 											<input type="text" class="form-control money_field" name="franchise" id="franchise" autocomplete="off" value="">
 										</div>
 									</div>
-									<div class="form-group row">
+									<div class="form-group row" id="responsabilite" style="display:none">
 										<label class="col-sm-5 col-form-label">{{_("Taux de responsabilité")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control" name="responsabilite_id" id="responsabilite_id" required>
+											<select class="form-control" name="responsabilite_id" id="responsabilite_id">
 												<option value="">Choisir</option>
 												{% for responsabilite in responsabilites %}
 													<option value="{{ responsabilite.id }}">{{ responsabilite.libelle|default_if_none:"" }}</option>

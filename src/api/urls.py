@@ -19,20 +19,7 @@ url_v2 = [
     path('otp-request', OTPRequestView.as_view(), name='otp_request'),
 
     path('user', UserView.as_view(), name='update_user'),
-    path('beneficiaries', BeneficiariesView.as_view(), name='famille_list'),
-    path('beneficiary/<int:beneficiary_id>', BeneficiariesByIdView.as_view(), name='beneficiaire_by_id'),
-    path('beneficiary/carte/<str:carte>', BeneficiariesByCarteView.as_view(), name='beneficiaire_by_carte'),
-    path('beneficiary/<int:formul_id>/barreme', BarremeView.as_view(), name='beneficiaire_barreme'),
-    path('beneficiary/<int:formul_id>/reseau', ReseauSoinsView.as_view(), name='reseau_list'),
     path('sinistres', SinistreView.as_view(), name='sinistre_list'),
-    path('typeprestataire', TypePrestataireView.as_view(), name='type_prestataire_list'),
-    path('prestataire-list', PrestataireDataView.as_view(), name='prestataire_list'),
-    path('acte-list', ActeDataView.as_view(), name='acte_list'),
-
-    # Prestataire
-    path('prestataire-login', LoginPrestataireView.as_view(), name='prestataire_login'),
-    path('prestataire', PrestataireView.as_view(), name='prestataire_register'),
-    path('test-num-carte', TestNumCartView.as_view(), name='test-num-carte'),
 
     # API BOBY
     path('boBy/list', WsBobyView.as_view(), name='boby_list'),

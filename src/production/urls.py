@@ -2,14 +2,13 @@
 from django.urls import path
 
 from . import views
-from .views import ClientsView, ExcelFileView, FormulesUniversellesView, FormulesView, DetailsFormuleView, \
+from .views import ClientsView, ExcelFileView, FormulesUniversellesView, FormulesView, \
     DetailsClientView, PoliceClientView, ContactClientView, FilialeClientView, AcompteClientView, GEDClientView, QuittancesClientView, \
-    PoliceGedView, PoliceAvenantsView, PoliceTarifsSpecifiquesView, PoliceQuittancesView, \
+    PoliceGedView, PoliceAvenantsView, PoliceQuittancesView, \
     PoliceSinistresView, AnnulerQuittanceView, CourrierView, PolicesEncoursView, PolicesArrivantEcheanceView, PolicesNonRenouvelleesResilieesView, \
     DetailsSinistreView, SinistreGedView, SinistreAvenantsView
 
 urlpatterns = [
-    path("todo_manuel/", views.todo_manuel, name='todo_manuel'),
     path('apporteurs/ajax_apporteurs', views.ajax_apporteurs, name='ajax_apporteurs'),
     path("compagnie/ajax_infos_compagnie/<int:compagnie_id>/<int:produit_id>/", views.ajax_infos_compagnie, name='ajax_infos_compagnie'),
     path("ajax_produits/<int:branche_id>/", views.ajax_produits, name='ajax_produits'),
@@ -91,13 +90,9 @@ urlpatterns = [
     path('quittance/<int:quittance_id>/imprimer-recu-reglement/<int:reglement_id>', views.imprimer_recu_reglement, name='imprimer_recu_reglement'),
     path('police/<int:police_id>/mouvements', PoliceAvenantsView.as_view(), name='police_avenants'),
     path('police/<int:police_id>/add_avenant', views.add_avenant, name='add_avenant'),
-    path('police/<int:police_id>/tarifs_specifiques', PoliceTarifsSpecifiquesView.as_view(), name='police_tarifs_specifiques'),
-    path('police/<int:police_id>/add_tarif_specifique', views.add_tarif_specifique, name='add_tarif_specifique'),
-    path('del_tarif_specifique', views.del_tarif_specifique, name='del_tarif_specifique'),
     path('police/<int:police_id>/ged', PoliceGedView.as_view(), name='police_ged'),
     path('police/<int:police_id>/add_document', views.police_add_document, name='police_add_document'),
 
-    path('police/<int:police_id>/export_sinistres_famille/<int:aliment_id>', views.export_sinistres_famille, name='export_sinistres_famille'),
     path('police/<int:police_id>/export_sinistres_police', views.export_sinistres_police, name='export_sinistres_police'),
     #
     path('police/get_formules/<int:police_id>/', views.get_formules, name='get_formules'),
@@ -121,9 +116,7 @@ urlpatterns = [
     path('police/<int:police_id>/update_autrerisque/<int:autre_risque_id>', views.update_autrerisque, name='update_autrerisque'),
     path("police/<int:police_id>/supprimer_autresrisque/<int:autresrisque_id>", views.supprimer_autresrisque, name='supprimer_autresrisque'),
 
-    path('police/<int:police_id>/prime_famille', views.prime_famille, name='prime_famille'),
     path('police/<int:police_id>/modifier', views.modifier_police, name='modifier_police'),
-    path('police/<int:police_id>/<int:aliment_id>/upload_benef_picture', views.upload_benef_picture, name='upload_benef_picture'),
     path('police/<int:police_id>/sinistres', PoliceSinistresView.as_view(), name='police_sinistres'),
     path('police/<int:police_id>/save-sinistre', views.police_save_sinistre, name='police_save_sinistre'),
     path('police/<int:police_id>/sinistres_datatable', views.police_sinistres_datatable, name='police_sinistres_datatable'),
@@ -175,38 +168,12 @@ urlpatterns = [
     path('police/<int:police_id>/add_formule', views.add_formule, name='add_formule'),
     path('formule/<int:formule_id>/modifier', views.modifier_formule, name='modifier_formule'),
     path('formule/<int:formule_id>/update_formule', views.modifier_formule, name='update_formule'),
-    path('formule/desactivate_formule', views.desactivate_formule, name='desactivate_formule'),
-    path('formule/<int:formule_id>', DetailsFormuleView.as_view(), name='details_formule'),
-    path('formule/<int:formule_id>/add_bareme', views.add_bareme, name='add_bareme'),
-    path('formule/del_bareme', views.del_bareme, name='del_bareme'),
-    path('formule/detail_bareme/<int:bareme_id>', views.detail_bareme, name='detail_bareme'),
 
-    path('aliment/<int:police_id>/change_formule/<int:aliment_id>', views.change_formule, name='change_formule'),
-    path('aliment/<int:police_id>/remise_en_vigueur/<int:aliment_id>', views.remise_en_vigueur, name='remise_en_vigueur'),
-    path('aliment/<int:police_id>/sortie_police/<int:aliment_id>', views.sortie_police, name='sortie_police'),
-    path('aliment/<int:aliment_id>/add_carte', views.add_carte, name='add_carte'),
-    path('aliment/<int:police_id>/imprimer_carte/<int:aliment_id>', views.imprimer_carte, name='imprimer_carte'),
-    path('aliment/<int:police_id>/imprimer_cartes', views.imprimer_cartes, name='imprimer_cartes'),
-    path('aliment/<int:police_id>/imprimer_cartes_new', views.imprimer_cartes_new, name='imprimer_cartes_new'),
-    path('aliment/<int:aliment_id>/aliment_add_document', views.aliment_add_document, name='aliment_add_document'),
 
     path('download/<str:filename>', views.download, name='download'),
 
     # test panda excel
     path('text-excel-file/', ExcelFileView.as_view()),
-
-    # generation de qrcode en base pour tous les cartes
-    path('generate-qrcode-carte/', views.generate_qrcode, name='generate_qrcode_carte'),
-
-    # PROSPECTS VIEWS GRH
-    path('prospects/', views.ProspectsGrhView.as_view(), name='prospects'),
-    path('prospects/export_prospect/', views.export_prospect, name='export_prospect'),
-
-    path('prospect_grh_datatable/', views.prospect_grh_datatable, name='prospect_grh_datatable'),
-    # path('update_prospect/<int:prospect_id>', views.update_prospect,name='update_prospect'),
-    path('details_prospect/<int:aliment_grh_id>', views.details_prospect,name='details_prospect'),
-    path('submit_prospect/<int:aliment_grh_id>/<int:police_id>', views.submit_prospect, name='submit_prospect'),
-    path('rejet_prospect/<int:aliment_grh_id>', views.rejet_prospect, name='rejet_prospect'),
 
     #
     path('annuler_quittance/', AnnulerQuittanceView.as_view(), name='annuler_quittance'),

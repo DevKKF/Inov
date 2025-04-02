@@ -8,10 +8,10 @@ from django_json_widget.widgets import JSONEditorWidget
 from import_export.admin import ImportExportModelAdmin
 from django import forms
 from admin_custom.admin import custom_admin_site
-from configurations.forms import ActionLogForm, PermissionForm, RegroupementActeForm, SousRubriqueForm, StatExcelWsBobyForm, TarifForm, \
-    CompagnieAdminForm, BanqueAdminForm, SousRegroupementActeForm, ApporteurInternationalForm, GroupeInterForm, GarantieBrancheForm, GarantieFormuleForm
+from configurations.forms import ActionLogForm, PermissionForm, SousRubriqueForm, StatExcelWsBobyForm, TarifForm, \
+    CompagnieAdminForm, BanqueAdminForm, ApporteurInternationalForm, GroupeInterForm, GarantieBrancheForm, GarantieFormuleForm
 from configurations.models import *
-from production.models import Quittance, SecteurActivite, TypeDocument, TarifPrestataireClient, Mouvement, Motif, SecteurActivite
+from production.models import Quittance, SecteurActivite, TypeDocument, Mouvement, Motif
 
 from production.models import Client
 
@@ -26,11 +26,6 @@ class AdminGroupeBureauAdmInLine(admin.TabularInline):
         if db_field.name == "bureau":
             kwargs["queryset"] = Bureau.objects.filter(status=True)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-
-class ActeWaspitoAdmin(admin.ModelAdmin):
-    list_display = ('libelle_fr', 'libelle_en', 'code_waspito','acte','cotation','prix','status')
-    list_per_page = 10
 
 
 class TaxeInline(admin.TabularInline):
@@ -52,17 +47,6 @@ class BureauTaxeAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
-#@admin.register(SinistreVeos)
-class SinistreVeosAdmin(ImportExportModelAdmin):
-    list_display = ('ID_SIN', 'NUMERO_DOSSIER', 'FRAIS_REEL', 'TICKET_MODERATEUR', 'DEPASSEMENT_EXCLUSION',
-                    'PART_ASSURE', 'PART_COMPAGNIE', 'DATE_SINISTRE', 'CODE_ACTE',
-                    'CODE_AFFECTION', 'ID_PER_PRESTA', 'ID_NPOL', 'ID_MED_PRESC', 'ID_ADHERENT',
-                    'STATUT_IMPORT')
-    search_fields = ('ID_SIN', 'NUMERO_DOSSIER', 'ID_PER_PRESTA')
-    list_filter = ('STATUT_IMPORT', 'DATE_SINISTRE')
-    list_per_page = 10
-
-
 class TarifAdmin(admin.ModelAdmin):
     form: TarifForm
 
@@ -79,52 +63,8 @@ class TarifExcelAdmin(ImportExportModelAdmin):
     list_per_page = 10
 
 
-class CompagnieVeosAdmin(ImportExportModelAdmin):
-    list_display = ("ID_PER", "CODE", "NOM",  "COM_APPORT_COMPTANT",  "COM_APPORT_TERME",  "COM_GESTION", "TELEPHONE", "EMAIL", "ADRESSE", "BUREAU", "STATUT_IMPORT")
-    list_filter = ("CODE", "NOM", "BUREAU")
-    search_fields = ("CODE", "NOM", "BUREAU")
-    list_per_page = 20
-
-
 class SecteurActiviteAdmin(admin.ModelAdmin):
     list_display = ('libelle', 'status', 'created_at')
-
-
-class ClientVeosAdmin(ImportExportModelAdmin):
-    list_display = ('ID_PER', 'CODE', 'NOM', 'PRENOMS', 'DATE_NAISSANCE', 'TELEPHONE_FIXE', 'TELEPHONE_MOBILE', 'EMAIL', 'VILLE', 'ADRESSE', 'TYPE_PER', 'LANG', 'PAYS', 'BUREAU', 'STATUT_IMPORT')
-    list_filter = ('ID_PER', 'CODE', 'NOM', 'PRENOMS','TYPE_PER','BUREAU', 'STATUT_IMPORT')
-    search_fields = ('ID_PER', 'CODE', 'NOM', 'PRENOMS','TYPE_PER','BUREAU', 'STATUT_IMPORT')
-    list_per_page = 20
-
-
-class PoliceVeosAdmin(ImportExportModelAdmin):
-    list_display = ('NUMERO',)
-    list_per_page = 20
-
-
-class ApporteurVeosAdmin(ImportExportModelAdmin):
-    list_display = ("ID_NPOL", "ID_PER_APPORTEUR", "NOM_APPORTEUR", "PRENOM_APPORTEUR", "STATUT_IMPORT")
-    list_filter = ("ID_NPOL", "ID_PER_APPORTEUR", "NOM_APPORTEUR", "PRENOM_APPORTEUR")
-    search_fields = ("ID_NPOL", "ID_PER_APPORTEUR", "NOM_APPORTEUR", "PRENOM_APPORTEUR")
-    list_per_page = 20
-
-
-class FormuleVeosAdmin(ImportExportModelAdmin):
-    list_display = ("CODE_FORMULE", "LIBELLE_FORMULE", "NOM_ASSURE", "NUMERO_ASSURE", "ID_NPOL", "NUMERO_POLICE", "LIGNE1",  "LIGNE2",  "LIGNE3",  "LIGNE4", "LIGNE5")
-    list_filter = ("CODE_FORMULE", "NUMERO_ASSURE", "NUMERO_POLICE", "NUM_SOC")
-    search_fields = ("CODE_FORMULE", "NUMERO_ASSURE", "NUMERO_POLICE", "NUM_SOC")
-    list_per_page = 20
-
-
-class AlimentVeosAdmin(ImportExportModelAdmin):
-    list_display = ('ID_ALIMENT', 'NOM', 'PRENOMS', 'DATE_NAISSANCE', 'GENRE', 'CODE_POSTAL',
-                    'EMAIL', 'NUMERO_FAMILLE', 'TELEPHONE_FIXE', 'TELEPHONE_MOBILE',
-                    'ADRESSE', 'VILLE', 'ADHERENT_PRINCIPAL_ID', 'CODE_QUALITE_BENEFICIAIRE',
-                    'QUALITE_BENEFICIAIRE', 'DATE_ENTREE', 'DATE_SORTIE', 'CD_FORMULE',
-                    'LIB_FORMULE', 'CD_COLLEGE', 'LIB_COLLEGE', 'ID_NPOL', 'NUMERO_CARTE')
-    list_filter = ('GENRE', 'CODE_QUALITE_BENEFICIAIRE', 'CD_FORMULE')
-    search_fields = ('NOM', 'PRENOMS', 'EMAIL', 'ADRESSE', 'VILLE', 'NUMERO_CARTE')
-    list_per_page = 10
 
 
 class AlimentBaobabAdmin(ImportExportModelAdmin):
@@ -134,74 +74,12 @@ class AlimentBaobabAdmin(ImportExportModelAdmin):
     list_per_page = 10
 
 
-class PrestataireVeosAdmin(ImportExportModelAdmin):
-    list_display = ('ID_PER', 'CODE', 'NAME', 'TELEPHONE', 'TELEPHONE2', 'TELEPHONE3',
-                    'FAX', 'EMAIL', 'ADRESSE', 'VILLE',
-                    'SOCIETE', 'TYPE_PRESTATAIRE', 'SECTEUR')
-    
-    search_fields = ('NAME', 'CODE', 'EMAIL', 'ADRESSE', 'VILLE', 'TYPE_PRESTATAIRE', 'SECTEUR')
-    list_per_page = 10
-
-
-class UtilisateurVeosAdmin(ImportExportModelAdmin):
-    list_display = ('ID_PER', 'NOM', 'PRENOM', 'CODE', 'LOGIN', 'EMAIL',
-                    'ID_PRESTA', 'NUM_PRESTA', 'NOM_PRESTA', 'SOCIETE')
-
-    search_fields = ('NOM', 'PRENOM', 'CODE', 'LOGIN', 'EMAIL', 'ID_PRESTA', 'NUM_PRESTA', 'NOM_PRESTA', 'SOCIETE')
-    list_per_page = 10
-
-
-class UtilisateurGrhVeosAdmin(ImportExportModelAdmin):
-    list_display = ('NOM', 'LOGIN', 'ADMIN', 'SUPERVUE', 'ACCES_SANTE',
-                    'NOM_CLIENT', 'CODE_CLIENT')
-
-    search_fields = ('NOM', 'LOGIN', 'ADMIN', 'SUPERVUE', 'ACCES_SANTE',
-                    'NOM_CLIENT', 'CODE_CLIENT')
-    list_per_page = 10
-
-
 class ChangementFormuleAdmin(ImportExportModelAdmin):
     list_display = ('NOM', 'PRENOMS', 'NUMERO_CARTE', 'QUALITE_BENEFICIAIRE',
                     'LIB_FORMULE', 'CD_FORMULE', 'DATE_DEBUT')
 
     search_fields = ('NOM', 'PRENOMS', 'NUMERO_CARTE', 'QUALITE_BENEFICIAIRE',
                     'LIB_FORMULE', 'CD_FORMULE', 'DATE_DEBUT')
-    list_per_page = 10
-
-
-class PrescripteurVeosAdmin(ImportExportModelAdmin):
-    list_display = ('id_per', 'numero', 'nom', 'prenom', 'specialite', 'email',
-                    'telephone', 'ID_PRESTA', 'NUM_PRESTA', 'NOM_PRESTA')
-    
-    search_fields = ('id_per', 'numero', 'nom', 'prenom', 'specialite', 'NUM_PRESTA', 'NOM_PRESTA')
-    list_per_page = 10
-
-
-class QuittanceVeosAdmin(ImportExportModelAdmin):
-    list_display = ('NUMERO_CLIENT', 'NOM_CLIENT', 'NUMERO_COMPAGNIE', 'NOM_COMPAGNIE', 'NUMERO_APPORTEUR',
-                    'NOM_APPORTEUR', 'CODE_PRODUIT', 'LIBELLE_PRODUIT', 'NUMERO_POLICE', 'ID_NPOL', 'NUMERO_QUITTANCE',
-                    'DATE_EMIS', 'DATE_DEBUT', 'DATE_FIN', 'CODE_TYPE_QUITTANCE', 'LIBELLE_TYPE_QUITTANCE',
-                    'CODE_NATURE_QUITTANCE', 'LIBELLE_NATURE_QUITTANCE', 'CODE_SITUATION_CLIENT',
-                    'LIBELLE_SITUATION_CLIENT', 'DATE_SITUATION_CLIENT', 'CODE_SITUATION_COMPAGNIE',
-                    'LIBELLE_SITUATION_COMPAGNIE', 'DATE_SITUATION_COMPAGNIE', 'CODE_SITUATION_APPORTEUR',
-                    'LIBELLE_SITUATION_APPORTEUR', 'DATE_SITUATION_APPORTEUR', 'MOIS_DE_COMPTE', 'PRIME_NETTE',
-                    'CSS', 'CSS_OLEA', 'CARTE_ROSE', 'CONSTAT', 'ACCESSOIRES', 'ACCESSOIRES_CIE', 'TAXES',
-                    'TSVL', 'PRIME_TOTALE', 'PRIME_TTC_HORS_CSS_HORS_CARTE', 'PRIME_TTC', 'TAUX', 'COMMISSION',
-                    'SOLDE', 'INDICE', 'NUMERO_SOCIETE', 'CODE_MOUVEMENT', 'LIBELLE_MOUVEMENT', 'CODE_MOTIF',
-                    'LIBELLE_MOTIF', 'STATUT_IMPORT')
-    
-    search_fields = ('NUMERO_CLIENT', 'NOM_CLIENT', 'NUMERO_COMPAGNIE', 'NOM_COMPAGNIE', 'NUMERO_APPORTEUR',
-                     'NOM_APPORTEUR', 'CODE_PRODUIT', 'LIBELLE_PRODUIT', 'NUMERO_POLICE', 'ID_NPOL', 'NUMERO_QUITTANCE',
-                     'DATE_EMIS', 'DATE_DEBUT', 'DATE_FIN', 'CODE_TYPE_QUITTANCE', 'LIBELLE_TYPE_QUITTANCE',
-                     'CODE_NATURE_QUITTANCE', 'LIBELLE_NATURE_QUITTANCE', 'CODE_SITUATION_CLIENT',
-                     'LIBELLE_SITUATION_CLIENT', 'DATE_SITUATION_CLIENT', 'CODE_SITUATION_COMPAGNIE',
-                     'LIBELLE_SITUATION_COMPAGNIE', 'DATE_SITUATION_COMPAGNIE', 'CODE_SITUATION_APPORTEUR',
-                     'LIBELLE_SITUATION_APPORTEUR', 'DATE_SITUATION_APPORTEUR', 'MOIS_DE_COMPTE', 'PRIME_NETTE',
-                     'CSS', 'CSS_OLEA', 'CARTE_ROSE', 'CONSTAT', 'ACCESSOIRES', 'ACCESSOIRES_CIE', 'TAXES',
-                     'TSVL', 'PRIME_TOTALE', 'PRIME_TTC_HORS_CSS_HORS_CARTE', 'PRIME_TTC', 'TAUX', 'COMMISSION',
-                     'SOLDE', 'INDICE', 'NUMERO_SOCIETE', 'CODE_MOUVEMENT', 'LIBELLE_MOUVEMENT', 'CODE_MOTIF',
-                     'LIBELLE_MOTIF')
-    
     list_per_page = 10
 
 
@@ -293,101 +171,6 @@ class MotifAdmin(admin.ModelAdmin):
     list_display = ('code','libelle',)
 
 
-class PrescripteurAdmin(ImportExportModelAdmin):
-    list_filter = ('nom', 'prenoms', 'numero_ordre')
-    list_display = ('nom', 'prenoms', 'numero_ordre', 'telephone', 'email',)
-    search_field = ('nom', 'prenoms', 'numero_ordre')
-
-
-class TypePrestataireSpecialiteInline(admin.TabularInline):
-    model = SpecialiteTypePresta
-    extra = 1
-
-
-class PrestataireReseauxInline(admin.TabularInline):
-    model = PrestataireReseauSoin
-    extra = 1
-
-
-class TarifPrestataireClientInline(admin.TabularInline):
-    model = TarifPrestataireClient
-    extra = 0
-
-
-class PrescripteurPrestataireInline(admin.TabularInline):
-    model = PrescripteurPrestataire
-    extra = 0
-
-
-class PrestataireAdmin(ImportExportModelAdmin):
-    inlines = [TarifPrestataireClientInline, PrescripteurPrestataireInline] #, PrestataireReseauxInline,
-    list_filter = ('name', 'bureau')
-    list_display = ('name', 'code', 'telephone', 'fax', 'email', 'addresse', 'bureau','fichier_tarifs',)
-    search_field = ('name', 'bureau')
-    list_per_page = 10
-
-
-    # overide save_model method to process other actions
-    def save_model(self, request, obj, form, change):
-        
-        super().save_model(request, obj, form, change)
-
-        # get file and use excel to import in prescripteur table
-        #si fichier existants
-        if obj.liste_prescripteurs:
-            filename = obj.liste_prescripteurs.path
-            prestataire = Prestataire.objects.get(id=obj.pk)
-
-            df = pd.read_excel(filename)
-            for index, row in df.iterrows():
-                # Valeur du tableau
-                # Access row values using column names
-                try:
-
-                    numero_ordre = row['numero_ordre']
-                    nom = row['nom']
-                    prenoms = row['prenoms']
-                    telephone = row['telephone']
-                    code_specialite = row['code_specialite']
-
-                    # dd(code_specialite)
-                    specialite = Specialite.objects.filter(code=code_specialite).first()
-                except:
-                    break
-
-
-                try:
-                    # Ne retournera pas d'erreur si le prescripteur existe
-                    prescripteur = Prescripteur.objects.get(numero_ordre=numero_ordre)
-
-                except:
-                    # Le prescripteur n'existe pas, on le créé
-                    prescripteur = Prescripteur.objects.create(
-                        nom=nom,
-                        prenoms=prenoms,
-                        numero_ordre=numero_ordre,
-                        telephone=telephone,
-                        specialite_id=specialite.pk,
-                    )
-
-                # On tente de trouver l'enregistrement de du prescripteur sinon on l'enregistre
-                try:
-                    prescripteur_prestataire = PrescripteurPrestataire.objects.get(prescripteur_id=prescripteur.id)
-                except:
-                    PrescripteurPrestataire.objects.create(
-                            prescripteur_id=prescripteur.pk,
-                            prestataire_id=prestataire.pk
-                        )
-
-
-class TypePrestataireAdmin(admin.ModelAdmin):
-    inlines = [TypePrestataireSpecialiteInline]
-    list_display = ('name',)
-    list_filter = ('name',)
-    search_field = ('name',)
-    list_per_page = 10
-
-
 class TypeEtablissementAdmin(admin.ModelAdmin):
     list_display = ('libelle', 'code')
     list_filter = ('libelle', 'code')
@@ -402,118 +185,10 @@ class SpecialiteAdmin(ImportExportModelAdmin):
     list_per_page = 10
 
 
-class ParamActeInline(admin.TabularInline):
-    model = ParamActe
-    extra = 1
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        # Filtrer les bureaux pour n'afficher que celui de l'utilisateur connecté
-        if db_field.name == 'bureau':
-            kwargs['queryset'] = Bureau.objects.filter(pk=request.user.bureau.id)
-
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-
-# class ActeAdmin(admin.ModelAdmin):
-#     inlines = [ParamActeInline]
-#     list_per_page = 30
-#     list_filter = ('type_acte', 'rubrique', 'regroupement_acte', 'libelle', 'accord_automatique')
-#     list_display = ('code', 'libelle', 'rubrique', 'regroupement_acte', 'lettre_cle', 'base_calcul_tm', 'delais_controle', 'accord_automatique', 'option_seance', 'specialiste_uniquement', 'status')
-#     search_field = ('code', 'libelle',)
-
-    # def get_queryset(self, request):
-    #     # Filter queryset to show only rows where type_acte is 1
-    #     queryset = super().get_queryset(request)
-    #     return queryset.filter(status=1, statut_validite=StatutValidite.VALIDE)
-
-
-class SousRubriqueRegroupementInline(admin.TabularInline):
-    model = SousRubriqueRegroupementActe
-    extra = 1
-
-
-class SousRubriqueAdmin(admin.ModelAdmin):
-    form = SousRubriqueForm
-
-    inlines = [SousRubriqueRegroupementInline]
-    list_per_page = 30
-    list_filter = ('rubrique', 'libelle',)
-    list_display = ('code', 'libelle', 'rubrique',)
-    search_field = ('code', 'libelle',)
-
-
-class RegroupementActeAdmin(admin.ModelAdmin):
-    form = RegroupementActeForm
-
-    list_per_page = 30
-    #list_filter = ('rubrique', 'libelle_regroupement', 'code', )
-    list_display = ('rubrique', 'libelle_regroupement', 'code', )
-    search_field = ('rubrique', 'libelle_regroupement', 'code', )
-
-    def libelle_regroupement(self, obj):
-        return obj.libelle
-
-    libelle_regroupement.short_description = 'Regroupement'
-
-
-class SousRegroupementActeActeInline(admin.TabularInline):
-    model = SousRegroupementActeActe
-    extra = 1
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        # Filtrer les bureaux pour n'afficher que celui de l'utilisateur connecté
-        if db_field.name == 'acte':
-            kwargs['queryset'] = Acte.objects.filter(status=True)# rubrique__code="" filtrer uniquement les actes de la rubrique définit sur le sous-regroupement-acte
-
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-
-class SousRegroupementActeAdmin(admin.ModelAdmin):
-    form = SousRegroupementActeForm
-    inlines = [SousRegroupementActeActeInline]
-
-    list_per_page = 30
-    #list_filter = ('rubrique', 'libelle_regroupement', 'code', )
-    list_display = ('libelle_regroupement_acte', 'code', )
-    search_field = ('libelle_regroupement_acte', 'code', )
-
-    def libelle_regroupement_acte(self, obj):
-        return obj.libelle
-
-    libelle_regroupement_acte.short_description = "Sous-regroupement d'actes"
-
-
-class MedicamentAdmin(ImportExportModelAdmin):
-    list_per_page = 30
-    list_filter = ('code', 'libelle', 'rubrique', 'accord_automatique',)
-    list_display = ('code', 'libelle', 'rubrique', 'accord_automatique')
-    search_field = ('code', 'libelle',)
-
-    def get_queryset(self, request):
-         # Filter queryset to show only rows where type_acte is 1
-         queryset = Acte.objects.filter(type_acte__code="medicament")
-         return queryset
-
-
-# class AffectionAdmin(ImportExportModelAdmin):
-#     list_filter = ('libelle', 'code_cim_10', 'categorie')
-#     list_display = ('libelle', 'code_cim_10', 'categorie')
-#     search_field = ('libelle', 'code_cim_10', 'categorie')
-#     list_per_page = 20
-
-
 class RubiqueAdmin(ImportExportModelAdmin):
     list_filter = ('libelle',)
     list_display = ('code', 'libelle',)
     search_field = ('libelle',)
-    list_per_page = 20
-
-
-class ReseauSoinAdmin(ImportExportModelAdmin):
-    inlines = [PrestataireReseauxInline]
-    list_filter = ('nom',)
-    list_display = ('nom',)
-    search_field = ('nom',)
     list_per_page = 20
 
 
@@ -1011,12 +686,6 @@ class MailingListAdmin(admin.ModelAdmin):
         obj.updated_by = request.user
         super().save_model(request, obj, form, change)
 
-#
-# class PeriodeVeosAdmin(ImportExportModelAdmin):
-#     list_display = ('ID_NPOL', 'NUM_POL', 'DATEEFFET', 'ECHEANCE',	'DEBUTEFFETOLD', 'FINEFFETOLD',	'DUREE')
-
-    search_fields = ('ID_NPOL', 'NUM_POL', 'DATEEFFET', 'ECHEANCE',	'DEBUTEFFETOLD', 'FINEFFETOLD',	'DUREE')
-    list_per_page = 10
 
 class StatExcelWsBobyAdmin(admin.ModelAdmin):
     list_display = ('libelle_fr', 'code_ws', 'status')
@@ -1042,14 +711,6 @@ class StatExcelWsBobyAdmin(admin.ModelAdmin):
             return True
         else:
             return False
-        
-
-
-class ComptePrestataireVeosAdmin(ImportExportModelAdmin):
-    list_display = ('CODE_PRESTATAIRE', 'NOM_PRESTATAIRE', 'EMAIL', 'REMBOURSEMENT_ORDRE_DE',	'TYPE_PRESTATAIRE', 'SECTEUR_PRESTATAIRE',	'OBSERVATION')
-
-    search_fields = ('CODE_PRESTATAIRE', 'NOM_PRESTATAIRE', 'EMAIL', 'REMBOURSEMENT_ORDRE_DE',	'TYPE_PRESTATAIRE', 'SECTEUR_PRESTATAIRE',	'OBSERVATION')
-    list_per_page = 10
 
 
 class BusinessUnitAdmin(admin.ModelAdmin):
@@ -1205,128 +866,7 @@ admin.site.register(TypeMouvement)
 admin.site.register(Circonstance)
 admin.site.register(PosteDommage)
 admin.site.register(GarantieCirconstance)
-#admin.site.register(TypeDocument,TypeDocumentAdmin)
-#admin.site.register(SecteurActivite, SecteurActiviteAdmin)
-#admin.site.register(KeyValueData, KeyValueDataAdmin)
-#admin.site.register(Tarif, TarifAdmin)
-#admin.site.register(GarantieBranche, GarantieBrancheAdmin)
-#admin.site.register(Bureau, BureausAdmin)
-#admin.site.register(Profession, ProfessionAdmin)
-#admin.site.register(MoyensTransport, MoyensTransportAdmin)
-#admin.site.register(Prescripteur, PrescripteurAdmin)
-#admin.site.register(Prestataire, PrestataireAdmin)
-#admin.site.register(TypePrestataire, TypePrestataireAdmin)
-#admin.site.register(Specialite, SpecialiteAdmin)
-#admin.site.register(Rubrique, RubiqueAdmin)
-#admin.site.register(SousRubrique, SousRubriqueAdmin)
-#admin.site.register(Acte)
-#admin.site.register(RegroupementActe, RegroupementActeAdmin)
-#admin.site.register(SousRegroupementActe, SousRegroupementActeAdmin)
-#admin.site.register(TypeActe)
-#admin.site.register(CategorieAffection)
-#admin.site.register(Affection)
-#admin.site.register(TypeAssure)
-#admin.site.register(ReseauSoin, ReseauSoinAdmin)
-#admin.site.register(TypeClient)
-#admin.site.register(Langue, LangueAdmin)
-#admin.site.register(Regularisation,)
-#admin.site.register(TicketModerateur,)
-#admin.site.register(Territorialite,)
-#admin.site.register(Duree,) #à réactiver plus tard
-#admin.site.register(QualiteBeneficiaire,)
-#admin.site.register(TypeAssurance,)
-#admin.site.register(Devise)
-#admin.site.register(ModeCalcul,)
-#admin.site.register(TypeTarif,)
-#admin.site.register(Medicament, MedicamentAdmin)
-#admin.site.register(TypePriseencharge)
-#admin.site.register(TypeEtablissement, TypeEtablissementAdmin)
-#admin.site.register(CompagnieVeos, CompagnieVeosAdmin)
-#admin.site.register(ClientVeos, ClientVeosAdmin)
-#admin.site.register(PoliceVeos, PoliceVeosAdmin)
-#admin.site.register(FormuleVeos, FormuleVeosAdmin)
-#admin.site.register(AlimentVeos, AlimentVeosAdmin)
-#admin.site.register(AlimentBaobab, AlimentBaobabAdmin)
-#admin.site.register(PrestataireVeos, PrestataireVeosAdmin)
-#admin.site.register(UtilisateurVeos, UtilisateurVeosAdmin)
-#admin.site.register(UtilisateurGrhVeos, UtilisateurGrhVeosAdmin)
-#admin.site.register(ChangementFormule, ChangementFormuleAdmin)
-#admin.site.register(PrescripteurVeos, PrescripteurVeosAdmin)
-#admin.site.register(SinistreVeos, SinistreVeosAdmin)
-#admin.site.register(TypeGarant)
-#admin.site.register(Tarif, TarifAdmin)
-#admin.site.register(TypePrefinancement, TypePrefinancementAdmin)
-#admin.site.register(PeriodeComptable, PeriodeComptableAdmin)
-#admin.site.register(ModeCreation, ModeCreationAdmin)
-#admin.site.register(TypeRemboursement, TypeRemboursementAdmin)
-#admin.site.register(TypeQuittance, TypeQuittanceAdmin)
-#admin.site.register(Quittance)
-#admin.site.register(QuittanceVeos, QuittanceVeosAdmin)
-#admin.site.register(ModelLettreCheque, ModelLettreChequeAdmin)
-#admin.site.register(Retenue, RetenueAdmin)
-#admin.site.register(NatureOperation, NatureOperationAdmin)
-
-#admin.site.register(MailingList)
-
-#admin.site.register(PeriodeVeos, PeriodeVeosAdmin)
-#admin.site.register(ComptePrestataireVeos, ComptePrestataireVeosAdmin)
-
-#admin.site.register(ActeWaspito, ActeWaspitoAdmin)
-#admin.site.register(GroupeInter, GroupeInterAdmin)
-#admin.site.register(StatExcelWsBoby, StatExcelWsBobyAdmin)
-#admin.site.register(TypePrefinancement, TypePrefinancementAdmin)
-#admin.site.register(PeriodeComptable, PeriodeComptableAdmin)
-#admin.site.register(ModeCreation, ModeCreationAdmin)
-#admin.site.register(TypeRemboursement, TypeRemboursementAdmin)
-#admin.site.register(User)
-#admin.site.register(ActeWaspito, ActeWaspitoAdmin)
-#admin.site.register(GroupeInter, GroupeInterAdmin)
-#admin.site.register(StatExcelWsBoby, StatExcelWsBobyAdmin)
-#admin.site.register(Retenue, RetenueAdmin)
-#admin.site.register(MailingList)
-#admin.site.register(PeriodeVeos, PeriodeVeosAdmin)
-#admin.site.register(ComptePrestataireVeos, ComptePrestataireVeosAdmin)
-#admin.site.register(Quittance)
-#admin.site.register(QuittanceVeos, QuittanceVeosAdmin)
-#admin.site.register(ApporteurVeos, ApporteurVeosAdmin)
-#admin.site.register(ApporteurInternational, ApporteurInternationalAdmin)
-#admin.site.register(ModelLettreCheque, ModelLettreChequeAdmin)
-#admin.site.register(CompagnieVeos, CompagnieVeosAdmin)
-#admin.site.register(ClientVeos, ClientVeosAdmin)
-#admin.site.register(PoliceVeos, PoliceVeosAdmin)
-#admin.site.register(FormuleVeos, FormuleVeosAdmin)
-#admin.site.register(AlimentVeos, AlimentVeosAdmin)
-#admin.site.register(AlimentBaobab, AlimentBaobabAdmin)
-#admin.site.register(PrestataireVeos, PrestataireVeosAdmin)
-#admin.site.register(UtilisateurVeos, UtilisateurVeosAdmin)
-#admin.site.register(UtilisateurGrhVeos, UtilisateurGrhVeosAdmin)
-#admin.site.register(ChangementFormule, ChangementFormuleAdmin)
-#admin.site.register(PrescripteurVeos, PrescripteurVeosAdmin)
-#admin.site.register(SinistreVeos, SinistreVeosAdmin)
-#admin.site.register(TypeGarant)
-#admin.site.register(Regularisation,)
-#admin.site.register(TicketModerateur,)
-#admin.site.register(Territorialite,)
-#admin.site.register(Duree,) #à réactiver plus tard
-#admin.site.register(QualiteBeneficiaire,)
-#admin.site.register(TypeAssurance,)
-#admin.site.register(ModeCalcul,)
-#admin.site.register(TypeTarif,)
-#admin.site.register(Medicament, MedicamentAdmin)
-#admin.site.register(RegroupementActe, RegroupementActeAdmin)
-#admin.site.register(SousRegroupementActe, SousRegroupementActeAdmin)
-#admin.site.register(TypeActe)
-#admin.site.register(Specialite, SpecialiteAdmin)
-#admin.site.register(Rubrique, RubiqueAdmin)
-#admin.site.register(SousRubrique, SousRubriqueAdmin)
-#admin.site.register(Prescripteur, PrescripteurAdmin)
-#admin.site.register(TypeAssure)
-#admin.site.register(ReseauSoin, ReseauSoinAdmin)
-#admin.site.register(Langue, LangueAdmin)
-
-#admin.site.register(MarqueVehicule) #à réactiver plus tard
-#admin.site.register(TypeCarosserie) #à réactiver plus tard
-
+admin.site.register(EtapeSinistre)
 
 #admin.site.register(Mouvement) #à réactiver plus tard
 #admin.site.register(Motif, MotifAdmin) #à réactiver plus tard

@@ -6,13 +6,13 @@ from .views import LoginView, LogoutView, DashboardView, PolicesView, PoliceOver
     GarantiesBeneficiaireView, TarifBeneficiaireView, DocumentsBeneficiaireView, ImporterPhotoBeneficiaireView, \
     SortirBeneficiaireView, SuspendreBeneficiaireView, ReseauDeSoinView, FicheQuittanceView, \
     DetailsGarantieFormuleBeneficiaireView, \
-    IncorporationByEnrolementView, AjouterDocumentBeneficiaireView, AjouterMembreFamilleBeneficiaire, \
+    IncorporationByEnrolementView, AjouterDocumentBeneficiaireView, \
     PrestataireMedicalView, \
     ChangeBeneficiaireIdView, OnBoardingView, DetailsCampagneView, Enrolement, FormulaireEnrolement, \
     ErrorEnrolementView, \
     PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView, \
-    IncorporationsByGrhView, AjouterBeneficiaire, export_beneficiaire, set_client, PasswordResetOtpView, \
-    PasswordResetFormView, beneficiaire_police_datatable, IncorporationsByGrhView, AjouterBeneficiaire, \
+    IncorporationsByGrhView, set_client, PasswordResetOtpView, \
+    PasswordResetFormView, beneficiaire_police_datatable, IncorporationsByGrhView, \
     export_beneficiaire, DetailsCampagneAppmobileView
 
 urlpatterns = [
@@ -127,13 +127,6 @@ urlpatterns = [
     path(
         'polices/police_overview/<int:police_id>/beneficiaire_overview/fiche_beneficiaire/<int:beneficiaire_id>/suspendre_beneficiaire',
         SuspendreBeneficiaireView.as_view(), name='grh.suspendre_beneficiaire'),
-    path(
-        'polices/police_overview/<int:police_id>/beneficiaire_overview/<int:beneficiaire_id>/formulaire_ajouter_beneficiaire_famille',
-        AjouterMembreFamilleBeneficiaire.as_view(), name='grh.formulaire_ajouter_beneficiaire'),
-    path('polices/police_overview/<int:police_id>/nouveau_beneficiaire/', AjouterBeneficiaire.as_view(),
-         name='grh.formulaire_ajouter_beneficiaire_police'),
-    path('polices/police_overview/<int:police_id>/nouveau_beneficiaire/<int:adherent_principal_id>/',
-         AjouterBeneficiaire.as_view(), name='grh.formulaire_ajouter_beneficiaire_famille'),
 
     # GET / UPDATE BENEFICIAIRE ID FROM FAMILLE PAGE
     path('change_beneficiaire_id/', ChangeBeneficiaireIdView.as_view(), name='grh.change_beneficiaire_id'),

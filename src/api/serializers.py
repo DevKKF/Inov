@@ -3,12 +3,10 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from api.models import InfoActe
-from configurations.models import KeyValueData, User, TypePrestataire, Prestataire, Acte, Bureau, ModeReglement, \
-    TypeActe, Civilite, QualiteBeneficiaire, Pays, Profession
-from production.models import Aliment, Carte, Client, FormuleGarantie, Bareme, CarteDigitalDematerialisee
-from sinistre.models import Sinistre, DemandeRemboursementMobile
-
-from grh.models import Prospect
+from configurations.models import KeyValueData, User, Bureau, ModeReglement, \
+    Civilite, QualiteBeneficiaire, Pays, Profession
+from production.models import Client, FormuleGarantie, CarteDigitalDematerialisee
+from sinistre.models import Sinistre
 
 
 
@@ -18,11 +16,6 @@ class InfoActeSerialiser(ModelSerializer):
         fields = ['numero_assure', 'medecin', 'acte', 'affection', 'rc']
         managed = False
 
-class TypeActeSerialiser(ModelSerializer):
-    class Meta:
-        model = TypeActe
-        fields = ['id', 'code', 'libelle']
-        managed = False
 
 class CiviliteSerializer(ModelSerializer):
     class Meta:
@@ -62,14 +55,6 @@ class KeyValueDataSerializer(ModelSerializer):
         managed = False
 
 
-class CarteSerializer(ModelSerializer):
-    class Meta:
-        model = Carte
-        fields = "__all__"
-        # depth = 3
-        # extra_kwargs = {'user_extranet': {'write_only': True}}
-
-
 class ClientSerializer(ModelSerializer):
     class Meta:
         model = Client
@@ -89,121 +74,6 @@ class FormuleGarantieSerializer(ModelSerializer):
         fields = "__all__"
         depth = 1
         # extra_kwargs = {'user_extranet': {'write_only': True}}
-
-
-class BarremeSerializer(ModelSerializer):
-    class Meta:
-        model = Bareme
-        fields = "__all__"
-        depth = 1
-        # extra_kwargs = {'user_extranet': {'write_only': True}}
-
-class TypePrestataireSerializer(ModelSerializer):
-    class Meta:
-        model = TypePrestataire
-        fields = "__all__"
-        # depth = 1
-
-class PrestataireSerializer(ModelSerializer):
-    class Meta:
-        model = Prestataire
-        fields = "__all__"
-        depth = 1
-
-class PrestataireWebSerializer(ModelSerializer):
-    class Meta:
-        model = Prestataire
-        fields = "__all__"
-        depth = 1
-
-class AlimentSerializer(ModelSerializer):
-    carte = serializers.SerializerMethodField()
-    client = serializers.SerializerMethodField()
-    formule = serializers.SerializerMethodField()
-    # formules = FormuleGarantieSerializer(many=True)
-    class Meta:
-        model = Aliment
-        fields = ["id",
-                  "sms_active",
-                  "veos_id_npol",
-                  "veos_code_aliment",
-                  "veos_adherent_principal",
-                  "veos_adherent_principal_id_per",
-                  "veos_code_qualite_beneficiaire",
-                  "veos_code_formule",
-                  "veos_code_college",
-                  "veos_numero_carte",
-                  "observation",
-                  "nom",
-                  "prenoms",
-                  "nom_jeune_fille",
-                  "date_naissance",
-                  "lieu_naissance",
-                  "genre",
-                  "email",
-                  "numero_securite_sociale",
-                  "numero",
-                  "numero_famille",
-                  "matricule_employe",
-                  "matricule_cie",
-                  "date_affiliation",
-                  "date_sortie",
-                  "photo",
-                  "statut_familiale",
-                  "numero_piece",
-                  "code_postal",
-                  "ville",
-                  "adresse",
-                  "telephone_fixe",
-                  "telephone_mobile",
-                  "rib",
-                  "surprime_ht",
-                  "surprime_ttc",
-                  "plafond_extra",
-                  "apci_ald",
-                  "plafond_individuel",
-                  "plafond_famille",
-                  "commentaire",
-                  "statut",
-                  "created_at",
-                  "updated_at",
-                  "bureau",
-                  "adherent_principal",
-                  "qualite_beneficiaire",
-                  "civilite",
-                  "pays_naissance",
-                  "pays_residence",
-                  "pays_activite_professionnelle",
-                  "profession",
-                  "user_extranet",
-                  "carte",
-                  "client",
-                  "formule",
-                  "photo",
-                  ]
-        depth = 1
-        # extra_kwargs = {'user_extranet': {'write_only': True}}
-
-    def get_carte(self, obj):
-        try:
-            carte = obj.carte_active()
-            return CarteSerializer(carte).data
-        except Carte.DoesNotExist:
-            return None
-
-    def get_client(self, obj):
-        try:
-            client = obj.client()
-            return ClientSerializer(client).data
-        except Client.DoesNotExist:
-            return None
-
-    def get_formule(self, obj):
-        try:
-            formule = obj.formule
-            return FormuleGarantieSerializer(formule).data
-        except FormuleGarantie.DoesNotExist:
-            return None
 
 
 class UserDataSerializer(ModelSerializer):
@@ -277,15 +147,6 @@ class SinisteSerializer(ModelSerializer):
         # extra_kwargs = {'user_extranet': {'write_only': True}}
 
 
-class ActeSerializer(ModelSerializer):
-    class Meta:
-        model = Acte
-        fields = "__all__"
-        # exclude = ['rubrique','regroupement_acte','type_acte',]
-        # depth = 1
-        # extra_kwargs = {'user_extranet': {'write_only': True}}
-
-
 class BureauSerializer(ModelSerializer):
     class Meta:
         model = Bureau
@@ -298,16 +159,6 @@ class ModeRemboursementSerializer(ModelSerializer):
     class Meta:
         model = ModeReglement
         fields = ['id', 'libelle']
-
-class DemandeRemboursementSerializer(ModelSerializer):
-    class Meta:
-        model = DemandeRemboursementMobile
-        fields = "__all__"
-
-class ProspectSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Prospect
-        fields = '__all__'
 
 
 class CarteDigitalDematerialiseeSerializer(serializers.ModelSerializer):

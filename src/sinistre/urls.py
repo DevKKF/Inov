@@ -123,15 +123,6 @@ urlpatterns = [
     path("search_adherents_generate_facture_by_name_datatable", views.search_adherents_generate_facture_by_name_datatable,
          name='search_adherents_generate_facture_by_name_datatable'),
 
-    path("liste_bordereau", views.ListeBordereauView.as_view(), name='liste_bordereau'),
-    path("liste_facture_datatable", views.liste_facture_datatable, name='liste_facture_datatable'),
-    path("detail_facture/<int:bordereau_id>", views.DetailBordereauView.as_view(), name='detail_facture'),
-    path("detail_facture_datatable/<int:bordereau_id>", views.details_bordereau_prestataire_datatable, name='detail_facture_datatable'),
-    path("submit_generate_bordereau", views.submit_generate_bordereau, name='submit_generate_bordereau'),
-    path("bordereau-pdf/", views.facture_pdf, name='pdf_facture'),
-    # path("bordereau-validation-pdf/", views.borderau_validation_pdf, name='borderau_validation_pdf'),
-    # path("bordereau-ordonnancement-pdf/", views.borderau_ordonnancement_pdf_exemple, name='borderau_ordonnancement_pdf_exemple'),
-
     path('update_add_affection/<int:dossier_sinistre_id>', views.update_add_affection, name='update_add_affection'),
 
     path('factures_prestataires/', FacturesPrestataireView.as_view(), name='facturesprestataires'),

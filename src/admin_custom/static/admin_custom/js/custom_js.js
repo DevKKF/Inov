@@ -25533,9 +25533,6 @@ $(document).ready(function () {
         }
     });
 
-
-
-
     //Récupération des polices
     function chargementPoliceCommercialTable(commercialId) {
         $("#table_polices_commercial tbody").empty();
@@ -25764,6 +25761,19 @@ $(document).ready(function () {
         });
     });
 
+    // Affichage du bouton de saisie de circonstance
+    $('#circonstance_id').on('change', function() {
+        let circonstance_id = $(this).val();
+        if (circonstance_id == 43) {
+            $("#saisie_circonstance_bloc").show();
+            $('#saisie_circonstance').attr('required', true);
+        } else {
+            $("#saisie_circonstance_bloc").hide();
+            $('#saisie_circonstance').removeAttr('required');
+        }
+        console.log('circonstance_id', circonstance_id);
+    });
+
     // Changement des informations de la marchandise
     $('#marchandise_id').on('change', function () {
         let marchandise_id = $(this).val();
@@ -25793,6 +25803,18 @@ $(document).ready(function () {
 
     //Affichage / Enregistrement des intervenants
     $('#modal-sinistre').on('show.bs.modal', function (event) {
+
+        // L'obligation le champ taux de responsabilité en fonction de la branche
+        const brancheId = $('#branche_id').data('branche-id');
+        console.log('brancheId', brancheId);
+        if (brancheId == 1) {
+            $("#responsabilite").show();
+            $('#responsabilite_id').attr('required', true);
+        } else {
+            $("responsabilite").hide();
+            $('#responsabilite_id').removeAttr('required');
+        }
+
         const policeId = $('#police_id').data('police-id');
         const intervenantTableBody = $('#table_intervenant_sinistre tbody');
 
