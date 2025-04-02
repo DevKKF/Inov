@@ -111,33 +111,6 @@ class BureausAdmin(ImportExportModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class RetenueAdmin(admin.ModelAdmin):
-    list_filter = ('code','libelle')
-    list_display = ('code','libelle','taux','secteur','prestataires')
-    fields = ['code','libelle','taux','secteur','type_prestataire']
-    search_field = ('libelle', 'code')
-    list_per_page = 20
-
-    def prestataires(self, obj):
-        return ', '.join([ type.name for type in obj.type_prestataire.all() ]) if obj.type_prestataire.count() > 0 else '-'
-    prestataires.allow_tags = True
-    prestataires.short_description = "Types Prestataires"
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        queryset = queryset.filter(bureau=request.user.bureau)
-
-        return queryset
-
-    def save_model(self, request, obj, form, change):
-        # Renseignez le champ bureau uniquement lors de la création d'une nouvelle compagnie
-        if not change:
-            obj.bureau = request.user.bureau
-
-        # Appelez la méthode save_model de la classe parente pour effectuer l'enregistrement réel
-        super().save_model(request, obj, form, change)
-
-
 class ParamProduitCompagnieInline(admin.TabularInline):
     model = ParamProduitCompagnie
     extra = 1

@@ -175,7 +175,6 @@ class DetailsClientView(TemplateView):
             bureaux = Bureau.objects.all().order_by('nom')
             utilisateurs = None  # User.objects.all().order_by('last_name')
             apporteurs = Apporteur.objects.filter(status=True).order_by('nom')
-            tickets_moderateurs = TicketModerateur.objects.all().order_by('libelle')
             fractionnements = Fractionnement.objects.all().order_by('libelle')
             modes_reglements = ModeReglement.objects.all().order_by('libelle')
             regularisations = Regularisation.objects.all().order_by('libelle')
@@ -200,7 +199,7 @@ class DetailsClientView(TemplateView):
                              'filiales': filiales, 'documents': documents, 'types_documents': types_documents,
                              'branches': branches, 'produits': produits, 'pays': pays,
                              'compagnies': compagnies, 'durees': durees, 'placement_gestion': placement_gestion,
-                             'mode_renouvellement': mode_renouvellement, 'tickets_moderateurs': tickets_moderateurs,
+                             'mode_renouvellement': mode_renouvellement,
                              'calcul_tm': calcul_tm,
                              'fractionnements': fractionnements, 'modes_reglements': modes_reglements,
                              'regularisations': regularisations,
@@ -7595,7 +7594,6 @@ class PoliceClientView(TemplateView):
             bureaux = Bureau.objects.all().order_by('nom')
             utilisateurs = None  # User.objects.all().order_by('last_name')
             apporteurs = Apporteur.objects.filter(status=True).order_by('nom')
-            tickets_moderateurs = TicketModerateur.objects.all().order_by('libelle')
             fractionnements = Fractionnement.objects.all().order_by('libelle')
             modes_reglements = ModeReglement.objects.all().order_by('libelle')
             regularisations = Regularisation.objects.all().order_by('libelle')
@@ -7666,7 +7664,7 @@ class PoliceClientView(TemplateView):
                              'filiales': filiales, 'documents': documents, 'types_documents': types_documents,
                              'branches': branches, 'produits': produits, 'pays': pays,
                              'compagnies': compagnies, 'durees': durees, 'placement_gestion': placement_gestion,
-                             'mode_renouvellement': mode_renouvellement, 'tickets_moderateurs': tickets_moderateurs,
+                             'mode_renouvellement': mode_renouvellement,
                              'calcul_tm': calcul_tm, 'conditions_assurances': conditions_assurances, 'moyens_transports': moyens_transports,
                              'fractionnements': fractionnements, 'modes_reglements': modes_reglements,
                              'regularisations': regularisations,

@@ -357,7 +357,6 @@ class GroupePermissionsView(TemplateView):
 
 
 class WsBobyView(TemplateView):
-    # permission_required = "configurations.view_prestataire"
     template_name = 'ws_bobys/bobys.html'
     model = WsBoby
 
@@ -443,7 +442,6 @@ def ws_boby_datatable(request):
 
 
 class WsBobyCreateView(TemplateView):
-    # permission_required = "configurations.view_prestataire"
     template_name = 'ws_bobys/add_boby.html'
     model = WsBoby
 
@@ -497,7 +495,6 @@ class WsBobyCreateView(TemplateView):
 
 
 class WsBobyEditeView(TemplateView):
-    # permission_required = "configurations.view_prestataire"
     template_name = 'ws_bobys/edite_boby.html'
     model = WsBoby
 
@@ -629,7 +626,6 @@ def download_background_query_result(request, query_id):
 
 
 class ConnectedUsersView(PermissionRequiredMixin, TemplateView):
-    permission_required = "configurations.view_prestataire"
     template_name = 'users/connected_users.html'
     model = User
 
