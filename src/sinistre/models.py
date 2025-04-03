@@ -1031,48 +1031,6 @@ class DocumentDossierSinistre(models.Model):
         verbose_name_plural = 'Documents prises en charge'
 
 
-# suivi du traitement des factures
-class TrackFacture(models.Model):
-    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-    code_systeme = models.CharField(max_length=255, blank=True, null=True)
-    montant_facture = models.DecimalField(max_digits=20, decimal_places=6, null=True)
-    nombre_feuilles_soins = models.DecimalField(max_digits=20, decimal_places=6, null=True)
-    date_reception = models.CharField(max_length=255, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'track_facture'
-        verbose_name = 'track_facture'
-        verbose_name_plural = 'track_facture'
-
-
-class TrackEtape(models.Model):
-    code = models.CharField(max_length=50, blank=True, null=True)
-    libelle = models.CharField(max_length=255, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'track_etape'
-        verbose_name = 'Etape'
-        verbose_name_plural = 'Etape'
-
-
-class TrackEtapeFacture(models.Model):
-    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-    track_facture = models.ForeignKey(TrackFacture, on_delete=models.RESTRICT)
-    etape = models.ForeignKey(TrackEtape, null=True, on_delete=models.RESTRICT)
-    observation = models.CharField(max_length=255, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'track_etape_facture'
-        verbose_name = 'Etape Facture'
-        verbose_name_plural = 'Etapes Factures'
-
-
 # Historique des sinistres payés
 class HistoriquePaiementComptableSinistre(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
